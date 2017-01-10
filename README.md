@@ -1,8 +1,8 @@
 # GeoWebCache - Configure WMS-layers in PostreSQL
 
-This is a extension of GWC providing a solution to configure wms-layers in a PostgreSQL database instead of in geowebcache.xml, enabling support for significant amount of configured layers.
+This is a fork of GWC providing a solution to configure wms-layers in a PostgreSQL database instead of in geowebcache.xml, enabling support for significant amount of configured layers.
 
-Additional features to master (Additional until merged into master):
+**Additional features to master (Additional until merged into master):**
 * #462: Adds possiblity to configure configuration of layers (WMS only) to PostgreSQL database
   * Gridsets and others configurations are still configured in geowebcache.xml
   * Table contains two columns, name and layer (configured layer is stored as json)
