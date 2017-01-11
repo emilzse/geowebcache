@@ -237,7 +237,7 @@ public class PostgresConfiguration extends AbsConfigurationDispatcher
      * {@code storageDirFinder}
      * 
      * @param appCtx
-     *            use to lookup {@link XMLConfigurationProvider} extenions, may be {@code null}
+     *            use to lookup {@link XMLConfigurationProvider} extensions, may be {@code null}
      * @param defaultStorage
      * @throws ConfigurationException
      */
@@ -1109,7 +1109,11 @@ public class PostgresConfiguration extends AbsConfigurationDispatcher
     /**
      * @see org.geowebcache.config.Configuration#getTileLayers()
      */
-    public List<TileLayer> getTileLayers() {
+    public List<TileLayer> getTileLayers(boolean activeOnly) {
+        if (activeOnly) {
+            return new ArrayList<TileLayer>(cacheManager.getLayers());
+        }
+
         final String sql = String.format(SELECT_ALL_FROM_GWC_LAYERS, getSchema());
 
         List<TileLayer> layers = null;
@@ -1139,8 +1143,8 @@ public class PostgresConfiguration extends AbsConfigurationDispatcher
      * 
      * @see org.geowebcache.config.Configuration#getLayers()
      */
-    public Iterable<TileLayer> getLayers() {
-        return getTileLayers();
+    public Iterable<TileLayer> getLayers(boolean activeOnly) {
+        return getTileLayers(activeOnly);
     }
 
     /**

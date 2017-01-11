@@ -148,13 +148,26 @@ public class TileLayerDispatcher implements DisposableBean {
      * 
      * @return a list view of this tile layer dispatcher's internal layers
      */
-    @SuppressWarnings("unchecked")
     public Iterable<TileLayer> getLayerList() {
+        return getLayerList(false);
+    }
+
+    /**
+     * Returns a list of all the layers. The consumer may still have to initialize each layer!
+     * <p>
+     * Modifications to the returned layer do not change the internal list of layers, but layers ARE
+     * mutable.
+     * </p>
+     * 
+     * @return a list view of this tile layer dispatcher's internal layers
+     */
+    @SuppressWarnings("unchecked")
+    public Iterable<TileLayer> getLayerList(boolean activeOnly) {
         List<Iterable<TileLayer>> perConfigLayers = new ArrayList<Iterable<TileLayer>>(
                 configs.size());
 
         for (Configuration config : configs) {
-            perConfigLayers.add((Iterable<TileLayer>) config.getLayers());
+            perConfigLayers.add((Iterable<TileLayer>) config.getLayers(activeOnly));
         }
 
         return new CompositeIterable<TileLayer>(perConfigLayers);

@@ -129,7 +129,7 @@ public class UsageStatsMonitor {
     }
 
     private void shutDown(final boolean cancel) {
-        Iterable<TileLayer> allLayers = tileLayerDispatcher.getLayerList();
+        Iterable<TileLayer> allLayers = tileLayerDispatcher.getLayerList(true);
         for (TileLayer layer : allLayers) {
             try {
                 layer.removeLayerListener(usageStatsProducer);

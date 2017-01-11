@@ -63,7 +63,7 @@ public interface Configuration {
     /**
      * @return an unmodifiable list of layers, may be empty, but not null.
      */
-    public Iterable<? extends TileLayer> getLayers();
+    public Iterable<? extends TileLayer> getLayers(boolean activeOnly);
 
     /**
      * @return non null identifier for this configuration

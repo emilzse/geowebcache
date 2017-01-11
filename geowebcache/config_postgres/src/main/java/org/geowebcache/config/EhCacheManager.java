@@ -1,5 +1,8 @@
 package org.geowebcache.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.layer.wms.WMSLayer;
@@ -78,6 +81,21 @@ public class EhCacheManager {
 
             put(layerCache, new Element(layer.getName(), layer));
         }
+    }
+
+    public List<WMSLayer> getLayers() {
+        List<WMSLayer> list = new ArrayList<WMSLayer>();
+
+        for (Object key : layerCache.getKeys()) {
+            Element e = layerCache.get(key);
+
+            WMSLayer layer = e == null ? null : (WMSLayer) e.getObjectValue();
+            if (layer != null) {
+                list.add(layer);
+            }
+        }
+
+        return list;
     }
 
     public WMSLayer getLayer(String layerName) {

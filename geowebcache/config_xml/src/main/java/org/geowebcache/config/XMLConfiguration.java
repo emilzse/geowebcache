@@ -25,7 +25,6 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,7 +67,6 @@ import org.geowebcache.util.ApplicationContextProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -911,9 +909,9 @@ public class XMLConfiguration extends AbsConfigurationDispatcher
     }
 
     /**
-     * @see org.geowebcache.config.Configuration#getLayers()
+     * @see org.geowebcache.config.Configuration#getLayers(boolean)
      */
-    public Iterable<TileLayer> getLayers() {
+    public Iterable<TileLayer> getLayers(boolean activeOnly) {
         return Collections.unmodifiableList(gwcConfig.getLayers());
     }
 
