@@ -59,6 +59,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
@@ -1109,7 +1110,21 @@ public class PostgresConfiguration extends AbsConfigurationDispatcher
     /**
      * @see org.geowebcache.config.Configuration#getTileLayers()
      */
-    public List<TileLayer> getTileLayers(boolean activeOnly) {
+    @Override
+    public List<TileLayer> getTileLayers() {
+        List<TileLayer> layers = new ArrayList<TileLayer>();
+        CollectionUtils.addAll(layers, getLayers(true).iterator());
+
+        return layers;
+    }
+
+    /**
+     * @see #getTileLayers()
+     * 
+     * @see org.geowebcache.config.Configuration#getLayers(boolean)
+     */
+    @Override
+    public Iterable<TileLayer> getLayers(boolean activeOnly) {
         if (activeOnly) {
             return new ArrayList<TileLayer>(cacheManager.getLayers());
         }
@@ -1136,15 +1151,6 @@ public class PostgresConfiguration extends AbsConfigurationDispatcher
         }
 
         return layers;
-    }
-
-    /**
-     * @see #getTileLayers()
-     * 
-     * @see org.geowebcache.config.Configuration#getLayers()
-     */
-    public Iterable<TileLayer> getLayers(boolean activeOnly) {
-        return getTileLayers(activeOnly);
     }
 
     /**
