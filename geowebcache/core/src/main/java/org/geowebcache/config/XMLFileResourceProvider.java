@@ -49,6 +49,8 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
 
     static final String GWC_CONFIG_DIR_VAR = "GEOWEBCACHE_CONFIG_DIR";
     
+    static final String GWC_CONFIG_MAX_BACKUPS = "GEOWEBCACHE_CONFIG_MAX_BACKUPS";
+
     /**
      * Web app context, used to look up {@link XMLConfigurationProvider}s. Will be null if used the
      * {@link #XMLConfiguration(File)} constructor
@@ -68,15 +70,15 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
     /**
      * How many old configuration backups should can be kept
      */
-    // Should be configurable
-    private final int maxBackups = 10;
+    private final int maxBackups;
     
     private String templateLocation;
     
     public XMLFileResourceProvider(final String configFileName,
             final WebApplicationContext appCtx,
             final String configFileDirectory,
-            final DefaultStorageFinder storageDirFinder) throws ConfigurationException {
+ final DefaultStorageFinder storageDirFinder,
+            final int maxBackups) throws ConfigurationException {
         
         if(configFileDirectory==null && storageDirFinder==null) {
             throw new NullPointerException("At least one of configFileDirectory or storageDirFinder must not be null");
@@ -84,7 +86,10 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
         
         this.context = appCtx;
         this.configFileName = configFileName;
-        
+        this.maxBackups = maxBackups;
+
+        log.info(String.format("configFileName='%s' maxBackups='%d'", configFileName, maxBackups));
+
         if(configFileDirectory!=null) {
             // Use the given path
             if (new File(configFileDirectory).isAbsolute()) {
@@ -109,10 +114,19 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
             final ApplicationContextProvider appCtx,
             final String configFileDirectory,
             final DefaultStorageFinder storageDirFinder) throws ConfigurationException {
-        this(configFileName, appCtx == null ? null : appCtx.getApplicationContext(), configFileDirectory,
-                storageDirFinder);
+        this(configFileName, appCtx == null ? null : appCtx.getApplicationContext(),
+                configFileDirectory, storageDirFinder, 10);
     }
     
+    public XMLFileResourceProvider(final String configFileName,
+            final ApplicationContextProvider appCtx,
+            final String configFileDirectory,
+            final DefaultStorageFinder storageDirFinder,
+            final int maxBackups) throws ConfigurationException {
+        this(configFileName, appCtx == null ? null : appCtx.getApplicationContext(),
+                configFileDirectory, storageDirFinder, maxBackups);
+    }
+
     /**
      * Constructor that will look for {@code geowebcache.xml} at the directory defined by
      * {@code storageDirFinder}
@@ -125,7 +139,8 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
     public XMLFileResourceProvider(final String configFileName,
             final ApplicationContextProvider appCtx,
             final DefaultStorageFinder storageDirFinder) throws ConfigurationException {
-        this(configFileName, appCtx, getConfigDirVar(appCtx.getApplicationContext()), storageDirFinder);
+        this(configFileName, appCtx, getConfigDirVar(appCtx.getApplicationContext()),
+                storageDirFinder, getConfigMaxBackups(appCtx.getApplicationContext()));
     }
     
     /**
@@ -140,7 +155,8 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
     public XMLFileResourceProvider(final String configFileName,
             final WebApplicationContext appCtx,
             final DefaultStorageFinder storageDirFinder) throws ConfigurationException {
-        this(configFileName, appCtx, getConfigDirVar(appCtx), storageDirFinder);
+        this(configFileName, appCtx, getConfigDirVar(appCtx), storageDirFinder,
+                getConfigMaxBackups(appCtx));
     }
 
     @Override
@@ -167,6 +183,17 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
         return GWCVars.findEnvVar(ctxt, GWC_CONFIG_DIR_VAR);
     }
     
+    private static int getConfigMaxBackups(ApplicationContext ctxt) {
+        try {
+            String maxBackups = GWCVars.findEnvVar(ctxt, GWC_CONFIG_MAX_BACKUPS);
+
+            return maxBackups == null ? 10 : Integer.parseInt(maxBackups);
+        } catch (NumberFormatException ex) {
+            log.error(GWC_CONFIG_MAX_BACKUPS + " is not a number. Defaulting to 10");
+
+            return 10;
+        }
+    }
 
     @Override
     public void setTemplate(final String templateLocation) {
@@ -239,10 +266,10 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
     private void backUpConfig(final File xmlFile) throws IOException {
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HHmmss").format(new Date());
         String backupfileNamePrefix = "geowebcache_";
-        String backUpFileName = backupfileNamePrefix + timeStamp + ".bak";
-        File parentFile = xmlFile.getParentFile();
+        String extension = ".bak";
 
-        log.debug("Backing up config file " + xmlFile.getName() + " to " + backUpFileName);
+        String backUpFileName = backupfileNamePrefix + timeStamp + extension;
+        File parentFile = xmlFile.getParentFile();
 
         String[] previousBackUps = parentFile.list(new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -251,9 +278,12 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
                 }
 
                 // is file a backup file
-                return name.startsWith(backupfileNamePrefix) && name.endsWith(".bak");
+                return name.startsWith(backupfileNamePrefix) && name.endsWith(extension);
             }
         });
+
+        log.debug("Backing up config file " + xmlFile.getName() + " to " + backUpFileName + ". "
+                + previousBackUps.length + " previous backups");
 
         if (previousBackUps.length > maxBackups) {
             Arrays.sort(previousBackUps);
