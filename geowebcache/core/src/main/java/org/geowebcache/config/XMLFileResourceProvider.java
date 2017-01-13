@@ -65,6 +65,12 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
      */
     private final String configFileName;
     
+    /**
+     * How many old configuration backups should can be kept
+     */
+    // Should be configurable
+    private final int maxBackups = 10;
+    
     private String templateLocation;
     
     public XMLFileResourceProvider(final String configFileName,
@@ -232,7 +238,8 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
 
     private void backUpConfig(final File xmlFile) throws IOException {
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HHmmss").format(new Date());
-        String backUpFileName = "geowebcache_" + timeStamp + ".bak";
+        String backupfileNamePrefix = "geowebcache_";
+        String backUpFileName = backupfileNamePrefix + timeStamp + ".bak";
         File parentFile = xmlFile.getParentFile();
 
         log.debug("Backing up config file " + xmlFile.getName() + " to " + backUpFileName);
@@ -242,14 +249,12 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
                 if (configFileName.equals(name)) {
                     return false;
                 }
-                if (name.startsWith(configFileName) && name.endsWith(".bak")) {
-                    return true;
-                }
-                return false;
+
+                // is file a backup file
+                return name.startsWith(backupfileNamePrefix) && name.endsWith(".bak");
             }
         });
 
-        final int maxBackups = 10;
         if (previousBackUps.length > maxBackups) {
             Arrays.sort(previousBackUps);
             String oldest = previousBackUps[0];
