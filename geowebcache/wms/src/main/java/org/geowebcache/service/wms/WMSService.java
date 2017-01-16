@@ -185,9 +185,9 @@ public class WMSService extends Service{
             throw new ServiceException("Unable to determine requested format, " + format);
         }
 
+        String requestSrs = paramValues.get("srs");
         final SRS srs;
         {
-            String requestSrs = paramValues.get("srs");
             if (requestSrs == null) {
                 throw new ServiceException("No SRS specified");
             }
@@ -222,7 +222,7 @@ public class WMSService extends Service{
         GridSubset gridSubset;
         {
             GridSubset bestMatch = findBestMatchingGrid(bbox, crsMatchingSubsets, tileWidth,
-                    tileHeight, tileIndexTarget);
+                    tileHeight, tileIndexTarget, requestSrs);
             if (bestMatch == null) {
                 // proceed as it used to be
                 gridSubset = crsMatchingSubsets.get(0);

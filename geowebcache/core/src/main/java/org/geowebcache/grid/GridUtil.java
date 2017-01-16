@@ -10,12 +10,13 @@ public class GridUtil {
      * @param expectedTileWidth
      * @param expectedTileHeight
      * @param matchingTileIndexTarget
+     * @param requestSrs
      * @return null if none matches, the gridset with a tile index closest to the requested bounds
      *         and dimensions otherwise
      */
     public static GridSubset findBestMatchingGrid(final BoundingBox reqBounds,
             final List<GridSubset> crsMatchingGridSubsets, final Integer expectedTileWidth,
-            final Integer expectedTileHeight, long[] matchingTileIndexTarget) {
+            final Integer expectedTileHeight, long[] matchingTileIndexTarget, String requestSrs) {
 
         GridSubset bestMatch = null;
         long[] bestMatchingTileIndex = null;
@@ -32,6 +33,7 @@ public class GridUtil {
                 final long[] matchingTileIndex = crsMatch.closestIndex(reqBounds);
                 if (bestMatch == null) {
                     bestMatch = crsMatch;
+
                     bestMatchingTileIndex = matchingTileIndex;
                     continue;
                 }
@@ -48,6 +50,14 @@ public class GridUtil {
 
                 if (deltaCurr < deltaPrev) {
                     bestMatch = crsMatch;
+
+                    bestMatchingTileIndex = matchingTileIndex;
+                } else if (requestSrs != null && deltaCurr == deltaPrev
+                        && requestSrs.equals(crsMatch.getName())) {
+                    // If more than one gridset was matching exactly and the gridset name matches
+                    // the requested SRS exactly then use it
+                    bestMatch = crsMatch;
+
                     bestMatchingTileIndex = matchingTileIndex;
                 }
 
