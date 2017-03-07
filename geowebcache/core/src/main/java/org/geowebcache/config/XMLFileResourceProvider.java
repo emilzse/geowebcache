@@ -47,7 +47,7 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
 
     private static Log log = LogFactory.getLog(org.geowebcache.config.XMLFileResourceProvider.class);
 
-    static final String GWC_CONFIG_DIR_VAR = "GEOWEBCACHE_CONFIG_DIR";
+    public static final String GWC_CONFIG_DIR_VAR = "GEOWEBCACHE_CONFIG_DIR";
     
     static final String GWC_CONFIG_MAX_BACKUPS = "GEOWEBCACHE_CONFIG_MAX_BACKUPS";
 
