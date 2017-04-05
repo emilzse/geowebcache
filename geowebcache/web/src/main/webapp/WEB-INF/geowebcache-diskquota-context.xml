@@ -42,7 +42,7 @@
       <map>
         <entry>
           <key>
-            <value>/diskquota/{layer}.{extension}"</value>
+            <value>/diskquota/{layer}.{extension}</value>
           </key>
           <ref bean="gwdDiskQuotaResourceFinder" />
         </entry>

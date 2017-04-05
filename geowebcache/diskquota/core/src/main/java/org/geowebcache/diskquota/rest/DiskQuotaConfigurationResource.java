@@ -2,10 +2,13 @@ package org.geowebcache.diskquota.rest;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 import org.geowebcache.diskquota.ConfigLoader;
 import org.geowebcache.diskquota.DiskQuotaConfig;
 import org.geowebcache.diskquota.DiskQuotaMonitor;
+import org.geowebcache.diskquota.storage.Quota;
 import org.geowebcache.io.GeoWebCacheXStream;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,6 +20,7 @@ import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
 import org.restlet.resource.StringRepresentation;
+import org.springframework.util.StringUtils;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.HierarchicalStreamDriver;
@@ -57,18 +61,38 @@ public class DiskQuotaConfigurationResource extends Resource {
     public void handleGet() {
         final Request request = getRequest();
         final Response response = getResponse();
+        
+        String layerName = null;
+        try {
+            layerName = URLDecoder.decode((String) request.getAttributes().get("layer"), "UTF-8");
+        } catch (UnsupportedEncodingException uee) {
+        }
+
         final String formatExtension = (String) request.getAttributes().get("extension");
+        
+        Quota usedQuota;
+        try {
+            usedQuota = !StringUtils.isEmpty(layerName) ? monitor.getUsedQuotaByLayerName(layerName)
+                    : null;
+        } catch (InterruptedException e1) {
+            response.setStatus(Status.SERVER_ERROR_INTERNAL,
+                    "Failed to read layer quota : " + layerName);
+            return;
+        }
+
         final DiskQuotaConfig config = monitor.getConfig();
 
         Representation representation;
         if ("json".equals(formatExtension)) {
             try {
-                representation = getJsonRepresentation(config);
+                representation = usedQuota != null ? getJsonRepresentation(usedQuota)
+                        : getJsonRepresentation(config);
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
         } else if ("xml".equals(formatExtension)) {
-            representation = getXmlRepresentation(config);
+            representation = usedQuota != null ? getXmlRepresentation(usedQuota)
+                    : getXmlRepresentation(config);
         } else {
             response.setStatus(Status.CLIENT_ERROR_BAD_REQUEST,
                     "Unknown or missing format extension : " + formatExtension);
@@ -167,6 +191,21 @@ public class DiskQuotaConfigurationResource extends Resource {
             throw new RuntimeException(e);
         }
         return jsonRepresentation;
+    }
+
+    private JsonRepresentation getJsonRepresentation(Quota config) throws JSONException {
+        JsonRepresentation rep = null;
+        XStream xs = ConfigLoader
+                .getConfiguredXStream(new GeoWebCacheXStream(new JsonHierarchicalStreamDriver()));
+        JSONObject obj = new JSONObject(xs.toXML(config));
+        rep = new JsonRepresentation(obj);
+        return rep;
+    }
+
+    private Representation getXmlRepresentation(Quota config) {
+        XStream xStream = ConfigLoader.getConfiguredXStream(new GeoWebCacheXStream());
+        String xml = xStream.toXML(config);
+        return new StringRepresentation(xml, MediaType.TEXT_XML);
     }
 
     private JsonRepresentation getJsonRepresentation(DiskQuotaConfig config) throws JSONException {
