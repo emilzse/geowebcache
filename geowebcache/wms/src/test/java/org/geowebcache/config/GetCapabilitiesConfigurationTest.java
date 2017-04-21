@@ -6,9 +6,12 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,12 +19,13 @@ import org.easymock.Capture;
 import org.geotools.data.ows.CRSEnvelope;
 import org.geotools.data.ows.Layer;
 import org.geotools.data.ows.OperationType;
+import org.geotools.data.ows.StyleImpl;
 import org.geotools.data.ows.WMSCapabilities;
 import org.geotools.data.ows.WMSRequest;
 import org.geotools.data.wms.WebMapServer;
 import org.geowebcache.grid.GridSetBroker;
 import org.geowebcache.layer.TileLayer;
-import org.hamcrest.Matchers;
+import org.geowebcache.layer.wms.WMSLayer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,6 +72,13 @@ public class GetCapabilitiesConfigurationTest {
         Layer l = new Layer();
         l.setName("Foo");
         l.setLatLonBoundingBox(new CRSEnvelope());
+        // create a style for this layer
+        StyleImpl style = new StyleImpl();
+        style.setName("style1");
+        style.setLegendURLs(Collections.singletonList("http://localhost:8080/geoserver/topp/wms?" +
+                "service=WMS&request=GetLegendGraphic&format=image/gif&width=50&height=100&layer=topp:states&style=polygon"));
+        l.setStyles(Collections.singletonList(style));
+        // add the test layer
         layers.add(l);
         
         globalConfig.setDefaultValues(capture(layerCapture)); expectLastCall().times(layers.size());
@@ -82,9 +93,24 @@ public class GetCapabilitiesConfigurationTest {
         
         // Check that the XMLConfiguration's setDefaultValues method has been called on each of the layers returened.
         assertThat(Sets.newHashSet(config.getLayers(false)),
-                Matchers.is(Sets.newHashSet(layerCapture.getValues())));
+                is(Sets.newHashSet(layerCapture.getValues())));
         
         verify(server, cap, req, gcOpType, globalConfig);
+
+        // check legends information
+        WMSLayer wmsLayer = (WMSLayer) config.getTileLayer("Foo");
+        assertThat(wmsLayer, notNullValue());
+        assertThat(wmsLayer.getLegends(), notNullValue());
+        // check legends default for the test layer
+        assertThat(wmsLayer.getLegends().getDefaultWidth(), is(20));
+        assertThat(wmsLayer.getLegends().getDefaultHeight(), is(20));
+        assertThat(wmsLayer.getLegends().getDefaultFormat(), is("image/png"));
+        // check style legend information
+        assertThat(wmsLayer.getLegends().getLegendsRawInfo(), notNullValue());
+        assertThat(wmsLayer.getLegends().getLegendsRawInfo().size(), is(1));
+        assertThat(wmsLayer.getLegends().getLegendsRawInfo().get(0).getWidth(), is(50));
+        assertThat(wmsLayer.getLegends().getLegendsRawInfo().get(0).getHeight(), is(100));
+        assertThat(wmsLayer.getLegends().getLegendsRawInfo().get(0).getFormat(), is("image/gif"));
     }
     
 }

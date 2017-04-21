@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.config.XMLGridSubset;
+import org.geowebcache.config.legends.LegendsRawInfo;
 import org.geowebcache.conveyor.Conveyor.CacheResult;
 import org.geowebcache.conveyor.ConveyorTile;
 import org.geowebcache.filter.parameters.ParameterFilter;
@@ -123,6 +124,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
     private transient LockProvider lockProvider;
 
     private transient int maxBackendRequests;
+
+    private LegendsRawInfo legends;
 
     // protected to be able extend
     protected WMSLayer() {
@@ -990,8 +993,7 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
         }
         
     }
-
-    /**
+	/**
      * How many connections can be opened at the same time to generate new cached tiles (<= 0 = no
      * limit, defaults to 0)
      * 
@@ -999,5 +1001,20 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
      */
     public void setMaxBackendRequests(int maxBackendRequests) {
         this.maxBackendRequests = maxBackendRequests;
+    }
+
+    public LegendsRawInfo getLegends() {
+        return legends;
+    }
+
+    public void setLegends(LegendsRawInfo legends) {
+        this.legends = legends;
+    }
+
+    @Override
+    public Map<String, org.geowebcache.config.legends.LegendInfo> getLayerLegendsInfo() {
+        String layerName = wmsLayers == null ? getName() : wmsLayers;
+        return legends == null ? super.getLayerLegendsInfo() :
+                legends.getLegendsInfo(layerName, wmsUrl != null && wmsUrl.length > 0 ? wmsUrl[0] : null);
     }
 }
