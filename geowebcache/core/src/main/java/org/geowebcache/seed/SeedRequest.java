@@ -178,20 +178,18 @@ public class SeedRequest {
      * <ul>
      * <li>seed - (default) seeds new tiles</li>
      * <li>reseed - seeds new tiles and replaces old ones</li>
+     * <li>renew - seeds existing tiles only by replacing existing ones</li>
      * <li>truncate - removes tiles</li>
      * </ul>
      * 
+     * @see TYPE
      * @return type of seed
      */
     public TYPE getType() {
         if (enumType == null) {
-            if (type == null || type.equalsIgnoreCase("seed")) {
-                return TYPE.SEED;
-            } else if (type.equalsIgnoreCase("reseed")) {
-                return TYPE.RESEED;
-            } else if (type.equalsIgnoreCase("truncate")) {
-                return TYPE.TRUNCATE;
-            } else {
+            try {
+                return type == null ? TYPE.SEED : TYPE.valueOf(type.toUpperCase());
+            } catch (Exception e) {
                 log.warn("Unknown type \"" + type + "\", assuming seed");
                 return TYPE.SEED;
             }

@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
-import org.geowebcache.config.legends.LegendInfo;
 import org.geowebcache.conveyor.ConveyorTile;
 import org.geowebcache.filter.parameters.ParameterFilter;
 import org.geowebcache.filter.request.RequestFilter;
@@ -212,10 +211,13 @@ public abstract class TileLayer {
      * 
      * @param tile
      * @param tryCache
+     * @param cacheOnly
+     *            if seed only if tile already exists (GWCTask.TYPE#RENEW)
      * @throws GeoWebCacheException
      * @throws IOException
      */
-    public abstract void seedTile(ConveyorTile tile, boolean tryCache) throws GeoWebCacheException,
+    public abstract void seedTile(ConveyorTile tile, boolean tryCache, boolean cacheOnly)
+            throws GeoWebCacheException,
             IOException;
 
     /**

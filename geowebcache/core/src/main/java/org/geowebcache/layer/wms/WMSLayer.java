@@ -354,9 +354,10 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
                         } else {
                             // Okay, so we need to go to the backend
                             if (mime.supportsTiling()) {
-                                returnTile = getMetatilingReponse(tile, false, lock, metaTile);
+                                returnTile = getMetatilingReponse(tile, false, false, lock,
+                                        metaTile);
                             } else {
-                                returnTile = getNonMetatilingReponse(tile, false, lock);
+                                returnTile = getNonMetatilingReponse(tile, false, false, lock);
                             }
                         }
 
@@ -466,15 +467,16 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
     /**
      * Used for seeding
      */
-    public void seedTile(ConveyorTile tile, boolean tryCache) throws GeoWebCacheException,
+    public void seedTile(ConveyorTile tile, boolean tryCache, boolean cacheOnly)
+            throws GeoWebCacheException,
             IOException {
         GridSubset gridSubset = getGridSubset(tile.getGridSetId());
         if (gridSubset.shouldCacheAtZoom(tile.getTileIndex()[2])) {
             if (tile.getMimeType().supportsTiling()
                     && (metaWidthHeight[0] > 1 || metaWidthHeight[1] > 1)) {
-                getMetatilingReponse(tile, tryCache, null, null);
+                getMetatilingReponse(tile, tryCache, cacheOnly, null, null);
             } else {
-                getNonMetatilingReponse(tile, tryCache, null);
+                getNonMetatilingReponse(tile, tryCache, cacheOnly, null);
             }
         }
     }
@@ -486,9 +488,12 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
      *            the Tile with all the information
      * @param tryCache
      *            whether to try the cache, or seed
+     * @param cacheOnly
+     *            if true will create new tile if it already exists else return null
      * @throws GeoWebCacheException
      */
-    private ConveyorTile getMetatilingReponse(ConveyorTile tile, boolean tryCache, Lock lock,
+    private ConveyorTile getMetatilingReponse(ConveyorTile tile, boolean tryCache,
+            boolean cacheOnly, Lock lock,
             WMSMetaTile metaTile)
             throws GeoWebCacheException {
 
@@ -500,12 +505,15 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
             String lockKey = buildLockKey(tile, internalMetaTile);
 
             internalLock = lock == null ? lockProvider.getLock(lockKey) : null;
-            /** ****************** Check cache again ************** */
-            if (tryCache && tryCacheFetch(tile)) {
+            /** Only do if in cache **/
+            if (cacheOnly && !tryCacheFetch(tile)) {
+                return null;
+                /** ****************** Check cache again ************** */
+            } else if (tryCache && tryCacheFetch(tile)) {
                 // Someone got it already, return lock and we're done
                 return finalizeTile(tile);
             }
-    
+
             tile.setCacheResult(CacheResult.MISS);
             
             /*
@@ -583,9 +591,12 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
      *            the Tile with all the information
      * @param tryCache
      *            whether to try the cache, or seed
+     * @param cacheOnly
+     *            if true will create new tile if it already exists else return null
      * @throws GeoWebCacheException
      */
-    private ConveyorTile getNonMetatilingReponse(ConveyorTile tile, boolean tryCache, Lock lock)
+    private ConveyorTile getNonMetatilingReponse(ConveyorTile tile, boolean tryCache,
+            boolean cacheOnly, Lock lock)
             throws GeoWebCacheException {
         // String debugHeadersStr = null;
         long[] gridLoc = tile.getTileIndex();
@@ -596,8 +607,11 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
             /** ****************** Acquire lock ******************* */
             internalLock = lock == null ? lockProvider.getLock(lockKey) : null;
             
-            /** ****************** Check cache again ************** */
-            if (tryCache && tryCacheFetch(tile)) {
+            /** Only do if in cache **/
+            if (cacheOnly && !tryCacheFetch(tile)) {
+                return null;
+                /** ****************** Check cache again ************** */
+            } else if (tryCache && tryCacheFetch(tile)) {
                 // Someone got it already, return lock and we're done
                 return tile;
             }

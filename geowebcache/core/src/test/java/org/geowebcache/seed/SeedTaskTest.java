@@ -20,10 +20,9 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.classextension.EasyMock.replay;
-
 import static org.geowebcache.TestHelpers.createFakeSourceImage;
-import static org.geowebcache.TestHelpers.createWMSLayer;
 import static org.geowebcache.TestHelpers.createRequest;
+import static org.geowebcache.TestHelpers.createWMSLayer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,13 +35,9 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import junit.framework.TestCase;
-
 import org.easymock.Capture;
 import org.easymock.classextension.EasyMock;
 import org.geowebcache.GeoWebCacheException;
-import org.geowebcache.TestHelpers;
-import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.grid.GridSubset;
 import org.geowebcache.io.Resource;
 import org.geowebcache.layer.TileResponseReceiver;
@@ -56,6 +51,8 @@ import org.geowebcache.storage.TileObject;
 import org.geowebcache.storage.TileRange;
 import org.geowebcache.storage.TileRangeIterator;
 import org.geowebcache.util.MockWMSSourceHelper;
+
+import junit.framework.TestCase;
 
 /**
  * Unit test suite for {@link SeedTask}
@@ -133,8 +130,7 @@ public class SeedTaskTest extends TestCase {
         expect(mockStorageBroker.get((TileObject) anyObject())).andReturn(false).anyTimes();
         replay(mockStorageBroker);
 
-        boolean reseed = false;
-        SeedTask seedTask = new SeedTask(mockStorageBroker, trIter, tl, reseed, false);
+        SeedTask seedTask = new SeedTask(mockStorageBroker, trIter, tl, GWCTask.TYPE.SEED, false);
         seedTask.setTaskId(1L);
         seedTask.setThreadInfo(new AtomicInteger(), 0);
         /*
@@ -211,8 +207,7 @@ public class SeedTaskTest extends TestCase {
         expect(mockStorageBroker.get((TileObject) anyObject())).andReturn(false).anyTimes();
         replay(mockStorageBroker);
 
-        boolean reseed = false;
-        SeedTask seedTask = new SeedTask(mockStorageBroker, trIter, tl, reseed, false);
+        SeedTask seedTask = new SeedTask(mockStorageBroker, trIter, tl, GWCTask.TYPE.SEED, false);
         seedTask.setTaskId(1L);
         seedTask.setThreadInfo(new AtomicInteger(), 0);
 
@@ -280,8 +275,7 @@ public class SeedTaskTest extends TestCase {
         TileRange tr = TileBreeder.createTileRange(req, tl);
         TileRangeIterator trIter = new TileRangeIterator(tr, tl.getMetaTilingFactors());
 
-        boolean reseed = false;
-        SeedTask task = new SeedTask(mockStorageBroker, trIter, tl, reseed, false);
+        SeedTask task = new SeedTask(mockStorageBroker, trIter, tl, GWCTask.TYPE.SEED, false);
         task.setTaskId(1L);
         task.setThreadInfo(new AtomicInteger(), 0);
         /*

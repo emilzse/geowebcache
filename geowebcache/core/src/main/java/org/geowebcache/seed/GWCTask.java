@@ -30,7 +30,7 @@ public abstract class GWCTask {
     private static final Log log = LogFactory.getLog(GWCTask.class);
 
     public static enum TYPE {
-        UNSET, SEED, RESEED, TRUNCATE
+        UNSET, SEED, RESEED, RENEW, TRUNCATE
     };
 
     public static enum STATE {

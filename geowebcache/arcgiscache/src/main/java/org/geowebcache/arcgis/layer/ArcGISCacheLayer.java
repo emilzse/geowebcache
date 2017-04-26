@@ -1,24 +1,5 @@
 package org.geowebcache.arcgis.layer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geowebcache.GeoWebCacheException;
-import org.geowebcache.arcgis.compact.ArcGISCompactCache;
-import org.geowebcache.arcgis.compact.ArcGISCompactCacheV1;
-import org.geowebcache.arcgis.compact.ArcGISCompactCacheV2;
-import org.geowebcache.arcgis.config.*;
-import org.geowebcache.conveyor.Conveyor.CacheResult;
-import org.geowebcache.conveyor.ConveyorTile;
-import org.geowebcache.grid.*;
-import org.geowebcache.io.FileResource;
-import org.geowebcache.io.Resource;
-import org.geowebcache.layer.AbstractTileLayer;
-import org.geowebcache.layer.ExpirationRule;
-import org.geowebcache.mime.MimeException;
-import org.geowebcache.mime.MimeType;
-import org.geowebcache.util.GWCVars;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -27,6 +8,36 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geowebcache.GeoWebCacheException;
+import org.geowebcache.arcgis.compact.ArcGISCompactCache;
+import org.geowebcache.arcgis.compact.ArcGISCompactCacheV1;
+import org.geowebcache.arcgis.compact.ArcGISCompactCacheV2;
+import org.geowebcache.arcgis.config.CacheInfo;
+import org.geowebcache.arcgis.config.CacheInfoPersister;
+import org.geowebcache.arcgis.config.CacheStorageInfo;
+import org.geowebcache.arcgis.config.LODInfo;
+import org.geowebcache.arcgis.config.TileCacheInfo;
+import org.geowebcache.conveyor.Conveyor.CacheResult;
+import org.geowebcache.conveyor.ConveyorTile;
+import org.geowebcache.grid.BoundingBox;
+import org.geowebcache.grid.Grid;
+import org.geowebcache.grid.GridSet;
+import org.geowebcache.grid.GridSetBroker;
+import org.geowebcache.grid.GridSubset;
+import org.geowebcache.grid.GridSubsetFactory;
+import org.geowebcache.grid.OutsideCoverageException;
+import org.geowebcache.io.FileResource;
+import org.geowebcache.io.Resource;
+import org.geowebcache.layer.AbstractTileLayer;
+import org.geowebcache.layer.ExpirationRule;
+import org.geowebcache.mime.MimeException;
+import org.geowebcache.mime.MimeType;
+import org.geowebcache.util.GWCVars;
 
 /**
  * @author Gabriel Roldan
@@ -416,9 +427,11 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     * @see org.geowebcache.layer.TileLayer#seedTile(org.geowebcache.conveyor.ConveyorTile, boolean)
+     * @see org.geowebcache.layer.TileLayer#seedTile(org.geowebcache.conveyor.ConveyorTile, boolean,
+     *      boolean)
      */
-    @Override public void seedTile(ConveyorTile tile, boolean tryCache)
+    @Override
+    public void seedTile(ConveyorTile tile, boolean tryCache, boolean cacheOnly)
         throws GeoWebCacheException, IOException {
         throw new UnsupportedOperationException();
     }

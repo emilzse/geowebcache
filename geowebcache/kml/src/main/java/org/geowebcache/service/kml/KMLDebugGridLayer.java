@@ -32,7 +32,6 @@ import org.geowebcache.grid.SRS;
 import org.geowebcache.io.ByteArrayResource;
 import org.geowebcache.layer.AbstractTileLayer;
 import org.geowebcache.layer.BadTileException;
-import org.geowebcache.layer.TileLayer;
 import org.geowebcache.mime.MimeType;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -298,8 +297,8 @@ public class KMLDebugGridLayer extends AbstractTileLayer {
     }
 
     @Override
-    public void seedTile(ConveyorTile tile, boolean tryCache) throws GeoWebCacheException,
-            IOException {
+    public void seedTile(ConveyorTile tile, boolean tryCache, boolean cacheOnly)
+            throws GeoWebCacheException, IOException {
         // TODO Auto-generated method stub
 
     }

@@ -45,7 +45,7 @@ class SeedTask extends GWCTask {
 
     private final TileLayer tl;
 
-    private boolean reseed;
+    // private boolean reseed;
 
     private boolean doFilterUpdate;
 
@@ -67,12 +67,11 @@ class SeedTask extends GWCTask {
      * @param reseed
      * @param doFilterUpdate
      */
-    public SeedTask(StorageBroker sb, TileRangeIterator trIter, TileLayer tl, boolean reseed,
+    public SeedTask(StorageBroker sb, TileRangeIterator trIter, TileLayer tl, GWCTask.TYPE seedType,
             boolean doFilterUpdate) {
         this.storageBroker = sb;
         this.trIter = trIter;
         this.tl = tl;
-        this.reseed = reseed;
         this.doFilterUpdate = doFilterUpdate;
 
         tileFailureRetryCount = 0;
@@ -80,11 +79,7 @@ class SeedTask extends GWCTask {
         totalFailuresBeforeAborting = 10000;
         sharedFailureCounter = new AtomicLong();
 
-        if (reseed) {
-            super.parsedType = GWCTask.TYPE.RESEED;
-        } else {
-            super.parsedType = GWCTask.TYPE.SEED;
-        }
+        super.parsedType = seedType;
         super.layerName = tl.getName();
 
         super.state = GWCTask.STATE.READY;
@@ -116,7 +111,8 @@ class SeedTask extends GWCTask {
         final int metaTilingFactorX = tl.getMetaTilingFactors()[0];
         final int metaTilingFactorY = tl.getMetaTilingFactors()[1];
 
-        final boolean tryCache = !reseed;
+        final boolean tryCache = parsedType == GWCTask.TYPE.SEED;
+        final boolean cacheOnly = parsedType == GWCTask.TYPE.RENEW;
 
         checkInterrupted();
         long[] gridLoc = trIter.nextMetaGridLocation(new long[3]);
@@ -133,7 +129,7 @@ class SeedTask extends GWCTask {
             for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
                 try {
                     checkInterrupted();
-                    tl.seedTile(tile, tryCache);
+                    tl.seedTile(tile, tryCache, cacheOnly);
                     break;// success, let it go
                 } catch (Exception e) {
                     // if GWC_SEED_RETRY_COUNT was not set then none of the settings have effect, in
@@ -193,7 +189,8 @@ class SeedTask extends GWCTask {
             log.info("Job on " + Thread.currentThread().getName() + " was terminated after "
                     + this.tilesDone + " tiles");
         } else {
-            log.info(Thread.currentThread().getName() + " completed (re)seeding layer " + layerName
+            log.info(Thread.currentThread().getName() + " completed " + parsedType.toString()
+                    + " layer " + layerName
                     + " after " + this.tilesDone + " tiles and " + this.timeSpent + " seconds.");
         }
 

@@ -23,9 +23,11 @@ import static org.easymock.classextension.EasyMock.verify;
 import static org.geowebcache.TestHelpers.createFakeSourceImage;
 import static org.geowebcache.TestHelpers.createRequest;
 import static org.geowebcache.TestHelpers.createWMSLayer;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -35,9 +37,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +65,6 @@ import org.geowebcache.conveyor.ConveyorTile;
 import org.geowebcache.filter.parameters.ParameterFilter;
 import org.geowebcache.grid.GridSet;
 import org.geowebcache.grid.GridSetBroker;
-import org.geowebcache.grid.GridSubset;
 import org.geowebcache.grid.OutsideCoverageException;
 import org.geowebcache.io.ByteArrayResource;
 import org.geowebcache.io.Resource;
@@ -133,7 +132,7 @@ public class WMSLayerTest extends TileLayerTest {
                 mimeType, null, servletReq, servletResp);
 
         boolean tryCache = false;
-        layer.seedTile(tile, tryCache);
+        layer.seedTile(tile, tryCache, false);
 
         assertEquals(1, captured.getValues().size());
         TileObject value = captured.getValue();
@@ -231,7 +230,7 @@ public class WMSLayerTest extends TileLayerTest {
                 mimeType, null, servletReq, servletResp);
 
         boolean tryCache = false;
-        layer.seedTile(tile, tryCache);
+        layer.seedTile(tile, tryCache, false);
 
         assertEquals(9, captured.getValues().size());
         verify(mockStorageBroker);
@@ -388,7 +387,7 @@ public class WMSLayerTest extends TileLayerTest {
                     tr.getMimeType(), fullParameters, null, null);
             tile.setTileLayer(tl);
             
-            tl.seedTile(tile, false);
+            tl.seedTile(tile, false, false);
 
             gridLoc = trIter.nextMetaGridLocation(gridLoc);
         }

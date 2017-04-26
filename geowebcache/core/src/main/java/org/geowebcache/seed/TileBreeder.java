@@ -21,7 +21,6 @@ package org.geowebcache.seed;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -380,9 +379,9 @@ public class TileBreeder implements ApplicationContextAware {
 
         switch (type) {
         case SEED:
-            return new SeedTask(storageBroker, trIter, tl, false, doFilterUpdate);
         case RESEED:
-            return new SeedTask(storageBroker, trIter, tl, true, doFilterUpdate);
+        case RENEW:
+            return new SeedTask(storageBroker, trIter, tl, type, doFilterUpdate);
         default:
             throw new IllegalArgumentException("Unknown request type " + type);
         }
