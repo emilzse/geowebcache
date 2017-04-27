@@ -75,3 +75,8 @@ This is a fork of GWC providing a solution to configure wms-layers in a PostgreS
 * GetTiles: Will provide how many tiles are missing
   * Mainly useful for fullWMS requests to determine how many subsequent request will be done
   * How: Use a GetMap request and modify with REQUEST=GetTiles
+* Endpoint to return used disk space for single layer:
+  * /diskquota/{layer}.{extension}
+  * `{"Quota":{"units":"MiB","value":"16.484375"}}`
+* Seedint option RENEW
+  * Will seed existing tiles only, meaning that only existing tiles will be "reseeded"
