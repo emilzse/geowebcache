@@ -78,5 +78,5 @@ This is a fork of GWC providing a solution to configure wms-layers in a PostgreS
 * Endpoint to return used disk space for single layer:
   * /diskquota/{layer}.{extension}
   * `{"Quota":{"units":"MiB","value":"16.484375"}}`
-* Seedint option RENEW
+* Seeding: New option named RENEW for seeding requests
   * Will seed existing tiles only, meaning that only existing tiles will be "reseeded"
