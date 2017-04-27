@@ -100,7 +100,8 @@ class SeedTask extends GWCTask {
         final long START_TIME = System.currentTimeMillis();
 
         final String layerName = tl.getName();
-        log.info(Thread.currentThread().getName() + " begins seeding layer : " + layerName);
+        log.info(Thread.currentThread().getName() + " begins seeding layer : " + layerName
+                + " with seed type : " + parsedType);
 
         TileRange tr = trIter.getTileRange();
 

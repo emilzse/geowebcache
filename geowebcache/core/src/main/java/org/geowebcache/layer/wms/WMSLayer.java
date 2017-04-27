@@ -505,11 +505,19 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
             String lockKey = buildLockKey(tile, internalMetaTile);
 
             internalLock = lock == null ? lockProvider.getLock(lockKey) : null;
-            /** Only do if in cache **/
-            if (cacheOnly && !tryCacheFetch(tile)) {
-                return null;
-                /** ****************** Check cache again ************** */
-            } else if (tryCache && tryCacheFetch(tile)) {
+
+            /** Only seed if in cache **/
+            if (cacheOnly) {
+                if (!tryCacheFetch(tile, false)) {
+                    return null;
+                }
+
+                // do not update last modified with old tile
+                tile.getStorageObject().setCreated(0);
+            }
+
+            /** ****************** Check cache again ************** */
+            if (tryCache && tryCacheFetch(tile)) {
                 // Someone got it already, return lock and we're done
                 return finalizeTile(tile);
             }
@@ -607,11 +615,18 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
             /** ****************** Acquire lock ******************* */
             internalLock = lock == null ? lockProvider.getLock(lockKey) : null;
             
-            /** Only do if in cache **/
-            if (cacheOnly && !tryCacheFetch(tile)) {
-                return null;
-                /** ****************** Check cache again ************** */
-            } else if (tryCache && tryCacheFetch(tile)) {
+            /** Only seed if in cache **/
+            if (cacheOnly) {
+                if (!tryCacheFetch(tile, false)) {
+                    return null;
+                }
+
+                // do not update last modified with old tile
+                tile.getStorageObject().setCreated(0);
+            }
+
+            /** ****************** Check cache again ************** */
+            if (tryCache && tryCacheFetch(tile)) {
                 // Someone got it already, return lock and we're done
                 return tile;
             }
@@ -645,10 +660,21 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
     }
 
     public boolean tryCacheFetch(ConveyorTile tile) {
+        return tryCacheFetch(tile, true);
+    }
+
+    /**
+     * 
+     * @param tile
+     * @param controlExpireCache
+     *            if true (default) then will check if the tile is recent enough
+     * @return
+     */
+    public boolean tryCacheFetch(ConveyorTile tile, boolean controlExpireCache) {
         int expireCache = this.getExpireCache((int) tile.getTileIndex()[2]);
         if (expireCache != GWCVars.CACHE_DISABLE_CACHE) {
             try {
-                return tile.retrieve(expireCache * 1000L);
+                return tile.retrieve(controlExpireCache ? expireCache * 1000L : -1);
             } catch (GeoWebCacheException gwce) {
                 log.error(gwce.getMessage());
                 tile.setErrorMsg(gwce.getMessage());
