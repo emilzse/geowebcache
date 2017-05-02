@@ -45,7 +45,10 @@ public class QueuedUsageStatsProducer implements TileLayerListener {
         String parametersId = tile.getParametersId();
         TileSet tileSet = new TileSet(layerName, gridsetId, blobFormat, parametersId);
         long[] tileIndex = tile.getTileIndex().clone();
-        UsageStats usageLog = new UsageStats(tileSet, tileIndex);
+        double[] bbox = tile.getGridSubset().boundsFromIndex(tileIndex).getCoords();
+        int epsgId = tile.getGridSubset().getSRS().getNumber();
+
+        UsageStats usageLog = new UsageStats(tileSet, tileIndex, bbox, epsgId);
         try {
             usageStatsQueue.put(usageLog);
         } catch (InterruptedException e) {

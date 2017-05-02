@@ -10,9 +10,15 @@ public class UsageStats {
 
     private final long[] tileIndex;
 
-    public UsageStats(TileSet tileset, long[] tileIndex) {
+    private final double[] bbox;
+
+    private final int epsgId;
+
+    public UsageStats(TileSet tileset, long[] tileIndex, double[] bbox, int epsgId) {
         this.tileSet = tileset;
         this.tileIndex = tileIndex;
+        this.bbox = bbox;
+        this.epsgId = epsgId;
     }
 
     public TileSet getTileSet() {
@@ -21,6 +27,14 @@ public class UsageStats {
 
     public long[] getTileIndex() {
         return tileIndex;
+    }
+
+    public double[] getBbox() {
+        return bbox;
+    }
+
+    public int getEpsgId() {
+        return epsgId;
     }
 
     @Override

@@ -709,6 +709,8 @@ public abstract class TileLayer {
                                 tileProto.getGridSetId(), tileProto.getMimeType().getFormat(),
                                 tileProto.getParameters(), resource);
                         tile.setCreated(requestTime);
+                        tile.setEpsgId(gridSubset.getGridSet().getSrs().getNumber());
+                        tile.setBbox(gridSubset.boundsFromIndex(idx).getCoords());
 
                         try {
                             if (tileProto.isMetaTileCacheOnly()) {

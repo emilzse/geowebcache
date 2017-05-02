@@ -85,10 +85,12 @@ public final class BlobStoreListenerList {
             final String blobFormat = stObj.getBlobFormat();
             final String paramsId = stObj.getParametersId();
             final int blobSize = stObj.getBlobSize();
+            double[] bbox = stObj.getBbox();
+            int epsgId = stObj.getEpsgId();
 
             for (int i = 0; i < listeners.size(); i++) {
                 listeners.get(i).tileStored(layerName, gridSetId, blobFormat, paramsId, xyz[0],
-                        xyz[1], (int) xyz[2], blobSize);
+                        xyz[1], (int) xyz[2], blobSize, epsgId, bbox);
 
             }
         }

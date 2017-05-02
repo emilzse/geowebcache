@@ -44,6 +44,10 @@ public class TileObject extends StorageObject implements Serializable{
 
     String gridSetId;
 
+    private double[] bbox;
+
+    private int epsgId;
+
     public static TileObject createQueryTileObject(String layerName, long[] xyz, String gridSetId,
             String format, Map<String, String> parameters) {
         TileObject obj = new TileObject();
@@ -126,6 +130,22 @@ public class TileObject extends StorageObject implements Serializable{
 
     public String getType() {
         return TYPE;
+    }
+
+    public void setBbox(double[] bbox) {
+        this.bbox = bbox;
+    }
+
+    public double[] getBbox() {
+        return bbox;
+    }
+
+    public void setEpsgId(int epsgId) {
+        this.epsgId = epsgId;
+    }
+
+    public int getEpsgId() {
+        return epsgId;
     }
 
     public String toString() {

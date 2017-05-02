@@ -41,9 +41,11 @@ public interface BlobStoreListener {
      * @param blobSize the actual storage size the blob uses in the blob store's backend storage;
      *        which may or may not equal to the encoded tile size, depending on the storage
      *        mechanism
+     * @param epsgId SRS number
+     * @param bbox bounding box of tile
      */
     void tileStored(String layerName, String gridSetId, String blobFormat, String parametersId,
-            long x, long y, int z, long blobSize);
+            long x, long y, int z, long blobSize, int epsgId, double[] bbox);
 
     /**
      * Notifies that the blob store has deleted a tile given by the method arguments.

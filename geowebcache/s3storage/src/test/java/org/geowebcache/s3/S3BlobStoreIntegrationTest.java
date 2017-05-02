@@ -159,7 +159,7 @@ public class S3BlobStoreIntegrationTest {
 
         verify(listener).tileStored(eq(tile.getLayerName()), eq(tile.getGridSetId()),
                 eq(tile.getBlobFormat()), anyString(), eq(20L), eq(30L), eq(12),
-                eq((long) bytes.length));
+                eq((long) bytes.length), -1, null);
 
         // update tile
         tile = queryTile(20, 30, 12);

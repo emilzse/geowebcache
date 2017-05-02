@@ -86,7 +86,8 @@ public class SQLDialect {
                             " FREQUENCY_OF_USE FLOAT,\n" + //
                             " LAST_ACCESS_TIME_MINUTES INTEGER,\n" + //
                             " FILL_FACTOR FLOAT,\n" + //
-                            " NUM_HITS NUMERIC("+NUM_HITS_SIZE+")\n" + //
+                            " NUM_HITS NUMERIC(" + NUM_HITS_SIZE + "),\n" + //
+                            " GEOM VARCHAR\n" + //
                             ")", //
                     "CREATE INDEX TILEPAGE_TILESET ON ${schema}TILEPAGE(TILESET_ID, FILL_FACTOR)",
                     "CREATE INDEX TILEPAGE_FREQUENCY ON ${schema}TILEPAGE(FREQUENCY_OF_USE DESC)",
@@ -316,7 +317,7 @@ public class SQLDialect {
     public String contionalTilePageInsertStatement(String schema, String keyParam,
             String tileSetIdParam, String zParam, String xParam, String yParam,
             String creationParam, String frequencyParam, String lastAccessParam,
-            String fillFactorParam, String numHitsParam) {
+            String fillFactorParam, String numHitsParam, String geom) {
         StringBuilder sb = new StringBuilder("INSERT INTO ");
         if (schema != null) {
             sb.append(schema).append(".");
@@ -330,7 +331,8 @@ public class SQLDialect {
         sb.append(":").append(frequencyParam).append(", ");
         sb.append(":").append(lastAccessParam).append(", ");
         sb.append(":").append(fillFactorParam).append(", ");
-        sb.append(":").append(numHitsParam).append(" ");
+        sb.append(":").append(numHitsParam).append(", ");
+        sb.append(":").append(geom).append(" ");
 
         addEmtpyTableReference(sb);
         sb.append(" WHERE NOT EXISTS(SELECT 1 FROM ");

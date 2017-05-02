@@ -118,7 +118,9 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
             PageStatsPayload payload = tilePages.get(pageIdForTile);
             if (payload == null) {
                 TilePage page;
-                page = new TilePage(tileSetId, pageX, pageY, pageZ);
+                page = new TilePage(tileSetId, pageX, pageY, pageZ, quotaUpdate.getBbox(),
+                        quotaUpdate.getEpsgId());
+
                 payload = new PageStatsPayload(page);
                 tilePages.put(pageIdForTile, payload);
             }

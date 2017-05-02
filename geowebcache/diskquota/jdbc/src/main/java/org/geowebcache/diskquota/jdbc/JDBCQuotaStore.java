@@ -612,7 +612,7 @@ public class JDBCQuotaStore implements QuotaStore {
         // for the moment we don't have the page in the db, we have to create it
         String insert = dialect.contionalTilePageInsertStatement(schema, "key", "tileSetId",
                 "pageZ", "pageX", "pageY", "creationTime", "frequencyOfUse", "lastAccessTime",
-                "fillFactor", "numHits");
+                "fillFactor", "numHits", "geom");
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("key", page.getKey());
         params.put("tileSetId", page.getTileSetId());
@@ -624,10 +624,33 @@ public class JDBCQuotaStore implements QuotaStore {
         params.put("lastAccessTime", stats.getLastAccessTimeMinutes());
         params.put("fillFactor", stats.getFillFactor());
         params.put("numHits", new BigDecimal(stats.getNumHits()));
+        params.put("geom", getGeom(page));
 
         // try the insert, mind, someone else might have done it as well, in such
         // case the insert will fail and return 0 record modified
         return jt.update(insert, params);
+    }
+
+    private String getGeom(TilePage page) {
+        if (page.getEpsgId() < 1 || page.getBbox() == null || page.getBbox().length < 4) {
+            return null;
+        }
+
+        double[] bbox = page.getBbox();
+
+        double minX = bbox[0];
+        double minY = bbox[1];
+        double maxX = bbox[2];
+        double maxY = bbox[3];
+
+        // EWKT
+        String insertValue = String.format("SRID=%d;POLYGON((%s %s, %s %s, %s %s, %s %s, %s %s))",
+                page.getEpsgId(), Double.toString(minX), Double.toString(minY),
+                Double.toString(maxX), Double.toString(minY), Double.toString(maxX),
+                Double.toString(maxY), Double.toString(minX), Double.toString(maxY),
+                Double.toString(minX), Double.toString(minY));
+
+        return insertValue;
     }
 
     private PageStats getPageStats(String pageStatsKey) {
