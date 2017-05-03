@@ -49,6 +49,10 @@
           <ref bean="gwcSeedRestlet" />
         </entry>
         <entry>
+          <key><value>/seed/{layer}/{taskId}.{extension}</value></key>
+          <ref bean="gwcSeedRestlet" />
+        </entry>
+        <entry>
           <key><value>/seed.json</value></key>
           <ref bean="gwcSeedRestlet" />
         </entry>

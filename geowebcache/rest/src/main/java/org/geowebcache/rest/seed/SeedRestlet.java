@@ -27,6 +27,7 @@ import org.geowebcache.io.GeoWebCacheXStream;
 import org.geowebcache.rest.RestletException;
 import org.geowebcache.seed.SeedRequest;
 import org.geowebcache.seed.TileBreeder;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.restlet.data.Request;
@@ -50,6 +51,7 @@ public class SeedRestlet extends GWCSeedingRestlet {
     public void doGet(Request req, Response resp) throws RestletException {
         Representation rep = null;
 
+        final String taskId = (String) req.getAttributes().get("taskId");
         final String layerName;
         if (req.getAttributes().containsKey("layer")) {
             try {
@@ -72,7 +74,8 @@ public class SeedRestlet extends GWCSeedingRestlet {
                 } catch (GeoWebCacheException e) {
                     throw new RestletException(e.getMessage(), Status.CLIENT_ERROR_BAD_REQUEST);
                 }
-                list = seeder.getStatusList(layerName);
+                list = seeder.getStatusList(layerName,
+                        taskId != null ? Long.parseLong(taskId) : null);
             }
             obj = new JSONObject(xs.toXML(list));
 
@@ -93,10 +96,12 @@ public class SeedRestlet extends GWCSeedingRestlet {
         }
 
         try {
-            seeder.seed(layerName, sr);
+            resp.setEntity(new JsonRepresentation(new JSONArray(seeder.seed(layerName, sr))));
         } catch (IllegalArgumentException e) {
             throw new RestletException(e.getMessage(), Status.CLIENT_ERROR_BAD_REQUEST);
         } catch (GeoWebCacheException e) {
+            throw new RestletException(e.getMessage(), Status.SERVER_ERROR_INTERNAL);
+        } catch (JSONException e) {
             throw new RestletException(e.getMessage(), Status.SERVER_ERROR_INTERNAL);
         }
 

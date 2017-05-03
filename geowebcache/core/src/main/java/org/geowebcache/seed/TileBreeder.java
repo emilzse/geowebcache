@@ -195,14 +195,15 @@ public class TileBreeder implements ApplicationContextAware {
     }
 
     /**
-     * Create and dispatch tasks to fulfil a seed request
+     * Create and dispatch tasks to fulfill a seed request
      * 
      * @param layerName
      * @param sr
      * @throws GeoWebCacheException
+     * @return list of task ids
      */
     // TODO: The SeedRequest specifies a layer name. Would it make sense to use that instead of including one as a separate parameter?
-    public void seed(final String layerName, final SeedRequest sr) throws GeoWebCacheException {
+    public long[] seed(final String layerName, final SeedRequest sr) throws GeoWebCacheException {
 
         TileLayer tl = findTileLayer(layerName);
 
@@ -212,6 +213,8 @@ public class TileBreeder implements ApplicationContextAware {
                 sr.getFilterUpdate());
 
         dispatchTasks(tasks);
+
+        return Arrays.stream(tasks).mapToLong(GWCTask::getTaskId).toArray();
     }
 
     /**
@@ -404,7 +407,21 @@ public class TileBreeder implements ApplicationContextAware {
     public long[][] getStatusList() {
         return getStatusList(null);
     }
-
+    
+    /**
+     * Method returns List of Strings representing the status of the currently running and scheduled
+     * threads for a specific layer.
+     * 
+     * @return array of {@code [[tilesDone, tilesTotal, timeRemaining, taskID, taskStatus],...]}
+     *         where {@code taskStatus} is one of:
+     *         {@code 0 = PENDING, 1 = RUNNING, 2 = DONE, -1 = ABORTED}
+     * @param layerName the name of the layer.  null for all layers.
+     * @param taskId the id of task. null for any job
+     * @return
+     */
+    public long[][] getStatusList(final String layerName) {
+        return getStatusList(layerName, null);
+    }
     /**
      * Method returns List of Strings representing the status of the currently running and scheduled
      * threads for a specific layer.
@@ -415,7 +432,7 @@ public class TileBreeder implements ApplicationContextAware {
      * @param layerName the name of the layer.  null for all layers.
      * @return
      */
-    public long[][] getStatusList(final String layerName) {
+    public long[][] getStatusList(final String layerName, Long taskId) {
         List<long[]> list = new ArrayList<long[]>(currentPool.size());
 
         lock.readLock().lock();
@@ -425,6 +442,9 @@ public class TileBreeder implements ApplicationContextAware {
                 Entry<Long, SubmittedTask> entry = iter.next();
                 GWCTask task = entry.getValue().task;
                 if (layerName != null && !layerName.equals(task.getLayerName())) {
+                    continue;
+                }
+                if (taskId != null && task.getTaskId() != taskId) {
                     continue;
                 }
                 long[] ret = new long[5];
