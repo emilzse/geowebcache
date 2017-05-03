@@ -33,6 +33,9 @@ import org.geowebcache.layer.wms.WMSLayer;
 import org.geowebcache.storage.StorageBroker;
 import org.geowebcache.storage.TileRange;
 import org.geowebcache.storage.TileRangeIterator;
+import org.geowebcache.util.Sleeper;
+
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * A GWCTask for seeding/reseeding the cache.
@@ -58,7 +61,10 @@ class SeedTask extends GWCTask {
     private long totalFailuresBeforeAborting;
 
     private AtomicLong sharedFailureCounter;
-
+    
+    @VisibleForTesting
+    Sleeper sleeper = Thread::sleep;
+    
     /**
      * Constructs a SeedTask
      * @param sb
@@ -91,8 +97,7 @@ class SeedTask extends GWCTask {
         super.state = GWCTask.STATE.RUNNING;
 
         // Lower the priority of the thread
-        Thread.currentThread().setPriority(
-                (java.lang.Thread.NORM_PRIORITY + java.lang.Thread.MIN_PRIORITY) / 2);
+        reprioritize();
 
         checkInterrupted();
 
@@ -100,7 +105,7 @@ class SeedTask extends GWCTask {
         final long START_TIME = System.currentTimeMillis();
 
         final String layerName = tl.getName();
-        log.info(Thread.currentThread().getName() + " begins seeding layer : " + layerName
+        log.info(getThreadName() + " begins seeding layer : " + layerName
                 + " with seed type : " + parsedType);
 
         TileRange tr = trIter.getTileRange();
@@ -144,7 +149,7 @@ class SeedTask extends GWCTask {
 
                     long sharedFailureCount = sharedFailureCounter.incrementAndGet();
                     if (sharedFailureCount >= totalFailuresBeforeAborting) {
-                        log.info("Aborting seed thread " + Thread.currentThread().getName()
+                        log.info("Aborting seed thread " + getThreadName()
                                 + ". Error count reached configured maximum of "
                                 + totalFailuresBeforeAborting);
                         super.state = GWCTask.STATE.DEAD;
@@ -158,7 +163,7 @@ class SeedTask extends GWCTask {
                         if (tileFailureRetryWaitTime > 0) {
                             log.trace("Waiting " + tileFailureRetryWaitTime
                                     + " before trying again");
-                            Thread.sleep(tileFailureRetryCount);
+                            waitToRetry();
                         }
                     } else {
                         log.info(logMsg
@@ -169,7 +174,7 @@ class SeedTask extends GWCTask {
             }
 
             if (log.isTraceEnabled()) {
-                log.trace(Thread.currentThread().getName() + " seeded " + Arrays.toString(gridLoc));
+                log.trace(getThreadName() + " seeded " + Arrays.toString(gridLoc));
             }
 
             // final long totalTilesCompleted = trIter.getTilesProcessed();
@@ -187,10 +192,10 @@ class SeedTask extends GWCTask {
         }
 
         if (this.terminate) {
-            log.info("Job on " + Thread.currentThread().getName() + " was terminated after "
+            log.info("Job on " + getThreadName() + " was terminated after "
                     + this.tilesDone + " tiles");
         } else {
-            log.info(Thread.currentThread().getName() + " completed " + parsedType.toString()
+            log.info(getThreadName() + " completed " + parsedType.toString()
                     + " layer " + layerName
                     + " after " + this.tilesDone + " tiles and " + this.timeSpent + " seconds.");
         }
@@ -201,6 +206,19 @@ class SeedTask extends GWCTask {
         }
 
         super.state = GWCTask.STATE.DONE;
+    }
+
+    private void reprioritize() {
+        Thread.currentThread().setPriority(
+                (java.lang.Thread.NORM_PRIORITY + java.lang.Thread.MIN_PRIORITY) / 2);
+    }
+
+    private void waitToRetry() throws InterruptedException {
+        sleeper.sleep(tileFailureRetryWaitTime);
+    }
+
+    private String getThreadName() {
+        return Thread.currentThread().getName();
     }
 
     /**

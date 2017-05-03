@@ -19,7 +19,10 @@ package org.geowebcache.seed;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.verify;
 import static org.geowebcache.TestHelpers.createFakeSourceImage;
 import static org.geowebcache.TestHelpers.createRequest;
 import static org.geowebcache.TestHelpers.createWMSLayer;
@@ -51,6 +54,7 @@ import org.geowebcache.storage.TileObject;
 import org.geowebcache.storage.TileRange;
 import org.geowebcache.storage.TileRangeIterator;
 import org.geowebcache.util.MockWMSSourceHelper;
+import org.geowebcache.util.Sleeper;
 
 import junit.framework.TestCase;
 
@@ -133,6 +137,11 @@ public class SeedTaskTest extends TestCase {
         SeedTask seedTask = new SeedTask(mockStorageBroker, trIter, tl, GWCTask.TYPE.SEED, false);
         seedTask.setTaskId(1L);
         seedTask.setThreadInfo(new AtomicInteger(), 0);
+        Sleeper sleeper = createMock(Sleeper.class);
+        // Should not be called
+        replay(sleeper);
+        seedTask.sleeper = sleeper;
+        
         /*
          * HACK: avoid SeedTask.getCurrentThreadArrayIndex failure.
          */
@@ -146,6 +155,7 @@ public class SeedTaskTest extends TestCase {
         final long expectedWmsRequestsCount = 3; // due to metatiling
         final long wmsRequestCount = wmsRequestsCounter.get();
         assertEquals(expectedWmsRequestsCount, wmsRequestCount);
+        verify(sleeper);
     }
 
     /**
@@ -207,13 +217,21 @@ public class SeedTaskTest extends TestCase {
         expect(mockStorageBroker.get((TileObject) anyObject())).andReturn(false).anyTimes();
         replay(mockStorageBroker);
 
+        long tileFailureRetryWaitTime = 10;
+        int tileFailureRetryCount = 1;
+        long totalFailuresBeforeAborting = 4;
+        
+        // boolean reseed = false;
         SeedTask seedTask = new SeedTask(mockStorageBroker, trIter, tl, GWCTask.TYPE.SEED, false);
         seedTask.setTaskId(1L);
         seedTask.setThreadInfo(new AtomicInteger(), 0);
-
-        int tileFailureRetryCount = 1;
-        long tileFailureRetryWaitTime = 10;
-        long totalFailuresBeforeAborting = 4;
+        Sleeper sleeper = createMock(Sleeper.class);
+        // It's only sleeping on checked exceptions, not sure if this is right or wrong.
+        // I added this to test a fix for the duration being incorrect.
+        sleeper.sleep(tileFailureRetryWaitTime);expectLastCall().times(2); 
+        replay(sleeper);
+        seedTask.sleeper = sleeper;
+        
         AtomicLong sharedFailureCounter = new AtomicLong();
         seedTask.setFailurePolicy(tileFailureRetryCount, tileFailureRetryWaitTime,
                 totalFailuresBeforeAborting, sharedFailureCounter);
@@ -227,6 +245,7 @@ public class SeedTaskTest extends TestCase {
          */
         seedTask.doAction();
         assertEquals(totalFailuresBeforeAborting, sharedFailureCounter.get());
+        verify(sleeper);
     }
 
     /**
@@ -278,6 +297,10 @@ public class SeedTaskTest extends TestCase {
         SeedTask task = new SeedTask(mockStorageBroker, trIter, tl, GWCTask.TYPE.SEED, false);
         task.setTaskId(1L);
         task.setThreadInfo(new AtomicInteger(), 0);
+        Sleeper sleeper = createMock(Sleeper.class);
+        // Should not be called
+        replay(sleeper);
+        task.sleeper = sleeper;
         /*
          * HACK: avoid SeedTask.getCurrentThreadArrayIndex failure.
          */
@@ -322,6 +345,7 @@ public class SeedTaskTest extends TestCase {
         }
 
         assertEquals(expectedTiles, tileKeys);
+        verify(sleeper);
     }
 
     private static class Tuple<T extends Comparable<T>> implements Comparable<Tuple<T>> {
