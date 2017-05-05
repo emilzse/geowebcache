@@ -596,6 +596,9 @@ public class WMSTileFuser{
                     continue;
                 }
 
+                // set current layer
+                tile.setTileLayer(layer);
+
                 // Will try until gets a proper response
                 ConveyorTile singleTile = null;
                 for (int i = 0; singleTile == null && i < 100; i++) {
@@ -610,7 +613,9 @@ public class WMSTileFuser{
                         log.warn("Failed getting tile, will retry: count=" + i + " layer="
                                 + layer.getName() + " msg="
                                 + (e.getMessage() == null && e.getCause() != null
-                                        ? e.getCause().getMessage() : e.getMessage()));
+                                        ? e.getCause().getMessage() : e.getMessage()),
+                                e);
+
                     }
                 }
 
