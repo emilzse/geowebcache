@@ -10,6 +10,16 @@
     <property name="configDispatcher" ref="gwcConfigDispatcher"/>
     <property name="tileBreeder" ref="gwcTileBreeder"/>
   </bean>
+  <bean id="gwcSeedInvalidateRestlet" class="org.geowebcache.seed.invalidate.InvalidateRestlet">
+    <property name="configDispatcher" ref="gwcConfigDispatcher"/>
+    <property name="tileBreeder" ref="gwcTileBreeder"/>
+    <property name="quotaStoreProvider" ref="DiskQuotaStoreProvider"/>
+  </bean>
+  <bean id="gwcSeedValidateRestlet" class="org.geowebcache.seed.invalidate.ValidateRestlet">
+    <property name="configDispatcher" ref="gwcConfigDispatcher"/>
+    <property name="tileBreeder" ref="gwcTileBreeder"/>
+    <property name="quotaStoreProvider" ref="DiskQuotaStoreProvider"/>
+  </bean>
   <bean id="gwcMassTruncateRestlet" class="org.geowebcache.rest.seed.MassTruncateRestlet">
     <property name="configDispatcher" ref="gwcConfigDispatcher"/>
     <property name="storageBroker" ref="gwcStorageBroker"/>
@@ -63,6 +73,14 @@
         <entry>
           <key><value>/seed</value></key>
           <ref bean="gwcSeedFormRestlet" />
+        </entry>
+        <entry>
+          <key><value>/invalidate/{layer}</value></key>
+          <ref bean="gwcSeedInvalidateRestlet" />
+        </entry>
+        <entry>
+          <key><value>/validate/{layer}</value></key>
+          <ref bean="gwcSeedValidateRestlet" />
         </entry>
         <entry>
           <key><value>/reload</value></key>

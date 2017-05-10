@@ -17,6 +17,8 @@
  */
 package org.geowebcache.storage;
 
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.io.Resource;
@@ -66,6 +68,10 @@ public class DefaultStorageBroker implements StorageBroker {
         return blobStore.delete(trObj);
     }
 
+    public boolean delete(List<TileObject> pages) throws StorageException {
+        return blobStore.delete(pages);
+    }
+
     public boolean get(TileObject tileObj) throws StorageException {
         return blobStore.get(tileObj);
     }
@@ -112,4 +118,5 @@ public class DefaultStorageBroker implements StorageBroker {
     public BlobStore getBlobStore(){
         return blobStore;
     }
+
 }

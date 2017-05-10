@@ -16,14 +16,32 @@
  */
 package org.geowebcache.sqlite;
 
+import static org.geowebcache.sqlite.Utils.Tuple.tuple;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 import org.apache.commons.io.FileUtils;
 import org.geowebcache.config.BlobStoreConfig;
 import org.geowebcache.config.XMLConfiguration;
 import org.geowebcache.sqlite.Utils.Tuple;
-import org.geowebcache.storage.BlobStore;
 import org.geowebcache.storage.TileObject;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,22 +54,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static org.geowebcache.sqlite.Utils.Tuple.tuple;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebAppConfiguration
 @ContextConfiguration(classes = OperationsRestWebConfig.class)
@@ -189,13 +191,15 @@ public class OperationsRestTest extends TestSupport {
         assertThat(fileB.exists(), is(true));
         // let's query the store to see if we get the replaced tiles
         TileObject getTile = TileObject.createQueryTileObject("africa",
-                new long[]{10, 50, 5}, "EPSG:4326", "image/png", null);
+ new long[] { 10, 50, 5 },
+                "EPSG:4326", "image/png");
         assertThat(store.get(getTile), is(true));
         assertThat(getTile.getBlob(), notNullValue());
         assertThat(TestSupport.resourceToString(getTile.getBlob()), is("IMAGE-10-50-5-B"));
         // let's query the second tile
         getTile = TileObject.createQueryTileObject("africa",
-                new long[]{10, 5050, 15}, "EPSG:4326", "image/png", null);
+ new long[] { 10, 5050, 15 },
+                "EPSG:4326", "image/png");
         assertThat(store.get(getTile), is(true));
         assertThat(getTile.getBlob(), notNullValue());
         assertThat(TestSupport.resourceToString(getTile.getBlob()), is("IMAGE-15-5050-5-B"));

@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.channels.FileChannel;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -319,6 +320,13 @@ public class FileBlobStore implements BlobStore {
      * Delete a particular tile
      */
     public boolean delete(TileObject stObj) throws StorageException {
+        return delete(stObj, true);
+    }
+
+    /**
+     * Delete a particular tile
+     */
+    public boolean delete(TileObject stObj, boolean notifyListeners) throws StorageException {
         File fh = getFileHandleTile(stObj, false);
         boolean ret = false;
         // we call fh.length() here to check wthether the file exists and its length in a single
@@ -331,7 +339,9 @@ public class FileBlobStore implements BlobStore {
                 throw new StorageException("Unable to delete " + fh.getAbsolutePath());
             }
             stObj.setBlobSize((int) padSize(length));
-            listeners.sendTileDeleted(stObj);
+            if (notifyListeners) {
+                listeners.sendTileDeleted(stObj);
+            }
 
             ret = true;
         } else {
@@ -727,6 +737,17 @@ public class FileBlobStore implements BlobStore {
         long actuallyUsedStorage = blockSize * (int) Math.ceil((double) fileSize / blockSize);
 
         return actuallyUsedStorage;
+    }
+
+    @Override
+    public boolean delete(List<TileObject> obj) throws StorageException {
+        boolean success = true;
+        for (TileObject tile : obj) {
+            if (!delete(tile, false)) {
+                success = false;
+            }
+        }
+        return success;
     }
 
 }

@@ -306,4 +306,19 @@ public class BoundingBox implements Serializable {
     public void scale(double factor) {
         scale(factor, factor);
     }
+
+    /**
+     * @return WKT polygon
+     */
+    public String toWkt() {
+        double minX = coords[0];
+        double minY = coords[1];
+        double maxX = coords[2];
+        double maxY = coords[3];
+
+        return String.format("POLYGON((%s %s, %s %s, %s %s, %s %s, %s %s))", Double.toString(minX),
+                Double.toString(minY), Double.toString(maxX), Double.toString(minY),
+                Double.toString(maxX), Double.toString(maxY), Double.toString(minX),
+                Double.toString(maxY), Double.toString(minX), Double.toString(minY));
+    }
 }

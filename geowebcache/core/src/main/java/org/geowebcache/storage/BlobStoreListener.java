@@ -45,7 +45,7 @@ public interface BlobStoreListener {
      * @param bbox bounding box of tile
      */
     void tileStored(String layerName, String gridSetId, String blobFormat, String parametersId,
-            long x, long y, int z, long blobSize, int epsgId, double[] bbox);
+            long x, long y, int z, long blobSize, int epsgId, double[] bbox, String parametersKvp);
 
     /**
      * Notifies that the blob store has deleted a tile given by the method arguments.

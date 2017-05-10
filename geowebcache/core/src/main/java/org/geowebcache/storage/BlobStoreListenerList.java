@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.geowebcache.storage.blobstore.file.FilePathGenerator;
+
 public final class BlobStoreListenerList {
 
     private List<BlobStoreListener> listeners = new CopyOnWriteArrayList<BlobStoreListener>();
@@ -90,7 +92,8 @@ public final class BlobStoreListenerList {
 
             for (int i = 0; i < listeners.size(); i++) {
                 listeners.get(i).tileStored(layerName, gridSetId, blobFormat, paramsId, xyz[0],
-                        xyz[1], (int) xyz[2], blobSize, epsgId, bbox);
+                        xyz[1], (int) xyz[2], blobSize, epsgId, bbox,
+                        FilePathGenerator.getParametersKvp(stObj.getParameters()));
 
             }
         }

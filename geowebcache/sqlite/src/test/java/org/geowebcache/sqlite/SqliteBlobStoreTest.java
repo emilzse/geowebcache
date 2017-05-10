@@ -16,16 +16,16 @@
  */
 package org.geowebcache.sqlite;
 
-import org.apache.commons.io.FileUtils;
-import org.geowebcache.storage.TileObject;
-import org.junit.Test;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.nio.file.Files;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import org.apache.commons.io.FileUtils;
+import org.geowebcache.storage.TileObject;
+import org.junit.Test;
 
 public final class SqliteBlobStoreTest extends TestSupport {
 
@@ -63,7 +63,8 @@ public final class SqliteBlobStoreTest extends TestSupport {
         storeA.replace(fileB, relativePath);
         // let's query store A to see if we get store B tile
         TileObject getTile = TileObject.createQueryTileObject("africa",
-                new long[]{10, 50, 5}, "EPSG:4326", "image/png", null);
+ new long[] { 10, 50, 5 },
+                "EPSG:4326", "image/png");
         assertThat(storeA.get(getTile), is(true));
         assertThat(getTile.getBlob(), notNullValue());
         assertThat(resourceToString(getTile.getBlob()), is("IMAGE-10-50-5-B"));
@@ -112,13 +113,15 @@ public final class SqliteBlobStoreTest extends TestSupport {
         storeA.replace(rootDirectoryB);
         // let's query store A to see if we get store B tiles
         TileObject getTile = TileObject.createQueryTileObject("africa",
-                new long[]{10, 50, 5}, "EPSG:4326", "image/png", null);
+ new long[] { 10, 50, 5 },
+                "EPSG:4326", "image/png");
         assertThat(storeA.get(getTile), is(true));
         assertThat(getTile.getBlob(), notNullValue());
         assertThat(resourceToString(getTile.getBlob()), is("IMAGE-10-50-5-B"));
         // let's query the second tile
         getTile = TileObject.createQueryTileObject("africa",
-                new long[]{10, 5050, 15}, "EPSG:4326", "image/png", null);
+ new long[] { 10, 5050, 15 },
+                "EPSG:4326", "image/png");
         assertThat(storeA.get(getTile), is(true));
         assertThat(getTile.getBlob(), notNullValue());
         assertThat(resourceToString(getTile.getBlob()), is("IMAGE-15-5050-5-B"));

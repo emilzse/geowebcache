@@ -167,6 +167,7 @@ public class QueuedUsageStatsConsumer implements Callable<Long>, Serializable {
         final long[] tileIndex = requestedTile.getTileIndex();
         final double[] bbox = requestedTile.getBbox();
         final int epsgId = requestedTile.getEpsgId();
+        final String parametersKvp = requestedTile.getParametersKvp();
 
         tilePageCalculator.pageIndexForTile(tileSet, tileIndex, pageIndexTarget);
         final int pageX = pageIndexTarget[0];
@@ -182,8 +183,8 @@ public class QueuedUsageStatsConsumer implements Callable<Long>, Serializable {
             /*
              * it is the first one for this tile set, lets start the aggregated updates on it
              */
-            timedUpdate = new PageStatsPayload(
-                    new TilePage(tileSetId, pageX, pageY, pageZ, bbox, epsgId));
+            timedUpdate = new PageStatsPayload(new TilePage(tileSetId, pageX, pageY, pageZ, bbox,
+                    epsgId, parametersKvp, tileIndex));
             timedUpdate.setTileSet(tileSet);
 
             aggregatedPendingUpdates.pages.put(pageKeyForTile, timedUpdate);

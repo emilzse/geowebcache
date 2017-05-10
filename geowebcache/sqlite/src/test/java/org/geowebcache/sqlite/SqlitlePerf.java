@@ -16,12 +16,6 @@
  */
 package org.geowebcache.sqlite;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geowebcache.storage.TileObject;
-import org.geowebcache.storage.blobstore.file.FileBlobStore;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.sql.Connection;
@@ -32,6 +26,12 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geowebcache.storage.TileObject;
+import org.geowebcache.storage.blobstore.file.FileBlobStore;
 
 /**
  * Measures the performance of the {@link SqliteConnectionManager}
@@ -182,7 +182,8 @@ final class SqlitlePerf {
         for (int i = 0; i < tiles.length; i++) {
             long[] tile = tiles[i];
             executor.submit((Runnable) () -> {
-                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid", "image/png", null);
+                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid",
+                        "image/png");
                 try {
                     mbtilesBlobStore.get(mbtile);
                 } catch (Exception exception) {
@@ -230,7 +231,8 @@ final class SqlitlePerf {
         for (int i = 0; i < tiles.length; i++) {
             long[] tile = tiles[i];
             executor.submit((Runnable) () -> {
-                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid", "image/png", null);
+                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid",
+                        "image/png");
                 try {
                     fileBlobStore.get(mbtile);
                 } catch (Exception exception) {

@@ -49,10 +49,6 @@ import org.geowebcache.storage.TileRangeIterator;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -405,5 +401,13 @@ public class S3BlobStore implements BlobStore {
         final String coordsPrefix = keyBuilder.forLayer(layerName);
         boolean layerExists = s3Ops.prefixExists(coordsPrefix);
         return layerExists;
+    }
+
+    @Override
+    public boolean delete(List<TileObject> tiles) throws StorageException {
+        for (TileObject tile : tiles) {
+            delete(tile);
+        }
+        return true;
     }
 }

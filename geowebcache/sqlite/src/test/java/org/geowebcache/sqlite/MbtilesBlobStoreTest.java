@@ -16,20 +16,6 @@
  */
 package org.geowebcache.sqlite;
 
-import org.geowebcache.io.ByteArrayResource;
-import org.geowebcache.io.Resource;
-import org.geowebcache.mime.MimeType;
-import org.geowebcache.storage.TileObject;
-import org.geowebcache.storage.TileRange;
-import org.junit.Test;
-
-import java.io.File;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import static org.geowebcache.sqlite.Utils.Tuple.tuple;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.greaterThan;
@@ -37,6 +23,16 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.geowebcache.mime.MimeType;
+import org.geowebcache.storage.TileObject;
+import org.geowebcache.storage.TileRange;
+import org.junit.Test;
 
 public final class MbtilesBlobStoreTest extends TestSupport {
 
@@ -53,7 +49,8 @@ public final class MbtilesBlobStoreTest extends TestSupport {
         store.put(putTile);
         // create a query tile to get the previous stored tile
         TileObject getTile = TileObject.createQueryTileObject("africa",
-                new long[]{10, 50, 5}, "EPSG:4326", "image/png", null);
+ new long[] { 10, 50, 5 },
+                "EPSG:4326", "image/png");
         // checking if the tile was retrieved
         assertThat(store.get(getTile), is(true));
         // checking if the blob data was updated
@@ -65,7 +62,8 @@ public final class MbtilesBlobStoreTest extends TestSupport {
         assertThat(store.delete(putTile), is(true));
         // query the deleted tile
         getTile = TileObject.createQueryTileObject("africa",
-                new long[]{10, 50, 5}, "EPSG:4326", "image/png", null);
+ new long[] { 10, 50, 5 }, "EPSG:4326",
+                "image/png");
         // check that the tile was deleted
         assertThat(store.get(getTile), is(false));
         assertThat(getTile.getBlob(), nullValue());
@@ -218,9 +216,11 @@ public final class MbtilesBlobStoreTest extends TestSupport {
         assertThat(asia2.exists(), is(true));
         // check that the correct tiles were deleted
         assertThat(store.get(TileObject.createQueryTileObject("asia",
-                new long[]{10, 50, 10}, "grid1", "image/png", null)), is(false));
+ new long[] { 10, 50, 10 },
+                "grid1", "image/png")), is(false));
         assertThat(store.get(TileObject.createQueryTileObject("asia",
-                new long[]{510, 550, 10}, "grid1", "image/png", null)), is(true));
+ new long[] { 510, 550, 10 },
+                "grid1", "image/png")), is(true));
     }
 
     @Test

@@ -18,7 +18,8 @@
 package org.geowebcache.sqlite;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -56,7 +57,8 @@ public class MbtilesPBFTest extends TestSupport {
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         TileObject tile = TileObject.createQueryTileObject(layer,
-                new long[]{0, 0, 0}, "EPSG:900913", ApplicationMime.mapboxVector.getFormat(), null);
+ new long[] { 0, 0, 0 },
+                "EPSG:900913", ApplicationMime.mapboxVector.getFormat());
         assertThat(store.get(tile), is(true));
         try(
             InputStream is = MBTilesFileVectorTileTest.class.getResourceAsStream("tile_data.pbf.gz")
@@ -72,7 +74,8 @@ public class MbtilesPBFTest extends TestSupport {
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         TileObject tile = TileObject.createQueryTileObject(layer,
-                new long[]{0, 0, 0}, "EPSG:900913", ApplicationMime.mapboxVector.getFormat(), null);
+ new long[] { 0, 0, 0 },
+                "EPSG:900913", ApplicationMime.mapboxVector.getFormat());
         assertThat(store.get(tile), is(true));
         try(
             InputStream is = MBTilesFileVectorTileTest.class.getResourceAsStream("tile_data.pbf")
@@ -88,7 +91,8 @@ public class MbtilesPBFTest extends TestSupport {
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         TileObject tile = TileObject.createQueryTileObject(layer,
-                new long[]{0, 0, 0}, "EPSG:900913", ApplicationMime.mapboxVector.getFormat(), null);
+ new long[] { 0, 0, 0 },
+                "EPSG:900913", ApplicationMime.mapboxVector.getFormat());
         assertThat(store.get(tile), is(true));
         try(
             InputStream is = MBTilesFileVectorTileTest.class.getResourceAsStream("tile_data.pbf.gz")

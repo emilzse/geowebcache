@@ -86,13 +86,13 @@ class QueuedQuotaUpdatesProducer implements BlobStoreListener {
      */
     public void tileStored(final String layerName, final String gridSetId, final String blobFormat,
             final String parametersId, final long x, final long y, final int z, final long blobSize,
-            final int epsgId, final double[] bbox) {
+            final int epsgId, final double[] bbox, final String parametersKvp) {
         if (blobSize == 0) {
             return;
         }
 
         quotaUpdate(layerName, gridSetId, blobFormat, parametersId, blobSize,
-                new long[] { x, y, z }, epsgId, bbox);
+                new long[] { x, y, z }, epsgId, bbox, parametersKvp);
     }
 
     /**
@@ -105,7 +105,7 @@ class QueuedQuotaUpdatesProducer implements BlobStoreListener {
         long actualSizeFreed = -1 * blobSize;
 
         quotaUpdate(layerName, gridSetId, blobFormat, parametersId, actualSizeFreed,
-                new long[] { x, y, z }, -1, null);
+                new long[] { x, y, z }, -1, null, null);
     }
 
     /**
@@ -122,7 +122,8 @@ class QueuedQuotaUpdatesProducer implements BlobStoreListener {
         }
 
         long[] tileIndex = new long[] { x, y, z };
-        quotaUpdate(layerName, gridSetId, blobFormat, parametersId, delta, tileIndex, -1, null);
+        quotaUpdate(layerName, gridSetId, blobFormat, parametersId, delta, tileIndex, -1, null,
+                null);
     }
 
     /**
@@ -160,14 +161,15 @@ class QueuedQuotaUpdatesProducer implements BlobStoreListener {
      *            tile index
      */
     private void quotaUpdate(String layerName, String gridSetId, String blobFormat,
-            String parametersId, long amount, long[] tileIndex, int epsgId, double[] bbox) {
+            String parametersId, long amount, long[] tileIndex, int epsgId, double[] bbox,
+            String parametersKvp) {
 
         if (cancelled(layerName)) {
             return;
         }
 
         QuotaUpdate payload = new QuotaUpdate(layerName, gridSetId, blobFormat, parametersId,
-                amount, tileIndex, epsgId, bbox);
+                amount, tileIndex, epsgId, bbox, parametersKvp);
         try {
             if(updateOfferTimeoutSeconds <= 0) {
                 this.queuedUpdates.put(payload);

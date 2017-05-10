@@ -14,6 +14,8 @@ public class QuotaUpdate {
 
     private double[] bbox;
 
+    private String parametersKvp;
+
     /**
      * 
      * @param layerName
@@ -26,18 +28,19 @@ public class QuotaUpdate {
      * @param tileIdex
      */
     public QuotaUpdate(String layerName, String gridsetId, String blobFormat, String parametersId,
-            long size, long[] tileIndex, int epsgId, double[] bbox) {
+            long size, long[] tileIndex, int epsgId, double[] bbox, String parametersKvp) {
         this(new TileSet(layerName, gridsetId, blobFormat, parametersId), size, tileIndex, epsgId,
-                bbox);
+                bbox, parametersKvp);
     }
 
     public QuotaUpdate(TileSet tileset, long quotaUpdateSize, long[] tileIndex, int epsgId,
-            double[] bbox) {
+            double[] bbox, String parametersKvp) {
         this.tileSet = tileset;
         this.size = quotaUpdateSize;
         this.tileIndex = tileIndex;
         this.epsgId = epsgId;
         this.bbox = bbox;
+        this.parametersKvp = parametersKvp;
     }
 
     public TileSet getTileSet() {
@@ -62,6 +65,10 @@ public class QuotaUpdate {
 
     public double[] getBbox() {
         return bbox;
+    }
+
+    public String getParametersKvp() {
+        return parametersKvp;
     }
 
     @Override

@@ -2,11 +2,11 @@ package org.geowebcache.storage;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
 import org.geowebcache.io.ByteArrayResource;
 import org.geowebcache.io.Resource;
 import org.geowebcache.storage.blobstore.file.FileBlobStore;
+
+import junit.framework.TestCase;
 
 public class StorageBrokerTest extends TestCase {
     public static final String TEST_DB_NAME = "gwcTestStorageBroker";
@@ -117,7 +117,8 @@ public class StorageBrokerTest extends TestCase {
             long tmp = (long) Math.log(i) + 1;
             long tmp2 = i % tmp; 
             long[] xyz = { tmp2, tmp2, (long) Math.log10(i)};
-            TileObject queryObj2 = TileObject.createQueryTileObject("test", xyz,"hefty-gridSet:id1", "image/jpeg", null);
+            TileObject queryObj2 = TileObject.createQueryTileObject("test", xyz,
+                    "hefty-gridSet:id1", "image/jpeg");
             sb.get(queryObj2);
         }
         

@@ -17,7 +17,9 @@
  */
 package org.geowebcache.storage.blobstore.file;
 
-import static org.geowebcache.storage.blobstore.file.FilePathUtils.*;
+import static org.geowebcache.storage.blobstore.file.FilePathUtils.appendFiltered;
+import static org.geowebcache.storage.blobstore.file.FilePathUtils.appendGridsetZoomLevelDir;
+import static org.geowebcache.storage.blobstore.file.FilePathUtils.zeroPadder;
 
 import java.io.File;
 import java.util.Map;
@@ -27,11 +29,25 @@ import java.util.TreeMap;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.geowebcache.mime.MimeException;
 import org.geowebcache.mime.MimeType;
 import org.geowebcache.storage.TileObject;
 
 public class FilePathGenerator {
     
+    public static void main(String[] args) {
+        TileObject tile = TileObject.createCompleteTileObject("gtd", new long[] { 1089, 854, 10 },
+                "EPSG:4326", "image/jpeg", null, null);
+
+        try {
+            System.out.println(new FilePathGenerator("x:\\geowebcache\\").tilePath(tile,
+                    MimeType.createFromExtension("jpeg")));
+        } catch (MimeException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     private static Log log = LogFactory.getLog(FilePathGenerator.class);
     
     String cacheRoot;
@@ -102,7 +118,7 @@ public class FilePathGenerator {
         zeroPadder(y, 2 * digits, path);
         path.append('.');
         path.append(fileExtension);
-
+        
         File tileFile = new File(path.toString());
         return tileFile;
     }
@@ -131,6 +147,10 @@ public class FilePathGenerator {
      * @return
      */
     public static String getParametersKvp(Map<String, String> parameters) {
+        if (parameters == null || parameters.size() == 0) {
+            return null;
+        }
+
         StringBuilder sb = new StringBuilder();
         SortedMap<String, String> sorted = new TreeMap<String, String>(parameters);
         for (Map.Entry<String, String> e : sorted.entrySet()) {

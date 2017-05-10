@@ -16,24 +16,6 @@
  */
 package org.geowebcache.sqlite;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geotools.mbtiles.GeoToolsMbtilesUtils;
-import org.geotools.mbtiles.MBTilesFile;
-import org.geotools.mbtiles.MBTilesMetadata;
-import org.geotools.mbtiles.MBTilesMetadata.t_format;
-import org.geotools.mbtiles.MBTilesTile;
-import org.geotools.sql.SqlUtil;
-import org.geowebcache.mime.ApplicationMime;
-import org.geowebcache.mime.MimeException;
-import org.geowebcache.mime.MimeType;
-import org.geowebcache.storage.BlobStoreListener;
-import org.geowebcache.storage.BlobStoreListenerList;
-import org.geowebcache.storage.StorageException;
-import org.geowebcache.storage.TileObject;
-import org.geowebcache.storage.TileRange;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -53,6 +35,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geotools.mbtiles.GeoToolsMbtilesUtils;
+import org.geotools.mbtiles.MBTilesFile;
+import org.geotools.mbtiles.MBTilesMetadata;
+import org.geotools.mbtiles.MBTilesTile;
+import org.geotools.sql.SqlUtil;
+import org.geowebcache.mime.MimeException;
+import org.geowebcache.mime.MimeType;
+import org.geowebcache.storage.BlobStoreListener;
+import org.geowebcache.storage.BlobStoreListenerList;
+import org.geowebcache.storage.StorageException;
+import org.geowebcache.storage.TileObject;
+import org.geowebcache.storage.TileRange;
 
 /**
  * Blobstore that store the tiles in a sqlite database using the mbtiles specification.
@@ -640,5 +638,14 @@ public final class MbtilesBlobStore extends SqliteBlobStore {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean delete(List<TileObject> obj) throws StorageException {
+        for (TileObject tile : obj) {
+            delete(tile);
+        }
+        
+        return true;
     }
 }

@@ -1,5 +1,7 @@
 package org.geowebcache.storage;
 
+import java.util.List;
+
 /**
  * Abstracts and manages the storing of cachable objects and their metadata.
  */
@@ -30,6 +32,16 @@ public interface StorageBroker {
             throws StorageException;
 
     public abstract boolean delete(TileRange trObj) throws StorageException;
+
+    /**
+     * Deletes tiles
+     * 
+     * @param tiles
+     * @return
+     * @throws StorageException
+     */
+    public abstract boolean delete(List<TileObject> tiles)
+            throws StorageException;
 
     /**
      * Sets the Resource for the given TileObject from storage

@@ -17,6 +17,7 @@
  */
 package org.geowebcache.storage;
 
+import java.util.List;
 
 /**
  * Manages the persistence of the actual data contained in cacheable objects (tiles, WFS responses).
@@ -64,6 +65,16 @@ public interface BlobStore {
      * @throws StorageException
      */
    public boolean delete(TileRange obj) throws StorageException;
+
+    /**
+     * Delete the cached blob associated with the tiles in the given list.
+     * 
+     * @param obj
+     *            the tiles
+     * @return {@literal true} if successful, {@literal false} otherwise
+     * @throws StorageException
+     */
+    public boolean delete(List<TileObject> obj) throws StorageException;
 
     /**
      * Retrieves a tile from the storage, filling its metadata too

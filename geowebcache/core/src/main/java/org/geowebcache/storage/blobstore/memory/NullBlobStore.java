@@ -17,6 +17,7 @@ package org.geowebcache.storage.blobstore.memory;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -139,4 +140,12 @@ public class NullBlobStore implements BlobStore {
 	public boolean layerExists(String layerName) {
 		return false;
 	}
+
+    @Override
+    public boolean delete(List<TileObject> tiles) throws StorageException {
+        // for (TileObject tile : tiles) {
+        // delete(tile);
+        // }
+        return true;
+    }
 }

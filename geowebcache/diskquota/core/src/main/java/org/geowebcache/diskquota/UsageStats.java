@@ -14,11 +14,15 @@ public class UsageStats {
 
     private final int epsgId;
 
-    public UsageStats(TileSet tileset, long[] tileIndex, double[] bbox, int epsgId) {
+    private final String parametersKvp;
+
+    public UsageStats(TileSet tileset, long[] tileIndex, double[] bbox, int epsgId,
+            String parametersKvp) {
         this.tileSet = tileset;
         this.tileIndex = tileIndex;
         this.bbox = bbox;
         this.epsgId = epsgId;
+        this.parametersKvp = parametersKvp;
     }
 
     public TileSet getTileSet() {
@@ -35,6 +39,10 @@ public class UsageStats {
 
     public int getEpsgId() {
         return epsgId;
+    }
+
+    public String getParametersKvp() {
+        return parametersKvp;
     }
 
     @Override

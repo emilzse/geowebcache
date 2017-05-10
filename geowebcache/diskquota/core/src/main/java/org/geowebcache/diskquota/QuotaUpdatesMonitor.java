@@ -145,7 +145,7 @@ public class QuotaUpdatesMonitor {
     public void tileStored(final String layerName, final String gridSetId, final String blobFormat,
             final String parametersId, final long x, final long y, final int z, final long blobSize) {
         this.quotaDiffsProducer.tileStored(layerName, gridSetId, blobFormat, parametersId, x, y, z,
-                blobSize, -1, null);
+                blobSize, -1, null, null);
     }
 
     public void awaitTermination(int timeout, TimeUnit units) throws InterruptedException {

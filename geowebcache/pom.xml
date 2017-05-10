@@ -681,5 +681,6 @@
     <module>sqlite</module>
     <!-- module to have layers in postgres database -->
     <module>config_postgres</module>
+    <module>seed</module>
   </modules>
 </project>

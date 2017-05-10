@@ -80,6 +80,27 @@ public class ConveyorTile extends Conveyor implements TileResponseReceiver {
         this(sb, layerId, gridSetId, tileIndex, mimeType, fullParameters, servletReq, servletResp);
     }
 
+    public ConveyorTile(StorageBroker sb, String layerId, String gridSetId, long[] tileIndex,
+            MimeType mimeType, Map<String, String> filteringParameters) {
+        super(layerId, sb, null, null);
+        this.gridSetId = gridSetId;
+
+        long[] idx = new long[3];
+
+        if (tileIndex != null) {
+            idx[0] = tileIndex[0];
+            idx[1] = tileIndex[1];
+            idx[2] = tileIndex[2];
+        }
+
+        super.mimeType = mimeType;
+
+        this.fullParameters = filteringParameters;
+
+        stObj = TileObject.createQueryTileObject(layerId, idx, gridSetId, mimeType.getFormat(),
+                filteringParameters);
+    }
+
     /**
      * This constructor is used for an incoming request, the data is then added by the cache
      */

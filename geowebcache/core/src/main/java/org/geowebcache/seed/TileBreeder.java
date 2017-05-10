@@ -607,4 +607,16 @@ public class TileBreeder implements ApplicationContextAware {
         return this.layerDispatcher.getLayerList();
     }
 
+    public int getTileFailureRetryCount() {
+        return tileFailureRetryCount;
+    }
+
+    public long getTileFailureRetryWaitTime() {
+        return tileFailureRetryWaitTime;
+    }
+
+    public long getTotalFailuresBeforeAborting() {
+        return totalFailuresBeforeAborting;
+    }
+
 }

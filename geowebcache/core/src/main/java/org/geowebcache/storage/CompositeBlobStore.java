@@ -18,6 +18,7 @@
 package org.geowebcache.storage;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -448,6 +449,14 @@ public class CompositeBlobStore implements BlobStore {
         }
 
         return new ConcurrentHashMap<>(stores);
+    }
+
+    @Override
+    public boolean delete(List<TileObject> tiles) throws StorageException {
+        for (TileObject tile : tiles) {
+            delete(tile);
+        }
+        return true;
     }
 
 }

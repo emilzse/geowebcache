@@ -48,9 +48,8 @@ import org.geowebcache.diskquota.storage.TilePage;
 import org.geowebcache.diskquota.storage.TilePageCalculator;
 import org.geowebcache.diskquota.storage.TileSet;
 import org.geowebcache.diskquota.storage.TileSetVisitor;
+import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.storage.DefaultStorageFinder;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
@@ -954,6 +953,21 @@ public class BDBQuotaStore implements QuotaStore {
                 throw e;
             }
         }
+    }
+
+    @Override
+    public void invalidateTilePages(String layerName, BoundingBox bbox, int zoomLevel) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void validateTilePages(String layerName) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public List<TilePage> getInvalidatedTilePages(String layerName) {
+        return null;
     }
 
 }

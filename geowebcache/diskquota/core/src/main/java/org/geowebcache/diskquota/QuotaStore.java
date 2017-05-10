@@ -12,6 +12,7 @@ import org.geowebcache.diskquota.storage.TilePage;
 import org.geowebcache.diskquota.storage.TilePageCalculator;
 import org.geowebcache.diskquota.storage.TileSet;
 import org.geowebcache.diskquota.storage.TileSetVisitor;
+import org.geowebcache.grid.BoundingBox;
 
 public interface QuotaStore {
 
@@ -102,6 +103,22 @@ public interface QuotaStore {
     public abstract PageStats setTruncated(final TilePage tilePage) throws InterruptedException;
 
     public abstract void deleteGridSubset(String layerName, String gridSetId);
+
+    /**
+     * @param layerName
+     * @param bbox
+     *            EPSG:4326
+     * @param zoomLevel
+     *            from
+     */
+    public abstract void invalidateTilePages(String layerName, BoundingBox bbox, int zoomLevel);
+
+    public abstract void validateTilePages(String layerName);
+
+    /**
+     * @return get invalidated tile pages
+     */
+    public abstract List<TilePage> getInvalidatedTilePages(String layerName);
 
     /**
      * Closes the quota store, releasing any resources the store might be depending onto

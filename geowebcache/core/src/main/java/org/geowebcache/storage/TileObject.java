@@ -49,6 +49,45 @@ public class TileObject extends StorageObject implements Serializable{
     private int epsgId;
 
     public static TileObject createQueryTileObject(String layerName, long[] xyz, String gridSetId,
+            String format) {
+        TileObject obj = new TileObject();
+
+        obj.layer_name = layerName;
+        obj.xyz = xyz;
+        obj.gridSetId = gridSetId;
+        obj.blob_format = format;
+
+        return obj;
+    }
+
+    public static TileObject createQueryTileObject(String layerName, long[] xyz, String gridSetId,
+            String format, String parametersId) {
+        TileObject obj = new TileObject();
+
+        obj.layer_name = layerName;
+        obj.xyz = xyz;
+        obj.gridSetId = gridSetId;
+        obj.blob_format = format;
+        obj.parameters_id = parametersId;
+
+        return obj;
+    }
+
+    public static TileObject createQueryTileObject(String layerName, long[] xyz, String gridSetId,
+            String format, String parametersId, Map<String, String> parameters) {
+        TileObject obj = new TileObject();
+
+        obj.layer_name = layerName;
+        obj.xyz = xyz;
+        obj.gridSetId = gridSetId;
+        obj.blob_format = format;
+        obj.parameters_id = parametersId;
+        obj.parameters = parameters;
+
+        return obj;
+    }
+
+    public static TileObject createQueryTileObject(String layerName, long[] xyz, String gridSetId,
             String format, Map<String, String> parameters) {
         TileObject obj = new TileObject();
 

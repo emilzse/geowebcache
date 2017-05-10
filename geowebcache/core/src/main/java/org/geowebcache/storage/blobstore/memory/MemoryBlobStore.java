@@ -17,6 +17,7 @@ package org.geowebcache.storage.blobstore.memory;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -741,5 +742,13 @@ public class MemoryBlobStore implements BlobStore, ApplicationContextAware {
          */
         public abstract boolean executeOperation(BlobStore store, Object... objs)
                 throws StorageException;
+    }
+
+    @Override
+    public boolean delete(List<TileObject> tiles) throws StorageException {
+        for (TileObject tile : tiles) {
+            delete(tile);
+        }
+        return true;
     }
 }

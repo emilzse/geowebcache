@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,6 +35,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -48,6 +50,7 @@ import org.geowebcache.diskquota.storage.TilePage;
 import org.geowebcache.diskquota.storage.TilePageCalculator;
 import org.geowebcache.diskquota.storage.TileSet;
 import org.geowebcache.diskquota.storage.TileSetVisitor;
+import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.storage.DefaultStorageFinder;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
@@ -612,7 +615,7 @@ public class JDBCQuotaStore implements QuotaStore {
         // for the moment we don't have the page in the db, we have to create it
         String insert = dialect.contionalTilePageInsertStatement(schema, "key", "tileSetId",
                 "pageZ", "pageX", "pageY", "creationTime", "frequencyOfUse", "lastAccessTime",
-                "fillFactor", "numHits", "geom");
+                "fillFactor", "numHits", "geom", "parametersKvp", "tileIndex");
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("key", page.getKey());
         params.put("tileSetId", page.getTileSetId());
@@ -625,6 +628,12 @@ public class JDBCQuotaStore implements QuotaStore {
         params.put("fillFactor", stats.getFillFactor());
         params.put("numHits", new BigDecimal(stats.getNumHits()));
         params.put("geom", getGeom(page));
+        params.put("parametersKvp", page.getParametersKvp() == null ? "" : page.getParametersKvp());
+        params.put("tileIndex",
+                page.getTileIndex() == null ? ""
+                        : Arrays.stream(page.getTileIndex()).mapToObj(String::valueOf)
+                                .collect(Collectors.joining(",")));
+        
 
         // try the insert, mind, someone else might have done it as well, in such
         // case the insert will fail and return 0 record modified
@@ -898,14 +907,135 @@ public class JDBCQuotaStore implements QuotaStore {
      */
     static class TilePageRowMapper implements RowMapper<TilePage> {
 
+        private boolean tileInfo = false;
+
+        public TilePageRowMapper() {
+        }
+
+        public TilePageRowMapper(boolean tileInfo) {
+            this.tileInfo = tileInfo;
+        }
+
         public TilePage mapRow(ResultSet rs, int rowNum) throws SQLException {
             String tileSetId = rs.getString(1);
             int pageX = rs.getInt(2);
             int pageY = rs.getInt(3);
             int pageZ = rs.getInt(4);
             int creationTimeMinutes = rs.getInt(5);
+            String paramKvp = tileInfo ? rs.getString(6) : null;
+            long[] tileIndex = tileInfo
+                    ? Arrays.stream(rs.getString(7).split(",")).mapToLong(Long::parseLong).toArray()
+                    : null;
 
-            return new TilePage(tileSetId, pageX, pageY, pageZ, creationTimeMinutes);
+            return new TilePage(tileSetId, pageX, pageY, pageZ, creationTimeMinutes, paramKvp, tileIndex);
         }
     }
+
+    // geo column as geometry must exists as 4326 and invalidated as boolean
+
+    @Override
+    public void invalidateTilePages(String layerName, BoundingBox bbox, int zoomLevel) {
+        String sql = getInvalidateTilePage(schema, "ewkt", "layer", "z");
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("ewkt", String.format("SRID=4326;%s", bbox.toWkt()));
+        params.put("layer", layerName);
+        params.put("z", zoomLevel);
+
+        jt.update(sql, params);
+    }
+
+    @Override
+    public void validateTilePages(String layerName) {
+        String sql = getValidateTilePage(schema, "layer");
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("layer", layerName);
+
+        jt.update(sql, params);
+    }
+
+    @Override
+    public List<TilePage> getInvalidatedTilePages(String layerName) {
+        String sql = getInvalidatedTilePagesQuery(schema, "layer");
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("layer", layerName);
+
+        return jt.query(sql, params, new TilePageRowMapper(true));
+    }
+
+    /**
+     * Will update tilepage with invalidated = true where intersects geo
+     * 
+     * @param schema
+     * @param ewktParam
+     * @return
+     */
+    private String getInvalidatedTilePagesQuery(String schema, String layerNameParam) {
+        StringBuilder sb = new StringBuilder(
+                "SELECT TILESET_ID, PAGE_X, PAGE_Y, PAGE_Z, CREATION_TIME_MINUTES, PARAMETERS_KVP, TILE_INDEX FROM ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILEPAGE WHERE invalidated = true");
+        sb.append(" AND TILESET_ID IN (");
+        sb.append("SELECT KEY FROM ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILESET WHERE LAYER_NAME = :" + layerNameParam);
+        sb.append(")");
+
+        return sb.toString();
+    }
+
+    /**
+     * @param schema
+     * @param ewktParam
+     * @param layerNameParam
+     * @return update tilepage query with invalidated = true where intersects geo and page_z >
+     */
+    private String getInvalidateTilePage(String schema, String ewktParam, String layerNameParam,
+            String zoomLevelParam) {
+        StringBuilder sb = new StringBuilder("UPDATE ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILEPAGE SET invalidated = true");
+        sb.append(" WHERE ST_INTERSECTS(geo, ST_GEOMFROMEWKT(:").append(ewktParam).append("))");
+        sb.append(" AND PAGE_Z >= :").append(zoomLevelParam);
+        sb.append(" AND TILESET_ID IN (");
+        sb.append("SELECT KEY FROM ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILESET WHERE LAYER_NAME = :" + layerNameParam);
+        sb.append(")");
+
+        return sb.toString();
+    }
+
+    /**
+     * Will update tilepage with invalidated = false
+     * 
+     * @param schema
+     * @param layerNameParam
+     * @return
+     */
+    private String getValidateTilePage(String schema, String layerNameParam) {
+        StringBuilder sb = new StringBuilder("UPDATE ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILEPAGE SET invalidated = false");
+        sb.append(" WHERE invalidated = true");
+        sb.append(" AND TILESET_ID IN (");
+        sb.append("SELECT KEY FROM ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILESET WHERE LAYER_NAME = :" + layerNameParam);
+        sb.append(")");
+
+        return sb.toString();
+    }
+
 }
