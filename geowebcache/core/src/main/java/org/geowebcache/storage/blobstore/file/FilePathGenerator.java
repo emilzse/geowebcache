@@ -17,37 +17,20 @@
  */
 package org.geowebcache.storage.blobstore.file;
 
-import static org.geowebcache.storage.blobstore.file.FilePathUtils.appendFiltered;
-import static org.geowebcache.storage.blobstore.file.FilePathUtils.appendGridsetZoomLevelDir;
-import static org.geowebcache.storage.blobstore.file.FilePathUtils.zeroPadder;
+import static org.geowebcache.storage.blobstore.file.FilePathUtils.*;
 
 import java.io.File;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geowebcache.mime.MimeException;
+import org.geowebcache.filter.parameters.ParametersUtils;
 import org.geowebcache.mime.MimeType;
 import org.geowebcache.storage.TileObject;
 
 public class FilePathGenerator {
     
-    public static void main(String[] args) {
-        TileObject tile = TileObject.createCompleteTileObject("gtd", new long[] { 1089, 854, 10 },
-                "EPSG:4326", "image/jpeg", null, null);
-
-        try {
-            System.out.println(new FilePathGenerator("x:\\geowebcache\\").tilePath(tile,
-                    MimeType.createFromExtension("jpeg")));
-        } catch (MimeException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
+    @SuppressWarnings("unused")
     private static Log log = LogFactory.getLog(FilePathGenerator.class);
     
     String cacheRoot;
@@ -100,7 +83,7 @@ public class FilePathGenerator {
         String parametersId = tile.getParametersId();
         Map<String, String> parameters = tile.getParameters();
         if (parametersId == null && parameters != null && !parameters.isEmpty()) {
-            parametersId = getParametersId(parameters);
+            parametersId = ParametersUtils.getId(parameters);
             tile.setParametersId(parametersId);
         }
         if(parametersId != null) {
@@ -118,26 +101,26 @@ public class FilePathGenerator {
         zeroPadder(y, 2 * digits, path);
         path.append('.');
         path.append(fileExtension);
-        
+
         File tileFile = new File(path.toString());
         return tileFile;
     }
 
-    protected static String buildKey(String parametersKvp) {
-        return DigestUtils.shaHex(parametersKvp);
+    /**
+     * @deprecated Use {@link ParametersUtils#buildKey(String)} instead
+     */
+    public static String buildKey(String parametersKvp) {
+        return ParametersUtils.buildKey(parametersKvp);
     }
     
     /**
      * Returns the parameters identifier for the given parameters map
      * @param parameters
      * @return
+     * @deprecated Use {@link ParametersUtils#getParametersId(Map<String, String>)} instead
      */
     public static String getParametersId(Map<String, String> parameters) {
-        if(parameters == null || parameters.size() == 0) {
-            return null;
-        }
-        String parametersKvp = getParametersKvp(parameters);
-        return buildKey(parametersKvp);
+        return ParametersUtils.getId(parameters);
     }
 
     /**
@@ -145,24 +128,10 @@ public class FilePathGenerator {
      * 
      * @param parameters
      * @return
+     * @deprecated Use {@link ParametersUtils#getParametersKvp(Map<String, String>)} instead
      */
     public static String getParametersKvp(Map<String, String> parameters) {
-        if (parameters == null || parameters.size() == 0) {
-            return null;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        SortedMap<String, String> sorted = new TreeMap<String, String>(parameters);
-        for (Map.Entry<String, String> e : sorted.entrySet()) {
-            if(sb.length() == 0) {
-                sb.append("?");
-            } else {
-                sb.append("&");
-            }
-            sb.append(e.getKey()).append('=').append(e.getValue());
-        }
-        String paramtersKvp = sb.toString();
-        return paramtersKvp;
+        return ParametersUtils.getLegacyParametersKvp(parameters);
     }
 
 

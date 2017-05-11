@@ -16,6 +16,13 @@
  */
 package org.geowebcache.sqlite;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geowebcache.storage.BlobStore;
+import org.geowebcache.storage.TileObject;
+import org.geowebcache.storage.blobstore.file.FileBlobStore;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.sql.Connection;
@@ -26,12 +33,6 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geowebcache.storage.TileObject;
-import org.geowebcache.storage.blobstore.file.FileBlobStore;
 
 /**
  * Measures the performance of the {@link SqliteConnectionManager}
@@ -182,8 +183,7 @@ final class SqlitlePerf {
         for (int i = 0; i < tiles.length; i++) {
             long[] tile = tiles[i];
             executor.submit((Runnable) () -> {
-                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid",
-                        "image/png");
+                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid", "image/png");
                 try {
                     mbtilesBlobStore.get(mbtile);
                 } catch (Exception exception) {
@@ -227,12 +227,11 @@ final class SqlitlePerf {
         ExecutorService executor = Executors.newFixedThreadPool(WORKERS);
         long startTime = System.currentTimeMillis();
         // instantiate the file blobstore
-        FileBlobStore fileBlobStore = new FileBlobStore(seedDirectory.getPath());
+        BlobStore fileBlobStore = new FileBlobStore(seedDirectory.getPath());
         for (int i = 0; i < tiles.length; i++) {
             long[] tile = tiles[i];
             executor.submit((Runnable) () -> {
-                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid",
-                        "image/png");
+                TileObject mbtile = TileObject.createQueryTileObject("layer", tile, "grid", "image/png");
                 try {
                     fileBlobStore.get(mbtile);
                 } catch (Exception exception) {
@@ -270,7 +269,7 @@ final class SqlitlePerf {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(String.format("Start seeding file system '%s'.", seedDirectory));
         }
-        FileBlobStore fileBlobStore = new FileBlobStore(seedDirectory.getPath());
+        BlobStore fileBlobStore = new FileBlobStore(seedDirectory.getPath());
         // start seeding the tiles
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < TILES; i++) {

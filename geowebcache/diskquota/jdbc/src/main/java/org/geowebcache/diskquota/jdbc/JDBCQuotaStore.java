@@ -279,6 +279,12 @@ public class JDBCQuotaStore implements QuotaStore {
         // execute the sql query
         return nonNullQuota(jt.queryForOptionalObject(sql, new DiskQuotaMapper(), parameters));
     }
+    
+    public Quota getUsedQuotaByParametersId(String parametersId) {
+        String sql = dialect.getUsedQuotaByParametersId(schema, "parametersId");
+        return nonNullQuota(jt.queryForOptionalObject(sql, new DiskQuotaMapper(), Collections.singletonMap("parametersId", parametersId)));
+
+    }
 
     protected Quota getUsedQuotaByTileSetIdInternal(final String tileSetId) {
         String sql = dialect.getUsedQuotaByTileSetId(schema, "key");
@@ -685,7 +691,7 @@ public class JDBCQuotaStore implements QuotaStore {
         return executor.submit(new Callable<List<PageStats>>() {
 
             public List<PageStats> call() throws Exception {
-                return (List<PageStats>) tt.execute(new TransactionCallback() {
+                return (List<PageStats>) tt.execute(new TransactionCallback<Object>() {
 
                     public Object doInTransaction(TransactionStatus status) {
                         List<PageStats> result = new ArrayList<PageStats>();
@@ -822,7 +828,7 @@ public class JDBCQuotaStore implements QuotaStore {
     }
 
     public PageStats setTruncated(final TilePage page) throws InterruptedException {
-        return (PageStats) tt.execute(new TransactionCallback() {
+        return (PageStats) tt.execute(new TransactionCallback<Object>() {
 
             public Object doInTransaction(TransactionStatus status) {
                 if (log.isDebugEnabled()) {
@@ -929,6 +935,32 @@ public class JDBCQuotaStore implements QuotaStore {
 
             return new TilePage(tileSetId, pageX, pageY, pageZ, creationTimeMinutes, paramKvp, tileIndex);
         }
+    }
+
+    @Override
+    public void deleteParameters(final String layerName, final String parametersId) {
+        tt.execute(new TransactionCallbackWithoutResult() {
+
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                // first gather the disk quota used by the gridset, and update the global quota
+                Quota quota = getUsedQuotaByParametersId(parametersId);
+                quota.setBytes(quota.getBytes().negate());
+                String updateQuota = dialect.getUpdateQuotaStatement(schema, "tileSetId", "bytes");
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("tileSetId", GLOBAL_QUOTA_NAME);
+                params.put("bytes", new BigDecimal(quota.getBytes()));
+                jt.update(updateQuota, params);
+                
+                // then delete all the gridsets with the specified id
+                String statement = dialect.getLayerParametersDeletionStatement(schema, "layerName",
+                        "parametersId");
+                params = new HashMap<String, Object>();
+                params.put("layerName", layerName);
+                params.put("parametersId", parametersId);
+                jt.update(statement, params);
+            }
+        });
     }
 
     // geo column as geometry must exists as 4326 and invalidated as boolean

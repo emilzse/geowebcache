@@ -16,15 +16,41 @@
  */
 package org.geowebcache.sqlite;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geotools.mbtiles.GeoToolsMbtilesUtils;
+import org.geotools.mbtiles.MBTilesFile;
+import org.geotools.mbtiles.MBTilesMetadata;
+import org.geotools.mbtiles.MBTilesMetadata.t_format;
+import org.geotools.mbtiles.MBTilesTile;
+import org.geotools.sql.SqlUtil;
+import org.geowebcache.filter.parameters.ParametersUtils;
+import org.geowebcache.mime.ApplicationMime;
+import org.geowebcache.mime.MimeException;
+import org.geowebcache.mime.MimeType;
+import org.geowebcache.storage.BlobStoreListener;
+import org.geowebcache.storage.BlobStoreListenerList;
+import org.geowebcache.storage.StorageException;
+import org.geowebcache.storage.TileObject;
+import org.geowebcache.storage.TileRange;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.Connection;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorCompletionService;
@@ -35,22 +61,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geotools.mbtiles.GeoToolsMbtilesUtils;
-import org.geotools.mbtiles.MBTilesFile;
-import org.geotools.mbtiles.MBTilesMetadata;
-import org.geotools.mbtiles.MBTilesTile;
-import org.geotools.sql.SqlUtil;
-import org.geowebcache.mime.MimeException;
-import org.geowebcache.mime.MimeType;
-import org.geowebcache.storage.BlobStoreListener;
-import org.geowebcache.storage.BlobStoreListenerList;
-import org.geowebcache.storage.StorageException;
-import org.geowebcache.storage.TileObject;
-import org.geowebcache.storage.TileRange;
 
 /**
  * Blobstore that store the tiles in a sqlite database using the mbtiles specification.
@@ -163,6 +173,8 @@ public final class MbtilesBlobStore extends SqliteBlobStore {
                 throw Utils.exception(exception, "Error saving tile '%s' in file '%s'.", tile, file);
             }
         });
+        
+        persistParameterMap(tile);
     }
 
     
@@ -253,6 +265,7 @@ public final class MbtilesBlobStore extends SqliteBlobStore {
                 byte[] olData = mbtiles.loadTile(tile.getXYZ()[2], tile.getXYZ()[0], tile.getXYZ()[1]).getData();
                 if (olData != null) {
                     // tile exists so let's remove the tile
+                    tile.setBlobSize(olData.length);
                     mbtiles.saveTile(gtTile);
                     // updating the listener if any
                     listeners.sendTileDeleted(tile);
@@ -338,6 +351,13 @@ public final class MbtilesBlobStore extends SqliteBlobStore {
     public boolean deleteByGridsetId(String layerName, String gridSetId) throws StorageException {
         boolean deleted = deleteFiles(fileManager.getFiles(layerName, gridSetId));
         listeners.sendGridSubsetDeleted(layerName, gridSetId);
+        return deleted;
+    }
+    
+    @Override
+    public boolean deleteByParametersId(String layerName, String parametersId) throws StorageException {
+        boolean deleted = deleteFiles(fileManager.getParametersFiles(layerName, parametersId));
+        listeners.sendParametersDeleted(layerName, parametersId);
         return deleted;
     }
 
@@ -639,6 +659,39 @@ public final class MbtilesBlobStore extends SqliteBlobStore {
             }
         }
     }
+    
+    public Map<String,Optional<Map<String, String>>> getParametersMapping(String layerName) {
+        try {
+            return (Map<String,Optional<Map<String, String>>>)connectionManager.executeQuery(metadataFile, resultSet -> {
+                        try {
+                            Map<String, Optional<Map<String, String>>> result = new HashMap<>();
+                            while(resultSet.next()) {
+                                Map<String, String> params = ParametersUtils.getMap(resultSet.getString(1));
+                                result.put(ParametersUtils.getId(params), Optional.of(params));
+                            }
+                            return result;
+                        } catch (Exception exception) {
+                            throw Utils.exception(exception, "Error reading result set.");
+                        }
+                    },
+                    "SELECT value FROM metadata WHERE layerName = ? AND key like 'parameters.%';", layerName);
+        } catch (Exception exception) {
+            // probably because the metadata table doesn't exists
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error(String.format("Error getting metadata from file '%s'.", metadataFile), exception);
+            }
+            return Collections.emptyMap();
+        }
+    }
+    
+    protected void persistParameterMap(TileObject stObj) {
+        if(Objects.nonNull(stObj.getParametersId())) {
+            putLayerMetadata(
+                    stObj.getLayerName(), 
+                    "parameters."+stObj.getParametersId(), 
+                    ParametersUtils.getKvp(stObj.getParameters()));
+        }
+    }
 
     @Override
     public boolean delete(List<TileObject> obj) throws StorageException {
@@ -648,4 +701,5 @@ public final class MbtilesBlobStore extends SqliteBlobStore {
         
         return true;
     }
+
 }
