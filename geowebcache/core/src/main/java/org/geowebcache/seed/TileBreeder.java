@@ -193,6 +193,18 @@ public class TileBreeder implements ApplicationContextAware {
         }
         return defaultVal;
     }
+    
+    /**
+     * Create and dispatch tasks to fulfill a seed request
+     * 
+     * @param layerName
+     * @param sr
+     * @throws GeoWebCacheException
+     */
+    // TODO: The SeedRequest specifies a layer name. Would it make sense to use that instead of including one as a separate parameter?
+    public void seed(final String layerName, final SeedRequest sr) throws GeoWebCacheException {
+        seedWithResult(layerName, sr);
+    }
 
     /**
      * Create and dispatch tasks to fulfill a seed request
@@ -203,7 +215,7 @@ public class TileBreeder implements ApplicationContextAware {
      * @return list of task ids
      */
     // TODO: The SeedRequest specifies a layer name. Would it make sense to use that instead of including one as a separate parameter?
-    public long[] seed(final String layerName, final SeedRequest sr) throws GeoWebCacheException {
+    public long[] seedWithResult(final String layerName, final SeedRequest sr) throws GeoWebCacheException {
 
         TileLayer tl = findTileLayer(layerName);
 

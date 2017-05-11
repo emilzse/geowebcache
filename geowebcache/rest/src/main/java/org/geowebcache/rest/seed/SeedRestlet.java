@@ -96,7 +96,7 @@ public class SeedRestlet extends GWCSeedingRestlet {
         }
 
         try {
-            resp.setEntity(new JsonRepresentation(new JSONArray(seeder.seed(layerName, sr))));
+            resp.setEntity(new JsonRepresentation(new JSONArray(seeder.seedWithResult(layerName, sr))));
         } catch (IllegalArgumentException e) {
             throw new RestletException(e.getMessage(), Status.CLIENT_ERROR_BAD_REQUEST);
         } catch (GeoWebCacheException e) {

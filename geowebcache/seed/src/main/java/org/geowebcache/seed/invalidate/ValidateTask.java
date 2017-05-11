@@ -28,7 +28,6 @@ import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.conveyor.ConveyorTile;
 import org.geowebcache.diskquota.QuotaStore;
 import org.geowebcache.diskquota.storage.TilePage;
-import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.wms.WMSLayer;
 import org.geowebcache.mime.MimeType;
@@ -257,27 +256,27 @@ class ValidateTask extends GWCTask {
 
     // OSM http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Java
 
-    private BoundingBox tile2boundingBox(final int[] zxy) {
-        int zoom = zxy[0];
-        int x = zxy[1];
-        int y = zxy[2];
-        
-        double maxY = tile2lat(y, zoom);
-        double minY = tile2lat(y + 1, zoom);
-        double minX = tile2lon(x, zoom);
-        double maxX = tile2lon(x + 1, zoom);
-
-        return new BoundingBox(minX, minY, maxX, maxY);
-    }
-
-    static double tile2lon(int x, int z) {
-        return x / Math.pow(2.0, z) * 360.0 - 180;
-    }
-
-    static double tile2lat(int y, int z) {
-        double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, z);
-        return Math.toDegrees(Math.atan(Math.sinh(n)));
-    }
+//    private BoundingBox tile2boundingBox(final int[] zxy) {
+//        int zoom = zxy[0];
+//        int x = zxy[1];
+//        int y = zxy[2];
+//        
+//        double maxY = tile2lat(y, zoom);
+//        double minY = tile2lat(y + 1, zoom);
+//        double minX = tile2lon(x, zoom);
+//        double maxX = tile2lon(x + 1, zoom);
+//
+//        return new BoundingBox(minX, minY, maxX, maxY);
+//    }
+//
+//    static double tile2lon(int x, int z) {
+//        return x / Math.pow(2.0, z) * 360.0 - 180;
+//    }
+//
+//    static double tile2lat(int y, int z) {
+//        double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, z);
+//        return Math.toDegrees(Math.atan(Math.sinh(n)));
+//    }
 
     /**
      * Initializes the other fields of the tilepage from an id with the

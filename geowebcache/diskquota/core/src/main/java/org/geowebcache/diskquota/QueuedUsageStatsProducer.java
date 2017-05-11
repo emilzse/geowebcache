@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.conveyor.ConveyorTile;
 import org.geowebcache.diskquota.storage.TileSet;
+import org.geowebcache.filter.parameters.ParametersUtils;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.TileLayerListener;
 import org.geowebcache.storage.blobstore.file.FilePathGenerator;
@@ -48,7 +49,7 @@ public class QueuedUsageStatsProducer implements TileLayerListener {
         long[] tileIndex = tile.getTileIndex().clone();
         double[] bbox = tile.getGridSubset().boundsFromIndex(tileIndex).getCoords();
         int epsgId = tile.getGridSubset().getSRS().getNumber();
-        String parametersKvp = FilePathGenerator.getParametersKvp(tile.getParameters());
+        String parametersKvp = ParametersUtils.getLegacyParametersKvp(tile.getParameters());
 
         UsageStats usageLog = new UsageStats(tileSet, tileIndex, bbox, epsgId, parametersKvp);
         try {
