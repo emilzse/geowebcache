@@ -966,10 +966,10 @@ public class JDBCQuotaStore implements QuotaStore {
     // geo column as geometry must exists as 4326 and invalidated as boolean
 
     @Override
-    public void invalidateTilePages(String layerName, BoundingBox bbox, int zoomLevel) {
-        String sql = getInvalidateTilePage(schema, "ewkt", "layer", "z");
+    public void invalidateTilePages(String layerName, BoundingBox bbox, int epsgId, int zoomLevel) {
+        String sql = getInvalidateTilePageQuery(schema, "ewkt", "layer", "z");
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("ewkt", String.format("SRID=4326;%s", bbox.toWkt()));
+        params.put("ewkt", String.format("SRID=%d;%s", epsgId, bbox.toWkt()));
         params.put("layer", layerName);
         params.put("z", zoomLevel);
 
@@ -978,7 +978,16 @@ public class JDBCQuotaStore implements QuotaStore {
 
     @Override
     public void validateTilePages(String layerName) {
-        String sql = getValidateTilePage(schema, "layer");
+        String sql = getValidateTilePageQuery(schema, "layer");
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("layer", layerName);
+
+        jt.update(sql, params);
+    }
+    
+    @Override
+    public void setDeletedInvalidatedTilePages(String layerName) {
+        String sql = getDeletedValidateTilePageQuery(schema, "layer");
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("layer", layerName);
 
@@ -986,28 +995,29 @@ public class JDBCQuotaStore implements QuotaStore {
     }
 
     @Override
-    public List<TilePage> getInvalidatedTilePages(String layerName) {
-        String sql = getInvalidatedTilePagesQuery(schema, "layer");
-        Map<String, String> params = new HashMap<String, String>();
+    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted) {
+        String sql = getInvalidatedTilePagesQuery(schema, "layer", "invalidated");
+        Map<String, Object> params = new HashMap<String, Object>();
         params.put("layer", layerName);
+        params.put("invalidated", deleted ? 2 : 1);
 
         return jt.query(sql, params, new TilePageRowMapper(true));
     }
 
     /**
-     * Will update tilepage with invalidated = true where intersects geo
+     * Will update tilepage with invalidated = 1 where intersects geo
      * 
      * @param schema
      * @param ewktParam
      * @return
      */
-    private String getInvalidatedTilePagesQuery(String schema, String layerNameParam) {
+    private String getInvalidatedTilePagesQuery(String schema, String layerNameParam, String invalidatedParam) {
         StringBuilder sb = new StringBuilder(
                 "SELECT TILESET_ID, PAGE_X, PAGE_Y, PAGE_Z, CREATION_TIME_MINUTES, PARAMETERS_KVP, TILE_INDEX FROM ");
         if (schema != null) {
             sb.append(schema).append(".");
         }
-        sb.append("TILEPAGE WHERE invalidated = true");
+        sb.append("TILEPAGE WHERE invalidated = :" + invalidatedParam);
         sb.append(" AND TILESET_ID IN (");
         sb.append("SELECT KEY FROM ");
         if (schema != null) {
@@ -1025,14 +1035,14 @@ public class JDBCQuotaStore implements QuotaStore {
      * @param layerNameParam
      * @return update tilepage query with invalidated = true where intersects geo and page_z >
      */
-    private String getInvalidateTilePage(String schema, String ewktParam, String layerNameParam,
+    private String getInvalidateTilePageQuery(String schema, String ewktParam, String layerNameParam,
             String zoomLevelParam) {
         StringBuilder sb = new StringBuilder("UPDATE ");
         if (schema != null) {
             sb.append(schema).append(".");
         }
-        sb.append("TILEPAGE SET invalidated = true");
-        sb.append(" WHERE ST_INTERSECTS(geo, ST_GEOMFROMEWKT(:").append(ewktParam).append("))");
+        sb.append("TILEPAGE SET invalidated = 1");
+        sb.append(" WHERE invalidated != 2 AND ST_INTERSECTS(geo, ST_TRANSFORM(ST_GEOMFROMEWKT(:").append(ewktParam).append("), 4326))");
         sb.append(" AND PAGE_Z >= :").append(zoomLevelParam);
         sb.append(" AND TILESET_ID IN (");
         sb.append("SELECT KEY FROM ");
@@ -1046,19 +1056,44 @@ public class JDBCQuotaStore implements QuotaStore {
     }
 
     /**
-     * Will update tilepage with invalidated = false
+     * Will update tilepage with invalidated = 0 where 1,2
      * 
      * @param schema
      * @param layerNameParam
      * @return
      */
-    private String getValidateTilePage(String schema, String layerNameParam) {
+    private String getValidateTilePageQuery(String schema, String layerNameParam) {
         StringBuilder sb = new StringBuilder("UPDATE ");
         if (schema != null) {
             sb.append(schema).append(".");
         }
-        sb.append("TILEPAGE SET invalidated = false");
-        sb.append(" WHERE invalidated = true");
+        sb.append("TILEPAGE SET invalidated = 0");
+        sb.append(" WHERE invalidated in (1,2)");
+        sb.append(" AND TILESET_ID IN (");
+        sb.append("SELECT KEY FROM ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILESET WHERE LAYER_NAME = :" + layerNameParam);
+        sb.append(")");
+
+        return sb.toString();
+    }
+    
+    /**
+     * Will update tilepage with invalidated = 2 where 1
+     * 
+     * @param schema
+     * @param layerNameParam
+     * @return
+     */
+    private String getDeletedValidateTilePageQuery(String schema, String layerNameParam) {
+        StringBuilder sb = new StringBuilder("UPDATE ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILEPAGE SET invalidated = 2");
+        sb.append(" WHERE invalidated = 1");
         sb.append(" AND TILESET_ID IN (");
         sb.append("SELECT KEY FROM ");
         if (schema != null) {

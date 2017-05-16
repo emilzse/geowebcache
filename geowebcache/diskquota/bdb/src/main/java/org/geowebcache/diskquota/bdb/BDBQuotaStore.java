@@ -922,7 +922,7 @@ public class BDBQuotaStore implements QuotaStore {
     }
 
     @Override
-    public void invalidateTilePages(String layerName, BoundingBox bbox, int zoomLevel) {
+    public void invalidateTilePages(String layerName, BoundingBox bbox, int epsgId, int zoomLevel) {
         // TODO Auto-generated method stub
     }
 
@@ -932,8 +932,13 @@ public class BDBQuotaStore implements QuotaStore {
     }
 
     @Override
-    public List<TilePage> getInvalidatedTilePages(String layerName) {
+    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted) {
         return null;
+    }
+
+    @Override
+    public void setDeletedInvalidatedTilePages(String layerName) {
+        // TODO Auto-generated method stub
     }
 
 }

@@ -16,7 +16,6 @@
  */
 package org.geowebcache.seed.invalidate;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -30,6 +29,7 @@ import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.wms.WMSLayer;
 import org.geowebcache.seed.GWCTask;
+import org.geowebcache.seed.InvalidateConfig;
 import org.geowebcache.storage.StorageBroker;
 import org.geowebcache.storage.StorageException;
 import org.geowebcache.storage.TileObject;
@@ -61,7 +61,7 @@ class InvalidateTask extends GWCTask {
 
     // private final GridSet gridSet;
 
-    private final String[] zxyList;
+    private final InvalidateConfig[] invalidateList;
 
     @VisibleForTesting
     Sleeper sleeper = Thread::sleep;
@@ -76,14 +76,14 @@ class InvalidateTask extends GWCTask {
      *            z/x/y
      */
     public InvalidateTask(StorageBroker storageBroker, QuotaStore quotaStore, TileLayer tl,
-            String[] zxy) {
+            InvalidateConfig[] list) {
 
         this.quotaStore = quotaStore;
         this.storageBroker = storageBroker;
         this.tl = tl;
         this.layerName = tl.getName();
         // this.gridSet = gridSet;
-        this.zxyList = zxy;
+        this.invalidateList = list;
 
         tileFailureRetryCount = 0;
         tileFailureRetryWaitTime = 100;
@@ -108,34 +108,36 @@ class InvalidateTask extends GWCTask {
         final long START_TIME = System.currentTimeMillis();
 
         log.info(getThreadName() + " begins invalidating z/x/y-tiles for " + layerName + ": zxys="
-                + zxyList.length);
+                + invalidateList.length);
 
         checkInterrupted();
 
-        super.tilesTotal = zxyList.length;
+        super.tilesTotal = invalidateList.length;
 
         checkInterrupted();
 
-        for (int i = 0; i < zxyList.length && this.terminate == false; i++) {
+        for (int i = 0; i < invalidateList.length && this.terminate == false; i++) {
 
             checkInterrupted();
 
             // get bbox for tile
 
-            int[] zxy = Arrays.stream(zxyList[i].split("/")).mapToInt(Integer::parseInt).toArray();
+            InvalidateConfig obj = invalidateList[i];
+            
+//            int[] zxy = Arrays.stream(invalidateList[i].split("/")).mapToInt(Integer::parseInt).toArray();
 
-            BoundingBox tileBbox = tile2boundingBox(zxy);
+            BoundingBox tileBbox = obj.bounds;
 
             for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
                 try {
                     checkInterrupted();
 
                     if (log.isDebugEnabled()) {
-                        log.debug("zxy=" + Arrays.toString(zxy) + " wkt=" + tileBbox.toWkt());
+                        log.debug("invalidate-item=" + obj);
                     }
 
                     // invalidate in db
-                    quotaStore.invalidateTilePages(layerName, tileBbox, zxy[0]);
+                    quotaStore.invalidateTilePages(layerName, tileBbox, obj.epsgId, obj.scaleLevel);
                     
                     break;// success, let it go
                 } catch (Exception e) {
@@ -156,7 +158,7 @@ class InvalidateTask extends GWCTask {
                         super.state = GWCTask.STATE.DEAD;
                         return;
                     }
-                    String logMsg = "Invalidate failed at " + Arrays.toString(zxy) + " after "
+                    String logMsg = "Invalidate failed at " + obj + " after "
                             + (fetchAttempt + 1) + " of " + (tileFailureRetryCount + 1)
                             + " attempts.";
                     if (fetchAttempt < tileFailureRetryCount) {
@@ -175,8 +177,7 @@ class InvalidateTask extends GWCTask {
             }
 
             if (log.isTraceEnabled()) {
-                log.trace(getThreadName() + " invalidated " + Arrays.toString(zxy) + " with bbox "
-                        + tileBbox.toString());
+                log.trace(getThreadName() + " invalidated " + obj);
             }
 
             // i starts with 0
@@ -191,13 +192,16 @@ class InvalidateTask extends GWCTask {
             checkInterrupted();
 
             // remove tiles from file system
-            List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName);
+            List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName, false);
 
             try {
                 log.info("Invalidated pages, will delete tiles: count=" + pages.size());
 
                 storageBroker.delete(
                         pages.stream().map(this::initFromTilePage).collect(Collectors.toList()));
+                
+                // Mark as deleted
+                quotaStore.setDeletedInvalidatedTilePages(layerName);
             } catch (StorageException e) {
                 log.error("Failed to delete invalidated tiles: msg=" + e.getMessage());
 
@@ -270,30 +274,6 @@ class InvalidateTask extends GWCTask {
         if (tl instanceof WMSLayer) {
             ((WMSLayer) tl).cleanUpThreadLocals();
         }
-    }
-
-    // OSM http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Java
-
-    private BoundingBox tile2boundingBox(final int[] zxy) {
-        int zoom = zxy[0];
-        int x = zxy[1];
-        int y = zxy[2];
-        
-        double maxY = tile2lat(y, zoom);
-        double minY = tile2lat(y + 1, zoom);
-        double minX = tile2lon(x, zoom);
-        double maxX = tile2lon(x + 1, zoom);
-
-        return new BoundingBox(minX, minY, maxX, maxY);
-    }
-
-    static double tile2lon(int x, int z) {
-        return x / Math.pow(2.0, z) * 360.0 - 180;
-    }
-
-    static double tile2lat(int y, int z) {
-        double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, z);
-        return Math.toDegrees(Math.atan(Math.sinh(n)));
     }
 
     /**

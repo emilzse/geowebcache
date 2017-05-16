@@ -32,6 +32,7 @@ import org.geowebcache.rest.RestletException;
 import org.geowebcache.rest.seed.GWCSeedingRestlet;
 import org.geowebcache.rest.seed.SeedFormRestlet;
 import org.geowebcache.seed.GWCTask;
+import org.geowebcache.seed.InvalidateRequest;
 import org.geowebcache.seed.TileBreeder;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,7 +60,7 @@ public class InvalidateRestlet extends GWCSeedingRestlet {
             throw new RestletException("zxy must be provided", Status.CLIENT_ERROR_BAD_REQUEST);
         }
 
-        handleRequest(req, resp, new InvalidateRequest(zxy.split(",")));
+        handleRequest(req, resp, new InvalidateRequest(zxy));
     }
 
     protected void handleRequest(Request req, Response resp, Object obj) {
@@ -87,7 +88,7 @@ public class InvalidateRestlet extends GWCSeedingRestlet {
     }
 
     private GWCTask[] createTasks(TileLayer tl, InvalidateRequest ir) {
-        InvalidateTask task = new InvalidateTask(seeder.getStorageBroker(), store, tl, ir.getZxy());
+        InvalidateTask task = new InvalidateTask(seeder.getStorageBroker(), store, tl, ir.getInvalidateItems());
         
         AtomicLong failureCounter = new AtomicLong();
         AtomicInteger sharedThreadCount = new AtomicInteger();

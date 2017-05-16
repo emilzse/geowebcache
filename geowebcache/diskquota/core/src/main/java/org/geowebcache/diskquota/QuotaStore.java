@@ -109,23 +109,36 @@ public interface QuotaStore {
     /**
      * @param layerName
      * @param bbox
-     *            EPSG:4326
+     * @param epsgId EPSG of bbox
      * @param zoomLevel
      *            from
      */
-    public abstract void invalidateTilePages(String layerName, BoundingBox bbox, int zoomLevel);
-
-    public abstract void validateTilePages(String layerName);
+    public abstract void invalidateTilePages(String layerName, BoundingBox bbox, int epsgId, int zoomLevel);
 
     /**
      * @return get invalidated tile pages
      */
-    public abstract List<TilePage> getInvalidatedTilePages(String layerName);
+    public abstract List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted);
+
+    /**
+     * Mark invalidated/deleted as validated
+     * 
+     * @param layerName
+     */
+    public abstract void validateTilePages(String layerName);
+
+    /**
+     * Mark invalidated as deleted
+     * 
+     * @param layerName
+     */
+    public abstract void setDeletedInvalidatedTilePages(String layerName);
 
     /**
      * Closes the quota store, releasing any resources the store might be depending onto
      * @throws Exception 
      */
     public abstract void close() throws Exception;
+
 
 }

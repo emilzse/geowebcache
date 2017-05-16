@@ -116,9 +116,6 @@ public class RESTDispatcher extends AbstractController {
         while (it.hasNext()){
             Entry<String,Object> entry = it.next();
 
-            System.out.println(entry.getKey());
-            System.out.println(entry.getValue());
-
             if (entry.getValue() instanceof GWCResource){
                 myRouter.attach(entry.getKey().toString(), ((GWCResource) entry.getValue()).getClass());
             } else if (entry.getValue() instanceof Restlet){

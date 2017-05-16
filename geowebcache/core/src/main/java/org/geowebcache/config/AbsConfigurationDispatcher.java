@@ -14,12 +14,15 @@ import org.geowebcache.filter.parameters.StringParameterFilter;
 import org.geowebcache.filter.request.CircularExtentFilter;
 import org.geowebcache.filter.request.FileRasterFilter;
 import org.geowebcache.filter.request.WMSRasterFilter;
+import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.layer.ExpirationRule;
 import org.geowebcache.layer.meta.ContactInformation;
 import org.geowebcache.layer.meta.LayerMetaInformation;
 import org.geowebcache.layer.updatesource.GeoRSSFeedDefinition;
 import org.geowebcache.layer.wms.WMSLayer;
 import org.geowebcache.mime.FormatModifier;
+import org.geowebcache.seed.InvalidateConfig;
+import org.geowebcache.seed.InvalidateRequest;
 import org.geowebcache.seed.SeedRequest;
 import org.geowebcache.seed.TruncateLayerRequest;
 import org.springframework.web.context.WebApplicationContext;
@@ -82,6 +85,9 @@ public abstract class AbsConfigurationDispatcher {
         xs.alias("parameterFilters", new ArrayList<ParameterFilter>().getClass());
         xs.alias("parameterFilter", ParameterFilter.class);
         xs.alias("seedRequest", SeedRequest.class);
+        
+        xs.addImplicitArray(InvalidateRequest.class, "config");
+        xs.alias("invalidateRequest", InvalidateRequest.class);
 
         xs.processAnnotations(CaseNormalizer.class);
         xs.processAnnotations(StringParameterFilter.class);

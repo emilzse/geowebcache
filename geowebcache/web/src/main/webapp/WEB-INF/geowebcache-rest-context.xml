@@ -76,11 +76,11 @@
           <ref bean="gwcSeedFormRestlet" />
         </entry>
         <entry>
-          <key><value>/invalidate/{layer}</value></key>
+          <key><value>/invalidate/{layer}.{extension}</value></key>
           <ref bean="gwcSeedInvalidateRestlet" />
         </entry>
         <entry>
-          <key><value>/validate/{layer}</value></key>
+          <key><value>/validate/{layer}.{extension}</value></key>
           <ref bean="gwcSeedValidateRestlet" />
         </entry>
         <entry>
