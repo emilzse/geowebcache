@@ -1,5 +1,7 @@
 # GeoWebCache - Configure WMS-layers in PostreSQL
 
+[![Gitter](https://badges.gitter.im/GeoWebCache/geowebcache.svg)](https://gitter.im/GeoWebCache/geowebcache?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This is a fork of GWC providing a solution to configure wms-layers in a PostgreSQL database instead of in geowebcache.xml, enabling support for significant amount of configured layers.
 
 **Additional features to master (Additional until merged into master):**
