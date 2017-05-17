@@ -1003,6 +1003,25 @@ public class JDBCQuotaStore implements QuotaStore {
 
         return jt.query(sql, params, new TilePageRowMapper(true));
     }
+    
+    @Override
+    public void deleteTilePage(final TilePage page) throws InterruptedException {
+        String sql = getDeleteTilePageQuery(schema, "key");
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("key", page.getKey());
+
+        jt.update(sql, params);
+    }
+
+    private String getDeleteTilePageQuery(String schema, String keyParam) {
+        StringBuilder sb = new StringBuilder("DELETE FROM ");
+        if (schema != null) {
+            sb.append(schema).append(".");
+        }
+        sb.append("TILEPAGE WHERE key = :" + keyParam);
+
+        return sb.toString();
+    }
 
     /**
      * Will update tilepage with invalidated = 1 where intersects geo

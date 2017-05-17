@@ -941,4 +941,9 @@ public class BDBQuotaStore implements QuotaStore {
         // TODO Auto-generated method stub
     }
 
+    @Override
+    public void deleteTilePage(TilePage page) throws InterruptedException {
+        // TODO Auto-generated method stub
+    }
+
 }

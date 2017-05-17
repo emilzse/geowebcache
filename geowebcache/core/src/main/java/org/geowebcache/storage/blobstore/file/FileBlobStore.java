@@ -333,13 +333,6 @@ public class FileBlobStore implements BlobStore {
      * Delete a particular tile
      */
     public boolean delete(TileObject stObj) throws StorageException {
-        return delete(stObj, true);
-    }
-
-    /**
-     * Delete a particular tile
-     */
-    public boolean delete(TileObject stObj, boolean notifyListeners) throws StorageException {
         File fh = getFileHandleTile(stObj, false);
         boolean ret = false;
         // we call fh.length() here to check wthether the file exists and its length in a single
@@ -352,9 +345,7 @@ public class FileBlobStore implements BlobStore {
                 throw new StorageException("Unable to delete " + fh.getAbsolutePath());
             }
             stObj.setBlobSize((int) padSize(length));
-            if (notifyListeners) {
-                listeners.sendTileDeleted(stObj);
-            }
+            listeners.sendTileDeleted(stObj);
 
             ret = true;
         } else {
@@ -368,6 +359,7 @@ public class FileBlobStore implements BlobStore {
 
         return ret;
     }
+
 
     /**
      * Delete tiles within a range.
@@ -851,11 +843,11 @@ public class FileBlobStore implements BlobStore {
         }
     }
 
-@Override
+    @Override
     public boolean delete(List<TileObject> obj) throws StorageException {
         boolean success = true;
         for (TileObject tile : obj) {
-            if (!delete(tile, false)) {
+            if (!delete(tile)) {
                 success = false;
             }
         }

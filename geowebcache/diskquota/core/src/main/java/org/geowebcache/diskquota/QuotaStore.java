@@ -135,10 +135,17 @@ public interface QuotaStore {
     public abstract void setDeletedInvalidatedTilePages(String layerName);
 
     /**
+     * Deletes TilePage
+     * 
+     * @param page
+     * @throws InterruptedException
+     */
+    public void deleteTilePage(TilePage page) throws InterruptedException;
+
+    /**
      * Closes the quota store, releasing any resources the store might be depending onto
      * @throws Exception 
      */
     public abstract void close() throws Exception;
-
 
 }

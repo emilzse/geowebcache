@@ -38,8 +38,7 @@ import org.geowebcache.util.Sleeper;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
- * A GWCTask for invalidating tiles from z/x/y calculating bbox by
- * http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Java
+ * A GWCTask for invalidating tiles
  *
  */
 class InvalidateTask extends GWCTask {
@@ -59,8 +58,6 @@ class InvalidateTask extends GWCTask {
     
     private final TileLayer tl;
 
-    // private final GridSet gridSet;
-
     private final InvalidateConfig[] invalidateList;
 
     @VisibleForTesting
@@ -70,10 +67,9 @@ class InvalidateTask extends GWCTask {
      * Constructs a InvalidateTask
      * 
      * @param storageBroker
+     * @param quotaStore
      * @param tl
-     * @param gridSetId
-     * @param zxy
-     *            z/x/y
+     * @param list invalidate config
      */
     public InvalidateTask(StorageBroker storageBroker, QuotaStore quotaStore, TileLayer tl,
             InvalidateConfig[] list) {
@@ -82,7 +78,6 @@ class InvalidateTask extends GWCTask {
         this.storageBroker = storageBroker;
         this.tl = tl;
         this.layerName = tl.getName();
-        // this.gridSet = gridSet;
         this.invalidateList = list;
 
         tileFailureRetryCount = 0;
@@ -107,7 +102,7 @@ class InvalidateTask extends GWCTask {
         // approximate thread creation time
         final long START_TIME = System.currentTimeMillis();
 
-        log.info(getThreadName() + " begins invalidating z/x/y-tiles for " + layerName + ": zxys="
+        log.info(getThreadName() + " begins invalidating tiles for " + layerName + ": invalidateConfigs="
                 + invalidateList.length);
 
         checkInterrupted();
@@ -124,17 +119,13 @@ class InvalidateTask extends GWCTask {
 
             InvalidateConfig obj = invalidateList[i];
             
-//            int[] zxy = Arrays.stream(invalidateList[i].split("/")).mapToInt(Integer::parseInt).toArray();
-
             BoundingBox tileBbox = obj.bounds;
 
             for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
                 try {
                     checkInterrupted();
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("invalidate-item=" + obj);
-                    }
+                    log.info("invalidate-item=" + obj);
 
                     // invalidate in db
                     quotaStore.invalidateTilePages(layerName, tileBbox, obj.epsgId, obj.scaleLevel);

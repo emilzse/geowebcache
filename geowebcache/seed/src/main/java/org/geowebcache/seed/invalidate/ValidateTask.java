@@ -39,8 +39,7 @@ import org.geowebcache.util.Sleeper;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
- * A GWCTask for invalidating tiles from z/x/y calculating bbox by
- * http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Java
+ * A GWCTask for validating tiles
  *
  */
 class ValidateTask extends GWCTask {
@@ -67,10 +66,8 @@ class ValidateTask extends GWCTask {
      * Constructs a InvalidateTask
      * 
      * @param storageBroker
+     * @param quotaStore
      * @param tl
-     * @param gridSetId
-     * @param zxy
-     *            z/x/y
      */
     public ValidateTask(StorageBroker storageBroker, QuotaStore quotaStore, TileLayer tl) {
 
@@ -117,63 +114,70 @@ class ValidateTask extends GWCTask {
             checkInterrupted();
 
             TilePage page = pages.get(i);
-
-            // Create ConveyorTile from TilePage
-
-            TileObject tileObj = initFromTilePage(page);
-
-            ConveyorTile tile = new ConveyorTile(storageBroker, layerName, tileObj.getGridSetId(),
-                    tileObj.getXYZ(), MimeType.createFromFormat(tileObj.getBlobFormat()),
-                    tileObj.getParameters());
-
-            tile.setTileLayer(tl);
-
-            for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
-                try {
-                    checkInterrupted();
-
-                    // seed tile
-                    tl.seedTile(tile, false, false);
-                    
-                    break;// success, let it go
-                } catch (Exception e) {
-                    // if GWC_SEED_RETRY_COUNT was not set then none of the settings have effect, in
-                    // order to keep backwards compatibility with the old behaviour
-                    if (tileFailureRetryCount == 0) {
-                        if (e instanceof GeoWebCacheException) {
-                            throw (GeoWebCacheException) e;
+            
+            // Will check if time to live is expired
+            if (!controlTTL(page)) {
+                log.info("TLL expired, will delete record: page=" + page.getKey());
+                
+                quotaStore.deleteTilePage(page);
+            } else {
+                // Create ConveyorTile from TilePage and seed tile
+    
+                TileObject tileObj = initFromTilePage(page);
+    
+                ConveyorTile tile = new ConveyorTile(storageBroker, layerName, tileObj.getGridSetId(),
+                        tileObj.getXYZ(), MimeType.createFromFormat(tileObj.getBlobFormat()),
+                        tileObj.getParameters());
+    
+                tile.setTileLayer(tl);
+    
+                for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
+                    try {
+                        checkInterrupted();
+    
+                        // seed tile
+                        tl.seedTile(tile, false, false);
+                        
+                        break;// success, let it go
+                    } catch (Exception e) {
+                        // if GWC_SEED_RETRY_COUNT was not set then none of the settings have effect, in
+                        // order to keep backwards compatibility with the old behaviour
+                        if (tileFailureRetryCount == 0) {
+                            if (e instanceof GeoWebCacheException) {
+                                throw (GeoWebCacheException) e;
+                            }
+                            throw new GeoWebCacheException(e);
                         }
-                        throw new GeoWebCacheException(e);
-                    }
-
-                    long sharedFailureCount = sharedFailureCounter.incrementAndGet();
-                    if (sharedFailureCount >= totalFailuresBeforeAborting) {
-                        log.info("Aborting seed thread " + getThreadName()
-                                + ". Error count reached configured maximum of "
-                                + totalFailuresBeforeAborting);
-                        super.state = GWCTask.STATE.DEAD;
-                        return;
-                    }
-                    String logMsg = "Seed failed at " + tile.toString() + " after "
-                            + (fetchAttempt + 1) + " of " + (tileFailureRetryCount + 1)
-                            + " attempts.";
-                    if (fetchAttempt < tileFailureRetryCount) {
-                        log.debug(logMsg);
-                        if (tileFailureRetryWaitTime > 0) {
-                            log.trace(
-                                    "Waiting " + tileFailureRetryWaitTime + " before trying again");
-                            waitToRetry();
+    
+                        long sharedFailureCount = sharedFailureCounter.incrementAndGet();
+                        if (sharedFailureCount >= totalFailuresBeforeAborting) {
+                            log.info("Aborting seed thread " + getThreadName()
+                                    + ". Error count reached configured maximum of "
+                                    + totalFailuresBeforeAborting);
+                            super.state = GWCTask.STATE.DEAD;
+                            return;
                         }
-                    } else {
-                        log.info(
-                                logMsg + " Skipping and continuing with next tile. Original error: "
-                                        + e.getMessage());
+                        String logMsg = "Seed failed at " + tile.toString() + " after "
+                                + (fetchAttempt + 1) + " of " + (tileFailureRetryCount + 1)
+                                + " attempts.";
+                        if (fetchAttempt < tileFailureRetryCount) {
+                            log.debug(logMsg);
+                            if (tileFailureRetryWaitTime > 0) {
+                                log.trace(
+                                        "Waiting " + tileFailureRetryWaitTime + " before trying again");
+                                waitToRetry();
+                            }
+                        } else {
+                            log.info(
+                                    logMsg + " Skipping and continuing with next tile. Original error: "
+                                            + e.getMessage());
+                        }
                     }
                 }
-            }
-
-            if (log.isTraceEnabled()) {
-                log.trace(getThreadName() + " validated " + tile.toString());
+    
+                if (log.isTraceEnabled()) {
+                    log.trace(getThreadName() + " validated " + tile.toString());
+                }
             }
 
             // i starts with 0
@@ -199,6 +203,29 @@ class ValidateTask extends GWCTask {
         checkInterrupted();
 
         super.state = GWCTask.STATE.DONE;
+    }
+
+    /**
+     * @param page
+     * @return if time-to-live have expired
+     */
+    private boolean controlTTL(TilePage page) {
+        boolean seedTile = true;
+        
+        // if has a expire cache for zoom level
+        int expireCache = tl.getExpireCache(page.getZoomLevel());
+        if (expireCache > 0) {
+            long expireCacheTime = expireCache * 1000l;
+            long creationTime = page.getCreationTimeMinutes() * 60l * 1000l;
+            long currentTime = System.currentTimeMillis();
+            
+            if (currentTime - expireCacheTime > creationTime) {
+                // to old, should delete
+                seedTile = false;
+            }
+        }
+        
+        return seedTile;
     }
 
     private void reprioritize() {
