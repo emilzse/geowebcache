@@ -108,10 +108,12 @@ public class TilePageCalculator {
      * @param page
      * @return ewkt (SRID=epsgId;WKT)
      */
+    public String toEwkt(TileSet tileSet, TilePage page) {
         PagePyramid pagePyramid = getPagePyramid(tileSet);
         int pageX = page.getPageX();
         int pageY = page.getPageY();
         int level = page.getZoomLevel();
+        String ewkt = pagePyramid.toEwkt(pageX, pageY, level);
         return ewkt;
     }
 
