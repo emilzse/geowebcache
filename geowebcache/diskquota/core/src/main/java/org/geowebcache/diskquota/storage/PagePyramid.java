@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.grid.GridSubset;
 import org.geowebcache.storage.TileRange;
 import org.springframework.util.Assert;
@@ -47,6 +48,10 @@ class PagePyramid {
     private final int zoomStart;
 
     private final int zoomStop;
+    
+    private final BoundingBox bbox;
+    
+    private final int epsgId;
 
     public static final class PageLevelInfo {
 
@@ -99,7 +104,7 @@ class PagePyramid {
      * @param zoomStop
      * @param zoomStart
      */
-    public PagePyramid(final long[][] gridSubsetCoverages, int zoomStart, int zoomStop) {
+    public PagePyramid(final long[][] gridSubsetCoverages, int zoomStart, int zoomStop, BoundingBox bbox, int epsgId) {
         this.gridSubsetCoverages = new TreeMap<Integer, long[]>();
         for (long[] coverage : gridSubsetCoverages) {
             this.gridSubsetCoverages.put(Integer.valueOf((int) coverage[4]), coverage);
@@ -107,6 +112,8 @@ class PagePyramid {
         this.zoomStart = zoomStart;
         this.zoomStop = zoomStop;
         this.pageInfo = new TreeMap<Integer, PagePyramid.PageLevelInfo>();
+        this.bbox = bbox;
+        this.epsgId = epsgId;
     }
 
     public int getZoomStart() {
@@ -237,6 +244,50 @@ class PagePyramid {
         long[][] allLevelsCoverage = new long[numLevels][];
         allLevelsCoverage[level] = pageCoverage;
         return allLevelsCoverage;
+    }
+    
+    /**
+     * Returns EWKT for page
+     * 
+     * @param page
+     * @return {@code SRID=epsgId;WKT}
+     */
+    public String toEwkt(int pageX, int pageY, int level) {
+
+        final PageLevelInfo pageLevelInfo = getPageInfo(level);
+
+        final long coverageMinX = pageLevelInfo.coverageMinX;
+        final long coverageMinY = pageLevelInfo.coverageMinY;
+        final long coverageMaxX = pageLevelInfo.coverageMaxX;
+        final long coverageMaxY = pageLevelInfo.coverageMaxY;
+        final int numTilesPerPageX = pageLevelInfo.tilesPerPageX;
+        final int numTilesPerPageY = pageLevelInfo.tilesPerPageY;
+
+        long minTileX = coverageMinX + (long) pageX * numTilesPerPageX;
+        long minTileY = coverageMinY + (long) pageY * numTilesPerPageY;
+        long maxTileX = minTileX + numTilesPerPageX - 1;// these are indexes, so rest one
+        long maxTileY = minTileY + numTilesPerPageY - 1;// same thing
+        
+        double[] coords = bbox.getCoords();
+
+        // get width/height
+        double width = Math.abs(coords[0] - coords[2]);
+        double height = Math.abs(coords[1] - coords[3]);
+        
+        // calculate diff
+        double diffW = width / (coverageMaxX - coverageMinX + 1);
+        double diffH = height / (coverageMaxY - coverageMinY + 1);
+        
+        // calculate bbox for page
+        double minX = coords[0] + ((minTileX - coverageMinX) * diffW);
+        double minY = coords[1] + ((minTileY - coverageMinY) * diffH);
+        double maxX = coords[2] + ((maxTileX - coverageMaxX) * diffW);
+        double maxY = coords[3] + ((maxTileY - coverageMaxY) * diffH);
+        
+        // generate EWKT
+        String ewkt = new StringBuilder("SRID=").append(Integer.toString(epsgId)).append(";").append(new BoundingBox(minX, minY, maxX, maxY).toWkt()).toString();;
+        
+        return ewkt;
     }
 
     public int getTilesPerPageX(int level) {

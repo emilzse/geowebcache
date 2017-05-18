@@ -16,6 +16,8 @@
  */
 package org.geowebcache.seed.invalidate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,10 +32,13 @@ import org.geowebcache.diskquota.QuotaStore;
 import org.geowebcache.diskquota.storage.TilePage;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.wms.WMSLayer;
+import org.geowebcache.mime.MimeException;
 import org.geowebcache.mime.MimeType;
 import org.geowebcache.seed.GWCTask;
 import org.geowebcache.storage.StorageBroker;
 import org.geowebcache.storage.TileObject;
+import org.geowebcache.storage.TileRange;
+import org.geowebcache.storage.TileRangeIterator;
 import org.geowebcache.util.Sleeper;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -102,8 +107,11 @@ class ValidateTask extends GWCTask {
 
         checkInterrupted();
 
+        final int metaTilingFactorX = tl.getMetaTilingFactors()[0];
+        final int metaTilingFactorY = tl.getMetaTilingFactors()[1];
+        
         List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName, true);
-
+        
         super.tilesTotal = pages.size();
 
         checkInterrupted();
@@ -121,65 +129,83 @@ class ValidateTask extends GWCTask {
                 
                 quotaStore.deleteTilePage(page);
             } else {
-                // Create ConveyorTile from TilePage and seed tile
+                // Create ConveyorTile (s) from TilePage and seed tile (s)
     
-                TileObject tileObj = initFromTilePage(page);
-    
-                ConveyorTile tile = new ConveyorTile(storageBroker, layerName, tileObj.getGridSetId(),
-                        tileObj.getXYZ(), MimeType.createFromFormat(tileObj.getBlobFormat()),
-                        tileObj.getParameters());
-    
-                tile.setTileLayer(tl);
-    
-                for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
-                    try {
-                        checkInterrupted();
-    
-                        // seed tile
-                        tl.seedTile(tile, false, false);
-                        
-                        break;// success, let it go
-                    } catch (Exception e) {
-                        // if GWC_SEED_RETRY_COUNT was not set then none of the settings have effect, in
-                        // order to keep backwards compatibility with the old behaviour
-                        if (tileFailureRetryCount == 0) {
-                            if (e instanceof GeoWebCacheException) {
-                                throw (GeoWebCacheException) e;
+                TileRange tr = initFromTilePage(page);
+                
+                TileRangeIterator trIter = new TileRangeIterator(tr, tl.getMetaTilingFactors());
+                
+                long[] gridLoc = trIter.nextMetaGridLocation(new long[3]);
+
+                long seedCalls = 0;
+                while (gridLoc != null && this.terminate == false) {
+
+                    checkInterrupted();
+                    Map<String, String> fullParameters = tr.getParameters();
+
+                    ConveyorTile tile = new ConveyorTile(storageBroker, layerName, tr.getGridSetId(), gridLoc,
+                            tr.getMimeType(), fullParameters);
+
+                    for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
+                        try {
+                            checkInterrupted();
+                            tl.seedTile(tile, false, false);
+                            break;// success, let it go
+                        } catch (Exception e) {
+                            // if GWC_SEED_RETRY_COUNT was not set then none of the settings have effect, in
+                            // order to keep backwards compatibility with the old behaviour
+                            if (tileFailureRetryCount == 0) {
+                                if (e instanceof GeoWebCacheException) {
+                                    throw (GeoWebCacheException) e;
+                                }
+                                throw new GeoWebCacheException(e);
                             }
-                            throw new GeoWebCacheException(e);
-                        }
-    
-                        long sharedFailureCount = sharedFailureCounter.incrementAndGet();
-                        if (sharedFailureCount >= totalFailuresBeforeAborting) {
-                            log.info("Aborting seed thread " + getThreadName()
-                                    + ". Error count reached configured maximum of "
-                                    + totalFailuresBeforeAborting);
-                            super.state = GWCTask.STATE.DEAD;
-                            return;
-                        }
-                        String logMsg = "Seed failed at " + tile.toString() + " after "
-                                + (fetchAttempt + 1) + " of " + (tileFailureRetryCount + 1)
-                                + " attempts.";
-                        if (fetchAttempt < tileFailureRetryCount) {
-                            log.debug(logMsg);
-                            if (tileFailureRetryWaitTime > 0) {
-                                log.trace(
-                                        "Waiting " + tileFailureRetryWaitTime + " before trying again");
-                                waitToRetry();
+
+                            long sharedFailureCount = sharedFailureCounter.incrementAndGet();
+                            if (sharedFailureCount >= totalFailuresBeforeAborting) {
+                                log.info("Aborting seed thread " + getThreadName()
+                                        + ". Error count reached configured maximum of "
+                                        + totalFailuresBeforeAborting);
+                                super.state = GWCTask.STATE.DEAD;
+                                return;
                             }
-                        } else {
-                            log.info(
-                                    logMsg + " Skipping and continuing with next tile. Original error: "
-                                            + e.getMessage());
+                            String logMsg = "Seed failed at " + tile.toString() + " after "
+                                    + (fetchAttempt + 1) + " of " + (tileFailureRetryCount + 1)
+                                    + " attempts.";
+                            if (fetchAttempt < tileFailureRetryCount) {
+                                log.debug(logMsg);
+                                if (tileFailureRetryWaitTime > 0) {
+                                    log.trace("Waiting " + tileFailureRetryWaitTime
+                                            + " before trying again");
+                                    waitToRetry();
+                                }
+                            } else {
+                                log.info(logMsg
+                                        + " Skipping and continuing with next tile. Original error: "
+                                        + e.getMessage());
+                            }
                         }
                     }
-                }
-    
-                if (log.isTraceEnabled()) {
-                    log.trace(getThreadName() + " validated " + tile.toString());
-                }
-            }
 
+                    if (log.isTraceEnabled()) {
+                        log.trace(getThreadName() + " seeded " + Arrays.toString(gridLoc));
+                    }
+
+                    // final long totalTilesCompleted = trIter.getTilesProcessed();
+                    // note: computing the # of tiles processed by this thread instead of by the whole group
+                    // also reduces thread contention as the trIter methods are synchronized and profiler
+                    // shows 16 threads block on synchronization about 40% the time
+                    final long tilesCompletedByThisThread = seedCalls * metaTilingFactorX
+                            * metaTilingFactorY;
+
+                    updateStatusInfo(tl, tilesCompletedByThisThread, START_TIME);
+
+                    checkInterrupted();
+                    seedCalls++;
+                    gridLoc = trIter.nextMetaGridLocation(gridLoc);
+                }
+
+            }
             // i starts with 0
             final long tilesCompletedByThisThread = i + 1;
 
@@ -285,12 +311,17 @@ class ValidateTask extends GWCTask {
      * Initializes the other fields of the tilepage from an id with the
      * layer#gridset#format[#paramId] structure
      */
-    private static TileObject initFromTilePage(TilePage page) {
+    private TileRange initFromTilePage(TilePage page) {
         String[] splitted = page.getTileSetId().split("#");
         if (splitted.length < 3 || splitted.length > 4) {
             throw new IllegalArgumentException("Invalid key for standard tile page, "
                     + "it should have the layer#gridset#format[#paramId]");
         }
+        String gridsetId = splitted[1];
+        long[] pageCoverage = page.getPageCoverage();
+        byte z =  page.getZoomLevel();
+        long[][] rangeBounds = new long[z][];
+        rangeBounds[z-1] = pageCoverage;
         
         Map<String, String> parameters = null;
         String parametersKvp = page.getParametersKvp();
@@ -301,7 +332,43 @@ class ValidateTask extends GWCTask {
                     .collect(Collectors.toMap(s -> s[0], s -> s.length > 1 ? s[1] : ""));
         }
         
-        return TileObject.createQueryTileObject(splitted[0], page.getTileIndex(), splitted[1],
-                splitted[2], splitted.length == 4 ? splitted[3] : null, parameters);
+        try {
+            return new TileRange(splitted[0], gridsetId, z, z, rangeBounds, MimeType.createFromFormat(splitted[2]), parameters);
+        } catch (MimeException e) {
+            return null;
+        }
+    }
+    
+    /**
+     * helper for counting the number of tiles
+     * 
+     * @param tr
+     * @return -1 if too many
+     */
+    private long tileCount(TileRange tr) {
+
+        final int startZoom = tr.getZoomStart();
+        final int stopZoom = tr.getZoomStop();
+
+        long count = 0;
+
+        for (int z = startZoom; z <= stopZoom; z++) {
+            long[] gridBounds = tr.rangeBounds(z);
+
+            final long minx = gridBounds[0];
+            final long maxx = gridBounds[2];
+            final long miny = gridBounds[1];
+            final long maxy = gridBounds[3];
+
+            long thisLevel = (1 + maxx - minx) * (1 + maxy - miny);
+
+            if (thisLevel > (Long.MAX_VALUE / 4) && z != stopZoom) {
+                return -1;
+            } else {
+                count += thisLevel;
+            }
+        }
+
+        return count;
     }
 }

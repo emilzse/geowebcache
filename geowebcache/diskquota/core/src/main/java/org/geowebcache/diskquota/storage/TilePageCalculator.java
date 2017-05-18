@@ -103,6 +103,17 @@ public class TilePageCalculator {
         long[][] gridCoverage = pagePyramid.toGridCoverage(pageX, pageY, level);
         return gridCoverage;
     }
+    
+    /**
+     * @param page
+     * @return ewkt (SRID=epsgId;WKT)
+     */
+        PagePyramid pagePyramid = getPagePyramid(tileSet);
+        int pageX = page.getPageX();
+        int pageY = page.getPageY();
+        int level = page.getZoomLevel();
+        return ewkt;
+    }
 
     public Set<String> getLayerNames() {
         return tld.getLayerNames();
@@ -201,7 +212,7 @@ public class TilePageCalculator {
         int zoomStop = gridSubset.getZoomStop();
         final long[][] coverages = gridSubset.getCoverages();
 
-        PagePyramid pagePyramid = new PagePyramid(coverages, zoomStart, zoomStop);
+        PagePyramid pagePyramid = new PagePyramid(coverages, zoomStart, zoomStop, gridSubset.getOriginalExtent(), gridSubset.getSRS().getNumber());
         return pagePyramid;
     }
 }

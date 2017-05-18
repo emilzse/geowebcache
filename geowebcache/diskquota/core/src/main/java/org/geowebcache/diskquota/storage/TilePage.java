@@ -47,52 +47,40 @@ public class TilePage {
 
     private String parametersKvp;
 
-    private double[] bbox;
+    private String ewkt;
 
-    private int epsgId;
-
-    private long[] tileIndex;
+    private long[] pageCoverage;
 
     public TilePage() {
     }
     
-    public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel, double[] bbox,
-            int epsgId, int creationTimeMinutes) {
+    public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel, int creationTimeMinutes) {
         this.tileSetId = tileSetId;
         this.pageX = pageX;
         this.pageY = pageY;
         this.pageZ = (byte) zoomLevel;
-        this.bbox = bbox;
-        this.epsgId = epsgId;
         this.creationTimeMinutes = creationTimeMinutes;
         StringBuilder sb = new StringBuilder(128);
         computeId(tileSetId, pageX, pageY, zoomLevel, sb);
         this.key = sb.toString();
     }
 
-    public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel, int creationTimeMinutes) {
-        this(tileSetId, pageX, pageY, zoomLevel, null, -1, creationTimeMinutes);
-    }
-
     public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel, int creationTimeMinutes,
-            String parametersKvp, long[] tileIndex) {
-        this(tileSetId, pageX, pageY, zoomLevel, null, -1, creationTimeMinutes);
+            String parametersKvp, long[] pageCoverage) {
+        this(tileSetId, pageX, pageY, zoomLevel, creationTimeMinutes);
 
         this.parametersKvp = parametersKvp;
-        this.tileIndex = tileIndex;
+        this.pageCoverage = pageCoverage;
     }
 
     public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel) {
-        this(tileSetId, pageX, pageY, zoomLevel, null, -1, null, null);
+        this(tileSetId, pageX, pageY, zoomLevel, null);
     }
 
-    public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel, double[] bbox,
-            int epsgId, String parametersKvp, long[] tileIndex) {
-        this(tileSetId, pageX, pageY, zoomLevel, bbox, epsgId,
-                SystemUtils.get().currentTimeMinutes());
+    public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel, String parametersKvp) {
+        this(tileSetId, pageX, pageY, zoomLevel, SystemUtils.get().currentTimeMinutes());
 
         this.parametersKvp = parametersKvp;
-        this.tileIndex = tileIndex;
     }
 
     public static void computeId(String tileSetId, int pageX, int pageY, int pageZ,
@@ -140,12 +128,8 @@ public class TilePage {
         return pageX;
     }
 
-    public double[] getBbox() {
-        return bbox;
-    }
-
-    public int getEpsgId() {
-        return epsgId;
+    public String getEwkt() {
+        return ewkt;
     }
 
     public int getCreationTimeMinutes() {
@@ -156,10 +140,18 @@ public class TilePage {
         return parametersKvp;
     }
 
-    public long[] getTileIndex() {
-        return tileIndex;
+    public long[] getPageCoverage() {
+        return pageCoverage;
     }
-
+    
+    public void setPageCoverage(long[] pageCoverage) {
+        this.pageCoverage = pageCoverage;
+    }
+    
+    public void setEwkt(String ewkt) {
+        this.ewkt = ewkt;
+    }
+    
     public String toString() {
         return new StringBuilder(getClass().getSimpleName()).append('[').append(key).append(']')
                 .toString();

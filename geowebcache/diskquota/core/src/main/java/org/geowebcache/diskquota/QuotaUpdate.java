@@ -10,10 +10,6 @@ public class QuotaUpdate {
 
     private long[] tileIndex;
 
-    private int epsgId;
-
-    private double[] bbox;
-
     private String parametersKvp;
 
     /**
@@ -38,8 +34,6 @@ public class QuotaUpdate {
         this.tileSet = tileset;
         this.size = quotaUpdateSize;
         this.tileIndex = tileIndex;
-        this.epsgId = epsgId;
-        this.bbox = bbox;
         this.parametersKvp = parametersKvp;
     }
 
@@ -57,14 +51,6 @@ public class QuotaUpdate {
 
     public long[] getTileIndex() {
         return tileIndex;
-    }
-
-    public int getEpsgId() {
-        return epsgId;
-    }
-
-    public double[] getBbox() {
-        return bbox;
     }
 
     public String getParametersKvp() {

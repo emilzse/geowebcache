@@ -9,7 +9,6 @@ import org.geowebcache.diskquota.storage.TileSet;
 import org.geowebcache.filter.parameters.ParametersUtils;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.TileLayerListener;
-import org.geowebcache.storage.blobstore.file.FilePathGenerator;
 import org.springframework.util.Assert;
 
 /**
@@ -47,11 +46,9 @@ public class QueuedUsageStatsProducer implements TileLayerListener {
         String parametersId = tile.getParametersId();
         TileSet tileSet = new TileSet(layerName, gridsetId, blobFormat, parametersId);
         long[] tileIndex = tile.getTileIndex().clone();
-        double[] bbox = tile.getGridSubset().boundsFromIndex(tileIndex).getCoords();
-        int epsgId = tile.getGridSubset().getSRS().getNumber();
         String parametersKvp = ParametersUtils.getLegacyParametersKvp(tile.getParameters());
 
-        UsageStats usageLog = new UsageStats(tileSet, tileIndex, bbox, epsgId, parametersKvp);
+        UsageStats usageLog = new UsageStats(tileSet, tileIndex, parametersKvp);
         try {
             usageStatsQueue.put(usageLog);
         } catch (InterruptedException e) {

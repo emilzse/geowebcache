@@ -3,6 +3,7 @@ package org.geowebcache.diskquota;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,8 @@ import org.geowebcache.diskquota.storage.Quota;
 import org.geowebcache.diskquota.storage.TilePage;
 import org.geowebcache.diskquota.storage.TilePageCalculator;
 import org.geowebcache.diskquota.storage.TileSet;
+import org.geowebcache.grid.GridSet;
+import org.geowebcache.grid.GridSetBroker;
 import org.springframework.util.Assert;
 
 public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable {
@@ -40,7 +43,7 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
     private final QuotaStore quotaStore;
 
     private final TilePageCalculator tilePageCalculator;
-
+    
     private final BlockingQueue<QuotaUpdate> queue;
 
     /**
@@ -64,7 +67,7 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
         private final TilePageCalculator tpc;
 
         private final TileSet tileSet;
-
+        
         /**
          * tracks the last time the aggregated updates for a given tile set were committed
          */
@@ -107,23 +110,26 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
 
             long[] tileIndex = quotaUpdate.getTileIndex();
             tpc.pageIndexForTile(tileSet, tileIndex, pageIndexTarget);
+            
             int pageX = pageIndexTarget[0];
             int pageY = pageIndexTarget[1];
             byte pageZ = (byte) pageIndexTarget[2];
             pageIdTarget.setLength(0);
             TilePage.computeId(tileSetId, pageX, pageY, pageZ, pageIdTarget);
             String pageIdForTile = pageIdTarget.toString();
-
+            
             final int tileCountDiff = size > 0 ? 1 : -1;
             PageStatsPayload payload = tilePages.get(pageIdForTile);
             if (payload == null) {
                 TilePage page;
-                page = new TilePage(tileSetId, pageX, pageY, pageZ, quotaUpdate.getBbox(),
-                        quotaUpdate.getEpsgId(), quotaUpdate.getParametersKvp(), tileIndex);
-
+                page = new TilePage(tileSetId, pageX, pageY, pageZ, quotaUpdate.getParametersKvp());
+                
+                page.setPageCoverage(tpc.toGridCoverage(tileSet, page)[pageZ]);
+                page.setEwkt(tpc.toEwkt(tileSet, page));
                 payload = new PageStatsPayload(page);
                 tilePages.put(pageIdForTile, payload);
             }
+            
             int previousCount = payload.getNumTiles();
             payload.setNumTiles(previousCount + tileCountDiff);
 
@@ -310,7 +316,7 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
         if (quotaDiff.getBytes().compareTo(BigInteger.ZERO) == 0 && tileCountDiffs.size() == 0) {
             return;
         }
-
+        
         quotaStore.addToQuotaAndTileCounts(tileSet, quotaDiff, tileCountDiffs);
     }
     

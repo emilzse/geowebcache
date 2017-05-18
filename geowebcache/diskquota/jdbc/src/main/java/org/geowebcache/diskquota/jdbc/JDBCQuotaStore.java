@@ -633,39 +633,17 @@ public class JDBCQuotaStore implements QuotaStore {
         params.put("lastAccessTime", stats.getLastAccessTimeMinutes());
         params.put("fillFactor", stats.getFillFactor());
         params.put("numHits", new BigDecimal(stats.getNumHits()));
-        params.put("geom", getGeom(page));
+        params.put("geom", page.getEwkt());
         params.put("parametersKvp", page.getParametersKvp() == null ? "" : page.getParametersKvp());
         params.put("tileIndex",
-                page.getTileIndex() == null ? ""
-                        : Arrays.stream(page.getTileIndex()).mapToObj(String::valueOf)
+                page.getPageCoverage() == null ? ""
+                        : Arrays.stream(page.getPageCoverage()).mapToObj(String::valueOf)
                                 .collect(Collectors.joining(",")));
         
 
         // try the insert, mind, someone else might have done it as well, in such
         // case the insert will fail and return 0 record modified
         return jt.update(insert, params);
-    }
-
-    private String getGeom(TilePage page) {
-        if (page.getEpsgId() < 1 || page.getBbox() == null || page.getBbox().length < 4) {
-            return null;
-        }
-
-        double[] bbox = page.getBbox();
-
-        double minX = bbox[0];
-        double minY = bbox[1];
-        double maxX = bbox[2];
-        double maxY = bbox[3];
-
-        // EWKT
-        String insertValue = String.format("SRID=%d;POLYGON((%s %s, %s %s, %s %s, %s %s, %s %s))",
-                page.getEpsgId(), Double.toString(minX), Double.toString(minY),
-                Double.toString(maxX), Double.toString(minY), Double.toString(maxX),
-                Double.toString(maxY), Double.toString(minX), Double.toString(maxY),
-                Double.toString(minX), Double.toString(minY));
-
-        return insertValue;
     }
 
     private PageStats getPageStats(String pageStatsKey) {

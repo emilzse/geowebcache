@@ -16,8 +16,12 @@
  */
 package org.geowebcache.seed.invalidate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -28,11 +32,14 @@ import org.geowebcache.diskquota.storage.TilePage;
 import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.wms.WMSLayer;
+import org.geowebcache.mime.MimeException;
+import org.geowebcache.mime.MimeType;
 import org.geowebcache.seed.GWCTask;
 import org.geowebcache.seed.InvalidateConfig;
 import org.geowebcache.storage.StorageBroker;
 import org.geowebcache.storage.StorageException;
 import org.geowebcache.storage.TileObject;
+import org.geowebcache.storage.TileRange;
 import org.geowebcache.util.Sleeper;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -119,7 +126,7 @@ class InvalidateTask extends GWCTask {
 
             InvalidateConfig obj = invalidateList[i];
             
-            BoundingBox tileBbox = obj.bounds;
+            BoundingBox invalidateBbox = obj.bounds;
 
             for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
                 try {
@@ -128,7 +135,7 @@ class InvalidateTask extends GWCTask {
                     log.info("invalidate-item=" + obj);
 
                     // invalidate in db
-                    quotaStore.invalidateTilePages(layerName, tileBbox, obj.epsgId, obj.scaleLevel);
+                    quotaStore.invalidateTilePages(layerName, invalidateBbox, obj.epsgId, obj.scaleLevel);
                     
                     break;// success, let it go
                 } catch (Exception e) {
@@ -186,10 +193,16 @@ class InvalidateTask extends GWCTask {
             List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName, false);
 
             try {
-                log.info("Invalidated pages, will delete tiles: count=" + pages.size());
+                log.info("Invalidated pages, will delete tiles: pages=" + pages.size());
 
-                storageBroker.delete(
-                        pages.stream().map(this::initFromTilePage).collect(Collectors.toList()));
+                for (TileRange tr : pages.stream().map(this::initFromTilePage).collect(Collectors.toList())) {
+                    long count = tileCount(tr);
+                    // Will delete by range
+                    log.info("TileRange: count=" + count + " " + tr);
+                    super.tilesTotal += count;
+                    storageBroker.delete(tr);
+                    updateStatusInfo(tl, super.tilesTotal, START_TIME);
+                }
                 
                 // Mark as deleted
                 quotaStore.setDeletedInvalidatedTilePages(layerName);
@@ -271,15 +284,65 @@ class InvalidateTask extends GWCTask {
      * Initializes the other fields of the tilepage from an id with the
      * layer#gridset#format[#paramId] structure
      */
-    private TileObject initFromTilePage(TilePage page) {
+    private TileRange initFromTilePage(TilePage page) {
         String[] splitted = page.getTileSetId().split("#");
         if (splitted.length < 3 || splitted.length > 4) {
             throw new IllegalArgumentException("Invalid key for standard tile page, "
                     + "it should have the layer#gridset#format[#paramId]");
         }
         String gridsetId = splitted[1];
-
-        return TileObject.createQueryTileObject(splitted[0], page.getTileIndex(), gridsetId,
-                splitted[2], splitted.length == 4 ? splitted[3] : null);
+        long[] pageCoverage = page.getPageCoverage();
+        byte z =  page.getZoomLevel();
+        long[][] rangeBounds = new long[z][];
+        rangeBounds[z-1] = pageCoverage;
+        
+        Map<String, String> parameters = null;
+        String parametersKvp = page.getParametersKvp();
+        if (parametersKvp != null && !parametersKvp.isEmpty()) {
+            parameters = Pattern.compile("&")
+                    .splitAsStream(parametersKvp.replace("?", ""))
+                    .map(p -> p.split("="))
+                    .collect(Collectors.toMap(s -> s[0], s -> s.length > 1 ? s[1] : ""));
+        }
+        
+        try {
+            return new TileRange(splitted[0], gridsetId, z, z, rangeBounds, MimeType.createFromFormat(splitted[2]), parameters);
+        } catch (MimeException e) {
+            return null;
+        }
     }
+    
+    /**
+     * helper for counting the number of tiles
+     * 
+     * @param tr
+     * @return -1 if too many
+     */
+    private long tileCount(TileRange tr) {
+
+        final int startZoom = tr.getZoomStart();
+        final int stopZoom = tr.getZoomStop();
+
+        long count = 0;
+
+        for (int z = startZoom; z <= stopZoom; z++) {
+            long[] gridBounds = tr.rangeBounds(z);
+
+            final long minx = gridBounds[0];
+            final long maxx = gridBounds[2];
+            final long miny = gridBounds[1];
+            final long maxy = gridBounds[3];
+
+            long thisLevel = (1 + maxx - minx) * (1 + maxy - miny);
+
+            if (thisLevel > (Long.MAX_VALUE / 4) && z != stopZoom) {
+                return -1;
+            } else {
+                count += thisLevel;
+            }
+        }
+
+        return count;
+    }
+    
 }

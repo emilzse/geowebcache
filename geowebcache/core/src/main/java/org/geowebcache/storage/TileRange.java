@@ -171,4 +171,10 @@ public class TileRange {
         }
         return zlevelBounds;
     }
+    
+    @Override
+    public String toString() {
+        return new StringBuilder(getClass().getSimpleName()).append('[').append(layerName).append(",").append(gridSetId).append(rangeBounds).append(",").append(parametersId).append(']')
+                .toString();
+    }
 }
