@@ -52,16 +52,6 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class InvalidateRestlet extends GWCSeedingRestlet {
     
-    public static void main(String[] args) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        InvalidateConfigRequest[] req = mapper.readValue("[{\"bounds\" : [10, 11, 12, 13], \"epsgId\" : 10, \"scaleLevel\":11}]", InvalidateConfigRequest[].class);
-        
-//        InvalidateRequest req = new InvalidateRequest("10/11/11");
-        
-        System.out.println(mapper.writeValueAsString(req));
-    }
-    
-    @SuppressWarnings("unused")
     private static Log log = LogFactory.getLog(SeedFormRestlet.class);
 
     private TileBreeder seeder;
@@ -82,7 +72,9 @@ public class InvalidateRestlet extends GWCSeedingRestlet {
     }
     
     /**
-     * Handle a POST request. xml=InvalidateRequest. json=InvalidateConfigRequest
+     * Handle a POST request. 
+     * <p>xml={@link InvalidateRequest}
+     * <br>json={@link InvalidateConfigRequest}
      * 
      */
     public void doPost(Request req, Response resp) throws RestletException, IOException {
