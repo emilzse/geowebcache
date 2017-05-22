@@ -16,6 +16,7 @@
  */
 package org.geowebcache.seed.invalidate;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
@@ -27,11 +28,14 @@ import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.diskquota.QuotaStore;
 import org.geowebcache.diskquota.QuotaStoreProvider;
+import org.geowebcache.grid.BoundingBox;
+import org.geowebcache.io.GeoWebCacheXStream;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.rest.RestletException;
 import org.geowebcache.rest.seed.GWCSeedingRestlet;
 import org.geowebcache.rest.seed.SeedFormRestlet;
 import org.geowebcache.seed.GWCTask;
+import org.geowebcache.seed.InvalidateConfig;
 import org.geowebcache.seed.InvalidateRequest;
 import org.geowebcache.seed.TileBreeder;
 import org.json.JSONArray;
@@ -42,7 +46,21 @@ import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.ext.json.JsonRepresentation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+
 public class InvalidateRestlet extends GWCSeedingRestlet {
+    
+    public static void main(String[] args) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        InvalidateConfigRequest[] req = mapper.readValue("[{\"bounds\" : [10, 11, 12, 13], \"epsgId\" : 10, \"scaleLevel\":11}]", InvalidateConfigRequest[].class);
+        
+//        InvalidateRequest req = new InvalidateRequest("10/11/11");
+        
+        System.out.println(mapper.writeValueAsString(req));
+    }
+    
     @SuppressWarnings("unused")
     private static Log log = LogFactory.getLog(SeedFormRestlet.class);
 
@@ -61,6 +79,41 @@ public class InvalidateRestlet extends GWCSeedingRestlet {
         }
 
         handleRequest(req, resp, new InvalidateRequest(zxy));
+    }
+    
+    /**
+     * Handle a POST request. xml=InvalidateRequest. json=InvalidateConfigRequest
+     * 
+     */
+    public void doPost(Request req, Response resp) throws RestletException, IOException {
+        String formatExtension = (String) req.getAttributes().get("extension");
+
+        XStream xs = configXStream(new GeoWebCacheXStream(new DomDriver()));
+
+        Object obj = null;
+        
+        if (formatExtension==null || formatExtension.equalsIgnoreCase("xml")) {
+            obj = xs.fromXML(req.getEntity().getStream());
+        } else if (formatExtension.equalsIgnoreCase("json")) {
+            String text = req.getEntity().getText();
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                InvalidateConfigRequest[] ic = objectMapper.readValue(text, InvalidateConfigRequest[].class);
+                InvalidateConfig[] configs = Arrays.stream(ic).map(o -> new InvalidateConfig(new BoundingBox(o.bbox[0], o.bbox[1], o.bbox[2], o.bbox[3]), o.epsgId, o.scaleLevel)).toArray(InvalidateConfig[]::new);
+                
+                obj = new InvalidateRequest(configs);
+            } catch (Exception e) {
+                log.info(e.getMessage(), e);
+                
+                throw new RestletException(e.getMessage(), Status.SERVER_ERROR_INTERNAL);
+            }
+        } else {
+            throw new RestletException("Format extension unknown or not specified: "
+                    + formatExtension, Status.CLIENT_ERROR_BAD_REQUEST);
+        }
+
+        handleRequest(req, resp, obj);
+
     }
 
     protected void handleRequest(Request req, Response resp, Object obj) {
