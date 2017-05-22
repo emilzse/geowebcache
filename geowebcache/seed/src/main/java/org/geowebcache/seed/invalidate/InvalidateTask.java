@@ -16,8 +16,6 @@
  */
 package org.geowebcache.seed.invalidate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -38,7 +36,6 @@ import org.geowebcache.seed.GWCTask;
 import org.geowebcache.seed.InvalidateConfig;
 import org.geowebcache.storage.StorageBroker;
 import org.geowebcache.storage.StorageException;
-import org.geowebcache.storage.TileObject;
 import org.geowebcache.storage.TileRange;
 import org.geowebcache.util.Sleeper;
 
@@ -132,7 +129,7 @@ class InvalidateTask extends GWCTask {
                 try {
                     checkInterrupted();
 
-                    log.info("invalidate-item=" + obj);
+                    log.debug("invalidate-item=" + obj);
 
                     // invalidate in db
                     quotaStore.invalidateTilePages(layerName, invalidateBbox, obj.epsgId, obj.scaleLevel);
@@ -178,7 +175,7 @@ class InvalidateTask extends GWCTask {
                 log.trace(getThreadName() + " invalidated " + obj);
             }
 
-            // i starts with 0
+            // TilePages i starts with 0
             final long tilesCompletedByThisThread = i + 1;
 
             updateStatusInfo(tl, tilesCompletedByThisThread, START_TIME);
@@ -190,18 +187,30 @@ class InvalidateTask extends GWCTask {
             checkInterrupted();
 
             // remove tiles from file system
-            List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName, false);
+            List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName, false, null);
 
             try {
-                log.info("Invalidated pages, will delete tiles: pages=" + pages.size());
 
-                for (TileRange tr : pages.stream().map(this::initFromTilePage).collect(Collectors.toList())) {
-                    long count = tileCount(tr);
-                    // Will delete by range
-                    log.info("TileRange: count=" + count + " " + tr);
-                    super.tilesTotal += count;
-                    storageBroker.delete(tr);
-                    updateStatusInfo(tl, super.tilesTotal, START_TIME);
+                List<TileRange> tileRanges = pages.stream().map(this::initFromTilePage).collect(Collectors.toList());
+                
+                long tileCount =  tileRanges.stream().mapToLong(tr -> tr.tileCount()).sum();
+
+                // reset counting
+                super.tilesDone = 0;
+                super.tilesTotal = tileCount;
+
+                log.info("Invalidated pages, will delete tiles: pages=" + pages.size() + " possibleTiles=" + tileCount);
+                
+                for (TileRange tr : tileRanges) {
+                    if (!this.terminate) {
+                        checkInterrupted();
+                    
+                        long count = tr.tileCount();
+                        // Will delete by range
+                        log.debug("TileRange: tiles=" + count + " " + tr);
+                        storageBroker.delete(tr);
+                        updateStatusInfo(tl, super.tilesDone + count, START_TIME);
+                    }
                 }
                 
                 // Mark as deleted
@@ -310,39 +319,6 @@ class InvalidateTask extends GWCTask {
         } catch (MimeException e) {
             return null;
         }
-    }
-    
-    /**
-     * helper for counting the number of tiles
-     * 
-     * @param tr
-     * @return -1 if too many
-     */
-    private long tileCount(TileRange tr) {
-
-        final int startZoom = tr.getZoomStart();
-        final int stopZoom = tr.getZoomStop();
-
-        long count = 0;
-
-        for (int z = startZoom; z <= stopZoom; z++) {
-            long[] gridBounds = tr.rangeBounds(z);
-
-            final long minx = gridBounds[0];
-            final long maxx = gridBounds[2];
-            final long miny = gridBounds[1];
-            final long maxy = gridBounds[3];
-
-            long thisLevel = (1 + maxx - minx) * (1 + maxy - miny);
-
-            if (thisLevel > (Long.MAX_VALUE / 4) && z != stopZoom) {
-                return -1;
-            } else {
-                count += thisLevel;
-            }
-        }
-
-        return count;
     }
     
 }

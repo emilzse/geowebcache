@@ -16,7 +16,6 @@
  */
 package org.geowebcache.seed.invalidate;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,6 @@ import org.geowebcache.mime.MimeException;
 import org.geowebcache.mime.MimeType;
 import org.geowebcache.seed.GWCTask;
 import org.geowebcache.storage.StorageBroker;
-import org.geowebcache.storage.TileObject;
 import org.geowebcache.storage.TileRange;
 import org.geowebcache.storage.TileRangeIterator;
 import org.geowebcache.util.Sleeper;
@@ -63,6 +61,8 @@ class ValidateTask extends GWCTask {
     private AtomicLong sharedFailureCounter;
     
     private final TileLayer tl;
+    
+    private final Integer maxPageZ;
 
     @VisibleForTesting
     Sleeper sleeper = Thread::sleep;
@@ -73,13 +73,15 @@ class ValidateTask extends GWCTask {
      * @param storageBroker
      * @param quotaStore
      * @param tl
+     * @param maxPageZ restrict generating tiles up to this page level (zoom/scale-level)
      */
-    public ValidateTask(StorageBroker storageBroker, QuotaStore quotaStore, TileLayer tl) {
+    public ValidateTask(StorageBroker storageBroker, QuotaStore quotaStore, TileLayer tl, Integer maxPageZ) {
 
         this.quotaStore = quotaStore;
         this.storageBroker = storageBroker;
         this.tl = tl;
         this.layerName = tl.getName();
+        this.maxPageZ = maxPageZ;
 
         tileFailureRetryCount = 0;
         tileFailureRetryWaitTime = 100;
@@ -110,34 +112,40 @@ class ValidateTask extends GWCTask {
         final int metaTilingFactorX = tl.getMetaTilingFactors()[0];
         final int metaTilingFactorY = tl.getMetaTilingFactors()[1];
         
-        List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName, true);
+        List<TilePage> pages = quotaStore.getInvalidatedTilePages(layerName, true, maxPageZ);
         
-        super.tilesTotal = pages.size();
+        checkInterrupted();
+        
+        super.tilesTotal = pages.stream().map(this::initFromTilePage).mapToLong(tr -> tr.tileCount()).sum();
 
         checkInterrupted();
 
-        // long seedCalls = 0;
+        long seedCalls = 0;
         for (int i = 0; i < pages.size() && this.terminate == false; i++) {
 
             checkInterrupted();
 
             TilePage page = pages.get(i);
             
+            TileRange tr = initFromTilePage(page);
+
             // Will check if time to live is expired
             if (!controlTTL(page)) {
                 log.info("TLL expired, will delete record: page=" + page.getKey());
                 
                 quotaStore.deleteTilePage(page);
+                
+                // Count all tiles as done
+                final long tilesCompletedByThisThread = this.tilesDone + tr.tileCount();
+
+                updateStatusInfo(tl, tilesCompletedByThisThread, START_TIME);
             } else {
                 // Create ConveyorTile (s) from TilePage and seed tile (s)
     
-                TileRange tr = initFromTilePage(page);
-                
                 TileRangeIterator trIter = new TileRangeIterator(tr, tl.getMetaTilingFactors());
                 
                 long[] gridLoc = trIter.nextMetaGridLocation(new long[3]);
 
-                long seedCalls = 0;
                 while (gridLoc != null && this.terminate == false) {
 
                     checkInterrupted();
@@ -204,12 +212,7 @@ class ValidateTask extends GWCTask {
                     seedCalls++;
                     gridLoc = trIter.nextMetaGridLocation(gridLoc);
                 }
-
             }
-            // i starts with 0
-            final long tilesCompletedByThisThread = i + 1;
-
-            updateStatusInfo(tl, tilesCompletedByThisThread, START_TIME);
 
             checkInterrupted();
         }
@@ -219,7 +222,7 @@ class ValidateTask extends GWCTask {
                     + this.tilesDone + " tiles");
         } else {
             // validate all tiles
-            quotaStore.validateTilePages(layerName);
+            quotaStore.validateTilePages(layerName, maxPageZ);
 
             log.info(getThreadName() + " completed " + parsedType.toString()
                     + " layer " + layerName
@@ -339,36 +342,4 @@ class ValidateTask extends GWCTask {
         }
     }
     
-    /**
-     * helper for counting the number of tiles
-     * 
-     * @param tr
-     * @return -1 if too many
-     */
-    private long tileCount(TileRange tr) {
-
-        final int startZoom = tr.getZoomStart();
-        final int stopZoom = tr.getZoomStop();
-
-        long count = 0;
-
-        for (int z = startZoom; z <= stopZoom; z++) {
-            long[] gridBounds = tr.rangeBounds(z);
-
-            final long minx = gridBounds[0];
-            final long maxx = gridBounds[2];
-            final long miny = gridBounds[1];
-            final long maxy = gridBounds[3];
-
-            long thisLevel = (1 + maxx - minx) * (1 + maxy - miny);
-
-            if (thisLevel > (Long.MAX_VALUE / 4) && z != stopZoom) {
-                return -1;
-            } else {
-                count += thisLevel;
-            }
-        }
-
-        return count;
-    }
 }

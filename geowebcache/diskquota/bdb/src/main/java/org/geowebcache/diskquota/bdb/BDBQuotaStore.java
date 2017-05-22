@@ -927,12 +927,12 @@ public class BDBQuotaStore implements QuotaStore {
     }
 
     @Override
-    public void validateTilePages(String layerName) {
+    public void validateTilePages(String layerName, Integer maxPageZ) {
         // TODO Auto-generated method stub
     }
 
     @Override
-    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted) {
+    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted, Integer maxPageZ) {
         return null;
     }
 

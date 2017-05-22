@@ -118,14 +118,14 @@ public interface QuotaStore {
     /**
      * @return get invalidated tile pages
      */
-    public abstract List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted);
+    public abstract List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted, Integer maxPageZ);
 
     /**
      * Mark invalidated/deleted as validated
      * 
      * @param layerName
      */
-    public abstract void validateTilePages(String layerName);
+    public abstract void validateTilePages(String layerName, Integer maxPageZ);
 
     /**
      * Mark invalidated as deleted

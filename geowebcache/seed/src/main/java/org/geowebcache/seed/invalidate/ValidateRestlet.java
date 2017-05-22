@@ -36,6 +36,7 @@ import org.geowebcache.seed.GWCTask;
 import org.geowebcache.seed.TileBreeder;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.restlet.data.Form;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
@@ -52,7 +53,16 @@ public class ValidateRestlet extends GWCSeedingRestlet {
     private QuotaStore store;
 
     public void doGet(Request req, Response resp) throws RestletException {
-        handleRequest(req, resp, null);
+        Form form = req.getResourceRef().getQueryAsForm();
+        String maxZoomLevel = form.getFirstValue("maxZoomLevel", true);
+        Integer maxPageZ = null;
+        try {
+            maxPageZ = maxZoomLevel != null ? Integer.parseInt(maxZoomLevel) : null;
+        } catch (NumberFormatException nfe) {
+            throw new RestletException(nfe.getMessage(), Status.CLIENT_ERROR_BAD_REQUEST);
+        }
+        
+        handleRequest(req, resp, maxPageZ);
     }
 
     /**
@@ -70,7 +80,7 @@ public class ValidateRestlet extends GWCSeedingRestlet {
         }
 
         try {
-            GWCTask[] tasks = createTasks(seeder.findTileLayer(layerName));
+            GWCTask[] tasks = createTasks(seeder.findTileLayer(layerName), (Integer) obj);
             seeder.dispatchTasks(tasks);
 
             resp.setEntity(new JsonRepresentation(
@@ -85,8 +95,8 @@ public class ValidateRestlet extends GWCSeedingRestlet {
 
     }
 
-    private GWCTask[] createTasks(TileLayer tl) {
-        ValidateTask task = new ValidateTask(seeder.getStorageBroker(), store, tl);
+    private GWCTask[] createTasks(TileLayer tl, Integer maxPageZ) {
+        ValidateTask task = new ValidateTask(seeder.getStorageBroker(), store, tl, maxPageZ);
         
         AtomicLong failureCounter = new AtomicLong();
         AtomicInteger sharedThreadCount = new AtomicInteger();

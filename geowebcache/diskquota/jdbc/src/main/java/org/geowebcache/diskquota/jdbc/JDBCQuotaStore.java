@@ -955,10 +955,13 @@ public class JDBCQuotaStore implements QuotaStore {
     }
 
     @Override
-    public void validateTilePages(String layerName) {
-        String sql = getValidateTilePageQuery(schema, "layer");
+    public void validateTilePages(String layerName, Integer maxPageZ) {
+        String sql = getValidateTilePageQuery(schema, "layer", maxPageZ != null ? "maxPageZ" : null);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("layer", layerName);
+        if (maxPageZ != null) {
+            params.put("maxPageZ", maxPageZ);
+        }
 
         jt.update(sql, params);
     }
@@ -973,11 +976,14 @@ public class JDBCQuotaStore implements QuotaStore {
     }
 
     @Override
-    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted) {
-        String sql = getInvalidatedTilePagesQuery(schema, "layer", "invalidated");
+    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted, Integer maxPageZ) {
+        String sql = getInvalidatedTilePagesQuery(schema, "layer", "invalidated", maxPageZ != null ? "maxPageZ" : null);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("layer", layerName);
         params.put("invalidated", deleted ? 2 : 1);
+        if (maxPageZ != null) {
+            params.put("maxPageZ", maxPageZ);
+        }
 
         return jt.query(sql, params, new TilePageRowMapper(true));
     }
@@ -1008,13 +1014,16 @@ public class JDBCQuotaStore implements QuotaStore {
      * @param ewktParam
      * @return
      */
-    private String getInvalidatedTilePagesQuery(String schema, String layerNameParam, String invalidatedParam) {
+    private String getInvalidatedTilePagesQuery(String schema, String layerNameParam, String invalidatedParam, String maxPageZParam) {
         StringBuilder sb = new StringBuilder(
                 "SELECT TILESET_ID, PAGE_X, PAGE_Y, PAGE_Z, CREATION_TIME_MINUTES, PARAMETERS_KVP, TILE_INDEX FROM ");
         if (schema != null) {
             sb.append(schema).append(".");
         }
         sb.append("TILEPAGE WHERE invalidated = :" + invalidatedParam);
+        if (maxPageZParam != null) {
+            sb.append(" AND PAGE_Z <= :" + maxPageZParam);
+        }
         sb.append(" AND TILESET_ID IN (");
         sb.append("SELECT KEY FROM ");
         if (schema != null) {
@@ -1059,13 +1068,16 @@ public class JDBCQuotaStore implements QuotaStore {
      * @param layerNameParam
      * @return
      */
-    private String getValidateTilePageQuery(String schema, String layerNameParam) {
+    private String getValidateTilePageQuery(String schema, String layerNameParam, String maxPageZParam) {
         StringBuilder sb = new StringBuilder("UPDATE ");
         if (schema != null) {
             sb.append(schema).append(".");
         }
         sb.append("TILEPAGE SET invalidated = 0");
         sb.append(" WHERE invalidated in (1,2)");
+        if (maxPageZParam != null) {
+            sb.append(" AND PAGE_Z <= :" + maxPageZParam);
+        }
         sb.append(" AND TILESET_ID IN (");
         sb.append("SELECT KEY FROM ");
         if (schema != null) {

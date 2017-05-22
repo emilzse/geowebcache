@@ -172,6 +172,39 @@ public class TileRange {
         return zlevelBounds;
     }
     
+    /**
+     * helper for counting the number of tiles
+     * 
+     * @param tr
+     * @return -1 if too many
+     */
+    public long tileCount() {
+
+        final int startZoom = this.getZoomStart();
+        final int stopZoom = this.getZoomStop();
+
+        long count = 0;
+
+        for (int z = startZoom; z <= stopZoom; z++) {
+            long[] gridBounds = this.rangeBounds(z);
+
+            final long minx = gridBounds[0];
+            final long maxx = gridBounds[2];
+            final long miny = gridBounds[1];
+            final long maxy = gridBounds[3];
+
+            long thisLevel = (1 + maxx - minx) * (1 + maxy - miny);
+
+            if (thisLevel > (Long.MAX_VALUE / 4) && z != stopZoom) {
+                return -1;
+            } else {
+                count += thisLevel;
+            }
+        }
+
+        return count;
+    }
+    
     @Override
     public String toString() {
         return new StringBuilder(getClass().getSimpleName()).append('[').append(layerName).append(",").append(gridSetId).append(rangeBounds).append(",").append(parametersId).append(']')
