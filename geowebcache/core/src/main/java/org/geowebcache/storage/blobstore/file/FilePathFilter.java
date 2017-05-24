@@ -21,6 +21,8 @@ import static org.geowebcache.storage.blobstore.file.FilePathUtils.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.geowebcache.storage.StorageException;
 import org.geowebcache.storage.TileRange;
@@ -31,7 +33,7 @@ import com.google.common.base.Preconditions;
  * Filter for identifying files that represent tiles within a particular range
  */
 public class FilePathFilter implements FilenameFilter {
-
+    
     private final String gridSetPrefix;
 
     private String mimeExtension;
@@ -39,6 +41,8 @@ public class FilePathFilter implements FilenameFilter {
     private TileRange tr;
 
     private String layerPrefix;
+    
+    private Set<String> paths;
 
     /**
      * Create a filter for stored tiles that are within a particular range.
@@ -59,6 +63,20 @@ public class FilePathFilter implements FilenameFilter {
 
         if (tr.getMimeType() != null) {
             mimeExtension = tr.getMimeType().getFileExtension();
+        }
+        
+        // Will create a list of Intermediate folders to not loop all of them
+        if (tr.getZoomStart() == tr.getZoomStop()) {
+            int zLevel = tr.getZoomStart();
+            
+            long[] bounds = tr.rangeBounds(zLevel);
+            
+            long minX = bounds[0];
+            long minY = bounds[1];
+            long maxX = bounds[2];
+            long maxY = bounds[3];
+            
+            paths = getIntermediates(zLevel, minX, minY, maxX, maxY);
         }
     }
     
@@ -113,6 +131,11 @@ public class FilePathFilter implements FilenameFilter {
     }
 
     private boolean acceptIntermediateDir(String name) {
+        
+        if (paths != null) {
+            // check intermediate list
+            return paths.contains(name);
+        }
         // if(bounds == null) {
         // return true;
         // }
@@ -120,6 +143,44 @@ public class FilePathFilter implements FilenameFilter {
         // For now we'll do all of them,
         // otherwise we have to extract zoomlevel from path
         return true;
+    }
+    
+    /**
+     * @param z
+     * @param minX
+     * @param minY
+     * @param maxX
+     * @param maxY
+     * @return intermediate directory names
+     */
+    private Set<String> getIntermediates(long z, long minX, long minY, long maxX, long maxY) {
+        long shift = z / 2;
+        long half = 2 << shift;
+        int digits = 1;
+        if (half > 10) {
+            digits = (int) (Math.log10(half)) + 1;
+        }
+
+        long minhalfx = minX / half;
+        long minhalfy = minY / half;
+
+        long maxhalfx = maxX / half;
+        long maxhalfy = maxY / half;
+
+        Set<String> paths = new HashSet<String>();
+        for (long x = minhalfx; x <= maxhalfx; x++) {
+            for (long y = minhalfy; y <= maxhalfy; y++) {
+                StringBuilder path = new StringBuilder(256);
+                zeroPadder(x, digits, path);
+                path.append("_");
+                zeroPadder(y, digits, path);
+
+                paths.add(path.toString());
+            }
+        }
+
+
+        return paths;
     }
 
     private boolean acceptFileName(File parent, String name) {

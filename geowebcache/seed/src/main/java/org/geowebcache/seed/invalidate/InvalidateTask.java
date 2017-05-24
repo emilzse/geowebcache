@@ -206,15 +206,21 @@ class InvalidateTask extends GWCTask {
                         checkInterrupted();
                     
                         long count = tr.tileCount();
-                        // Will delete by range
-                        log.debug("TileRange: tiles=" + count + " " + tr);
+                        if (log.isDebugEnabled()) {
+                            // Will delete by range
+                            log.debug("TileRange: tiles=" + count + " " + tr);
+                        }
+                        
                         storageBroker.delete(tr);
                         updateStatusInfo(tl, super.tilesDone + count, START_TIME);
                     }
                 }
                 
-                // Mark as deleted
-                quotaStore.setDeletedInvalidatedTilePages(layerName);
+                if (!this.terminate) {
+                    checkInterrupted();
+                    // Mark as deleted
+                    quotaStore.setDeletedInvalidatedTilePages(layerName);
+                }
             } catch (StorageException e) {
                 log.error("Failed to delete invalidated tiles: msg=" + e.getMessage());
 

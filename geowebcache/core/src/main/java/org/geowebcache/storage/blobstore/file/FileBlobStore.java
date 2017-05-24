@@ -365,6 +365,7 @@ public class FileBlobStore implements BlobStore {
      * Delete tiles within a range.
      */
     public boolean delete(TileRange trObj) throws StorageException {
+        long start = System.currentTimeMillis();
         int count = 0;
 
         String prefix = path + File.separator + filteredLayerName(trObj.getLayerName());
@@ -389,16 +390,16 @@ public class FileBlobStore implements BlobStore {
         final String parametersId = trObj.getParametersId();
 
         File[] srsZoomDirs = layerPath.listFiles(tileFinder);
-
+        
         final String gridsetPrefix = filteredGridSetId(gridSetId);
         for (File srsZoomParamId : srsZoomDirs) {
             int zoomLevel = findZoomLevel(gridsetPrefix, srsZoomParamId.getName());
             File[] intermediates = srsZoomParamId.listFiles(tileFinder);
-
+            
             for (File imd : intermediates) {
                 File[] tiles = imd.listFiles(tileFinder);
                 long length;
-
+                
                 for (File tile : tiles) {
                     length = tile.length();
                     boolean deleted = tile.delete();
@@ -425,7 +426,7 @@ public class FileBlobStore implements BlobStore {
             }
         }
 
-        log.info("Truncated " + count + " tiles");
+        log.info("Truncated " + count + " tiles in " + (System.currentTimeMillis() - start) + "ms");
 
         return true;
     }
