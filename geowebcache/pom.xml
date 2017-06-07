@@ -15,6 +15,7 @@
     <jaiext.version>1.0.13</jaiext.version>
     <spring.version>4.2.5.RELEASE</spring.version>
     <restlet.version>1.0.8</restlet.version>
+    <restlet.noelios.version>1.0.11</restlet.noelios.version>
     <xstream.version>1.4.7</xstream.version>
     <spring.security.version>4.0.4.RELEASE</spring.security.version>
     <commons-logging.version>1.1.1</commons-logging.version>
@@ -339,13 +340,13 @@
     <dependency>
       <groupId>com.noelios.restlet</groupId>
       <artifactId>com.noelios.restlet</artifactId>
-      <version>${restlet.version}</version>
+      <version>${restlet.noelios.version}</version>
     </dependency>
     
     <dependency>
       <groupId>com.noelios.restlet</groupId>
       <artifactId>com.noelios.restlet.ext.simple</artifactId>
-      <version>${restlet.version}</version>
+      <version>${restlet.noelios.version}</version>
     </dependency>
     
     <dependency>
@@ -369,7 +370,7 @@
     <dependency>
       <groupId>com.noelios.restlet</groupId>
       <artifactId>com.noelios.restlet.ext.servlet</artifactId>
-      <version>${restlet.version}</version>
+      <version>${restlet.noelios.version}</version>
     </dependency>
     
     <dependency>
