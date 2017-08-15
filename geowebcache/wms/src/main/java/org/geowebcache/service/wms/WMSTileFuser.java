@@ -613,8 +613,11 @@ public class WMSTileFuser{
                         log.warn("Failed getting tile, will retry: count=" + i + " layer="
                                 + layer.getName() + " msg="
                                 + (e.getMessage() == null && e.getCause() != null
-                                        ? e.getCause().getMessage() : e.getMessage()),
-                                e);
+                                        ? e.getCause().getMessage() : e.getMessage()));
+                        
+                        if (log.isDebugEnabled()) {
+                            log.debug("Failed getting tile, will retry", e);
+                        }
 
                     }
                 }

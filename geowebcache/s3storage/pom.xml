@@ -20,6 +20,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.geowebcache</groupId>
+      <artifactId>gwc-config-xml</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
       <version>1.9.30</version>
@@ -61,6 +66,13 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.geowebcache</groupId>
+      <artifactId>gwc-config-xml</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <classifier>tests</classifier>
     </dependency>
   </dependencies>
 

@@ -107,15 +107,8 @@
       <classifier>tests</classifier>
     </dependency>
     <dependency>
-      <groupId>org.geowebcache</groupId>
-      <artifactId>gwc-config-xml</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-      <classifier>tests</classifier>
-    </dependency>
-    <dependency>
-      <groupId>xmlunit</groupId>
-      <artifactId>xmlunit</artifactId>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-legacy</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -132,6 +125,13 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
+    </dependency>
+	<dependency>
+      <groupId>org.geowebcache</groupId>
+      <artifactId>gwc-config-xml</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <classifier>tests</classifier>
     </dependency>
   </dependencies>
 
