@@ -328,7 +328,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
                             if (log.isDebugEnabled()) {
                                 log.debug("Failed fetching lock.. will sleep.. key=" + metaKey
                                         + " count=" + i + " elapsedTime="
-                                        + (System.currentTimeMillis() - startTime));
+                                        + (System.currentTimeMillis() - startTime) 
+                                        + " msg=" + e.getMessage());
                             }
 
                             try {
@@ -381,7 +382,7 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
                         String redirectUrl = method.getURI().getURI();
 
                         log.warn(
-                                "Could not get lock or to many concurrent requests to backend.. elapsedTime= "
+                                "Could not get lock or to many concurrent requests to backend.. elapsedTime="
                                         + (System.currentTimeMillis() - startTime) + " redirect="
                                         + redirectUrl);
 

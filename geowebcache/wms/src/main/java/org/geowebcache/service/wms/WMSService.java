@@ -254,6 +254,8 @@ public class WMSService extends Service{
                 ConveyorTile tile = new ConveyorTile(sb, layers, request, response);
                 tile.setHint("getmap");
                 tile.setRequestHandler(ConveyorTile.RequestHandler.SERVICE);
+                // use the one computed by bestMatch
+                tile.setGridSetId(gridSubset.getName());
                 return tile;
             }
         }
@@ -282,7 +284,7 @@ public class WMSService extends Service{
                 WMSGetCapabilities wmsCap = new WMSGetCapabilities(tld, tile.servletReq, servletBase, context, urlMangler);
                 wmsCap.writeResponse(tile.servletResp);
             } else if (tile.getHint().equalsIgnoreCase("getmap")) {
-                WMSTileFuser wmsFuser = new WMSTileFuser(tld, sb, tile.servletReq);
+                WMSTileFuser wmsFuser = new WMSTileFuser(tld, sb, tile.servletReq, tile.getGridSetId());
                 // Setting of the applicationContext
                 wmsFuser.setApplicationContext(utility.getApplicationContext());
                 // Setting of the hintConfiguration if present

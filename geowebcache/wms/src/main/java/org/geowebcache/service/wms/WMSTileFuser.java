@@ -289,8 +289,12 @@ public class WMSTileFuser{
         }
     }
     
-    
     protected WMSTileFuser(TileLayerDispatcher tld, StorageBroker sb, HttpServletRequest servReq)
+            throws GeoWebCacheException {
+        this(tld, sb, servReq, null);
+    }
+    
+    protected WMSTileFuser(TileLayerDispatcher tld, StorageBroker sb, HttpServletRequest servReq, String gridSetId)
             throws GeoWebCacheException {
         this.sb = sb;
 
@@ -305,7 +309,8 @@ public class WMSTileFuser{
         String layerName = values.get("layers");
         layer = tld.getTileLayer(layerName);
         
-        gridSubset = layer.getGridSubsetForSRS(SRS.getSRS(values.get("srs")));
+        // use selected gridset
+        gridSubset = gridSetId == null ? layer.getGridSubsetForSRS(SRS.getSRS(values.get("srs"))) : layer.getGridSubset(gridSetId);
 
         outputFormat = (ImageMime) ImageMime.createFromFormat(values.get("format"));
         
