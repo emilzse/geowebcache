@@ -51,6 +51,7 @@ import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.conveyor.Conveyor.CacheResult;
 import org.geowebcache.conveyor.ConveyorTile;
 import org.geowebcache.filter.request.RequestFilterException;
+import org.geowebcache.filter.security.SecurityDispatcher;
 import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.grid.GridSubset;
 import org.geowebcache.grid.OutsideCoverageException;
@@ -191,6 +192,8 @@ public class WMSTileFuser{
 
     /** Hints used for writing the BufferedImage on the canvas*/
     private RenderingHints hints;
+
+    private SecurityDispatcher securityDispatcher;
 
     /**
      *Enum storing the Hints associated to one of the 3 configurations(SPEED, QUALITY, DEFAULT)
@@ -592,7 +595,9 @@ public class WMSTileFuser{
 
                 ConveyorTile tile = new ConveyorTile(sb, layer.getName(), gridSubset.getName(),
                         gridLoc, srcFormat, fullParameters, null, null);
-
+                
+                securityDispatcher.checkSecurity(tile);
+                
                 // Check whether this tile is to be rendered at all
                 try {
                     layer.applyRequestFilters(tile);
@@ -930,6 +935,10 @@ public class WMSTileFuser{
         
     }
 
+    public void setSecurityDispatcher(SecurityDispatcher securityDispatcher) {
+        this.securityDispatcher = securityDispatcher;
+    }
+
     /**
      * Consumer for seeding missing tiles
      * 
@@ -985,7 +994,6 @@ public class WMSTileFuser{
     private class TilesInfo {
 
         private final WMSLayer layer;
-
         private final ConveyorTile tile;
 
         public TilesInfo(WMSLayer layer, ConveyorTile tile) {
@@ -994,4 +1002,5 @@ public class WMSTileFuser{
             this.tile = tile;
         }
     }
+    
 }

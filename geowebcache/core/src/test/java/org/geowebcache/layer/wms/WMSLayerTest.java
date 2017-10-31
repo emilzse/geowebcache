@@ -18,8 +18,8 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.classextension.EasyMock.replay;
-import static org.easymock.classextension.EasyMock.verify;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.geowebcache.TestHelpers.createFakeSourceImage;
 import static org.geowebcache.TestHelpers.createRequest;
 import static org.geowebcache.TestHelpers.createWMSLayer;
@@ -55,10 +55,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.lang.SystemUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.IAnswer;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.TestHelpers;
 import org.geowebcache.conveyor.ConveyorTile;
@@ -172,7 +173,7 @@ public class WMSLayerTest extends TileLayerTest {
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
                 try {
                     ImageIO.write(img, "PNG", output);
-                    ImageIO.write(img, "PNG", new java.io.File("/tmp/meta.png"));
+                    ImageIO.write(img, "PNG", new java.io.File("./target/meta.png"));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

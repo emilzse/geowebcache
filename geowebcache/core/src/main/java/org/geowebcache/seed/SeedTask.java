@@ -194,7 +194,7 @@ class SeedTask extends GWCTask {
 
         if (this.terminate) {
             log.info("Job on " + getThreadName() + " was terminated after "
-                    + this.tilesDone + " tiles");
+                    + this.tilesDone.get() + " tiles");
         } else {
             log.info(getThreadName() + " completed " + parsedType.toString()
                     + " layer " + layerName
@@ -235,7 +235,7 @@ class SeedTask extends GWCTask {
     private void updateStatusInfo(TileLayer layer, long tilesCount, long start_time) {
 
         // working on tile
-        this.tilesDone = tilesCount;
+        this.tilesDone.set(tilesCount);
 
         // estimated time of completion in seconds, use a moving average over the last
         this.timeSpent = (int) (System.currentTimeMillis() - start_time) / 1000;

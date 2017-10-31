@@ -22,8 +22,13 @@ import static org.geowebcache.grid.GridUtil.findBestMatchingGrid;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +43,7 @@ import org.geowebcache.config.Configuration;
 import org.geowebcache.config.ConfigurationDispatcher;
 import org.geowebcache.conveyor.Conveyor;
 import org.geowebcache.conveyor.ConveyorTile;
+import org.geowebcache.filter.security.SecurityDispatcher;
 import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.grid.GridMismatchException;
 import org.geowebcache.grid.GridSubset;
@@ -59,6 +65,8 @@ import org.geowebcache.util.ServletUtils;
 import org.geowebcache.util.URLMangler;
 
 public class WMSService extends Service{
+    public static final String GEOWEBCACHE_WMS_PROXY_REQUEST_WHITELIST = "GEOWEBCACHE_WMS_PROXY_REQUEST_WHITELIST";
+
     public static final String SERVICE_WMS = "wms";
     
     static final String SERVICE_PATH = "/"+GeoWebCacheDispatcher.TYPE_SERVICE+"/"+SERVICE_WMS;
@@ -87,6 +95,8 @@ public class WMSService extends Service{
     private String hintsConfig = "DEFAULT";
     
     private WMSUtilities utility;
+    
+    private SecurityDispatcher securityDispatcher;
 
     /**
      * Protected no-argument constructor to allow run-time instrumentation
@@ -134,7 +144,7 @@ public class WMSService extends Service{
         // Look for requests that are not getmap
         String req = values.get("request");
         if (req != null && !req.equalsIgnoreCase("getmap")) {
-            // One more chance
+            // If no LAYERS specified, try using LAYER.
             if (layers == null || layers.length() == 0) {
                 layers = ServletUtils.stringFromMap(requestParameterMap, encoding, "layer");
                 values.put("LAYERS", layers);
@@ -255,7 +265,7 @@ public class WMSService extends Service{
                 tile.setHint("getmap");
                 tile.setRequestHandler(ConveyorTile.RequestHandler.SERVICE);
                 // use the one computed by bestMatch
-                tile.setGridSetId(gridSubset.getName());
+//                tile.setGridSetId(gridSubset.getName());
                 return tile;
             }
         }
@@ -284,13 +294,13 @@ public class WMSService extends Service{
                 WMSGetCapabilities wmsCap = new WMSGetCapabilities(tld, tile.servletReq, servletBase, context, urlMangler);
                 wmsCap.writeResponse(tile.servletResp);
             } else if (tile.getHint().equalsIgnoreCase("getmap")) {
-                WMSTileFuser wmsFuser = new WMSTileFuser(tld, sb, tile.servletReq, tile.getGridSetId());
-                // Setting of the applicationContext
-                wmsFuser.setApplicationContext(utility.getApplicationContext());
-                // Setting of the hintConfiguration if present
-                wmsFuser.setHintsConfiguration(hintsConfig);
+                // Its handled by the WMSTileFuser when request tiled tiles
+                getSecurityDispatcher().checkSecurity(tile);
+                WMSTileFuser wmsFuser = getFuser(tile.servletReq, tile.getGridSetId());
                 try {
                     wmsFuser.writeResponse(tile.servletResp, stats);
+                } catch (SecurityException e) {
+                    throw e;
                 } catch (OutsideCoverageException e) {
                     // throw up to handle as empty image
                     throw e;
@@ -299,11 +309,7 @@ public class WMSService extends Service{
                     e.printStackTrace();
                 }
             } else if (tile.getHint().equalsIgnoreCase("gettiles")) {
-                WMSTileFuser wmsFuser = new WMSTileFuser(tld, sb, tile.servletReq);
-                // Setting of the applicationContext
-                wmsFuser.setApplicationContext(utility.getApplicationContext());
-                // Setting of the hintConfiguration if present
-                wmsFuser.setHintsConfiguration(hintsConfig);
+                WMSTileFuser wmsFuser = getFuser(tile.servletReq, null);
                 try {
                     wmsFuser.writeMissingTilesResponse(tile.servletResp);
                 } catch (Exception e) {
@@ -311,8 +317,11 @@ public class WMSService extends Service{
                     e.printStackTrace();
                 }
             } else if (tile.getHint().equalsIgnoreCase("getfeatureinfo")) {
+                getSecurityDispatcher().checkSecurity(tile);
                 handleGetFeatureInfo(tile);
             } else {
+                getSecurityDispatcher().checkSecurity(tile);
+                checkProxyRequest(tile.getHint());
                 // see if we can proxy the request
                 TileLayer tl = tld.getTileLayer(tile.getLayerId());
 
@@ -333,6 +342,20 @@ public class WMSService extends Service{
         }
     }
 
+//    protected WMSTileFuser getFuser(HttpServletRequest servletReq) throws GeoWebCacheException {
+//        return getFuser(servletReq, null);
+//    }
+    
+    protected WMSTileFuser getFuser(HttpServletRequest servletReq, String gridsetId) throws GeoWebCacheException {
+        WMSTileFuser wmsFuser = new WMSTileFuser(tld, sb, servletReq, gridsetId);
+        wmsFuser.setSecurityDispatcher(getSecurityDispatcher());
+        // Setting of the applicationContext
+        wmsFuser.setApplicationContext(utility.getApplicationContext());
+        // Setting of the hintConfiguration if present
+        wmsFuser.setHintsConfiguration(hintsConfig);
+        return wmsFuser;
+    }
+
     /**
      * Handles a getfeatureinfo request
      * 
@@ -350,7 +373,7 @@ public class WMSService extends Service{
                 tile.servletReq.getParameterMap(), tile.servletReq.getCharacterEncoding(), keys);
 
         // TODO Arent we missing some format stuff here?
-        GridSubset gridSubset = tl.getGridSubsetForSRS(SRS.getSRS(values.get("srs")));
+        GridSubset gridSubset = tl.getGridSubsetsForSRS(SRS.getSRS(values.get("srs"))).iterator().next();
 
         BoundingBox bbox = null;
         try {
@@ -380,7 +403,7 @@ public class WMSService extends Service{
         }
 
         ConveyorTile gfiConv = new ConveyorTile(sb, tl.getName(), gridSubset.getName(), null,
-                mimeType, tile.getFullParameters(), tile.servletReq, tile.servletResp);
+                mimeType, tile.getFilteringParameters(), tile.servletReq, tile.servletResp);
         gfiConv.setTileLayer(tl);
 
         int x, y;
@@ -470,4 +493,40 @@ public class WMSService extends Service{
     public void setUtility(WMSUtilities utility) {
         this.utility = utility;
     }
+    
+    protected Collection<String> getDefaultProxyRequestWhitelist() {
+        if(getSecurityDispatcher().isSecurityEnabled()) {
+            return Arrays.asList("getlegendgraphic");
+        } else {
+            return Arrays.asList("*");
+        }
+    }
+    
+    protected Collection<String> getProxyRequestWhitelist() {
+        return Optional.ofNullable(
+                GeoWebCacheExtensions.getProperty(GEOWEBCACHE_WMS_PROXY_REQUEST_WHITELIST))
+            .map(list->list.split(";"))
+            .map(Arrays::stream)
+            .map(stream->stream
+                .map(String::toLowerCase)
+                .map(String::trim)
+                .collect(Collectors.toList()))
+            .map(x->(Collection<String>)x)
+            .orElse(getDefaultProxyRequestWhitelist());
+    }
+    
+    protected void checkProxyRequest(String request) {
+        if(getProxyRequestWhitelist().stream().noneMatch(pattern-> pattern.equals("*")||pattern.equals(request))) {
+            throw new SecurityException("WMS Request "+request+" is not on request proxy whitelist");
+        }
+    }
+
+    public void setSecurityDispatcher(SecurityDispatcher securityDispatcher) {
+        this.securityDispatcher = securityDispatcher;
+    }
+    
+    protected SecurityDispatcher getSecurityDispatcher() {
+        return securityDispatcher;
+    }
+    
 }

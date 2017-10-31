@@ -5,16 +5,15 @@
   <groupId>org.geowebcache</groupId>
   <artifactId>geowebcache</artifactId>
   <packaging>pom</packaging>
-  <version>1.12-SNAPSHOT</version><!-- GWC VERSION -->
+  <version>1.13-SNAPSHOT</version><!-- GWC VERSION -->
   <name>geowebcache</name>
   <url>http://geowebcache.org</url>
 
   <properties>
-    <gt.version>18-SNAPSHOT</gt.version>
-    <jts.version>1.13</jts.version>
-    <jaiext.version>1.0.15</jaiext.version>
+    <gt.version>19-SNAPSHOT</gt.version>
+    <jts.version>1.14.0</jts.version>
+    <jaiext.version>1.0.16</jaiext.version>
     <spring.version>4.2.5.RELEASE</spring.version>
-    <restlet.version>1.0.8</restlet.version>
     <restlet.noelios.version>1.0.11</restlet.noelios.version>
     <xstream.version>1.4.7</xstream.version>
     <spring.security.version>4.0.4.RELEASE</spring.security.version>
@@ -35,7 +34,7 @@
     <jalopy.srcExcludesPattern>disabled</jalopy.srcExcludesPattern>
     <test.maxHeapSize>64M</test.maxHeapSize>
     <maven.test.jvmargs/>
-    <imageio-ext.version>1.1.17</imageio-ext.version>
+    <imageio-ext.version>1.1.19</imageio-ext.version>
     <hazelcast.version>2.3.1</hazelcast.version>
     <joda-time.version>2.8.1</joda-time.version>
   </properties>
@@ -226,13 +225,13 @@
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
-      <version>2.5.2</version>
+      <version>3.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymockclassextension</artifactId>
-      <version>2.5.2</version>
+      <version>3.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -306,56 +305,6 @@
      <groupId>org.freemarker</groupId>
      <artifactId>freemarker</artifactId>
      <version>2.3.18</version> <!-- track same version than GeoServer -->
-    </dependency>
-
-    <!-- restlet.org dependencies -->
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet</artifactId>
-      <version>${restlet.version}</version>
-      <classifier>noobjrep</classifier>
-    </dependency>
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet</artifactId>
-      <version>${restlet.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>com.noelios.restlet</groupId>
-      <artifactId>com.noelios.restlet</artifactId>
-      <version>${restlet.noelios.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>com.noelios.restlet</groupId>
-      <artifactId>com.noelios.restlet.ext.simple</artifactId>
-      <version>${restlet.noelios.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet.ext.freemarker</artifactId>
-      <version>${restlet.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet.ext.spring</artifactId>
-      <version>${restlet.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet.ext.json</artifactId>
-      <version>${restlet.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>com.noelios.restlet</groupId>
-      <artifactId>com.noelios.restlet.ext.servlet</artifactId>
-      <version>${restlet.noelios.version}</version>
     </dependency>
     
     <dependency>
@@ -619,7 +568,7 @@
             <descriptor>release/war.xml</descriptor>
             <descriptor>release/doc.xml</descriptor>
           </descriptors>
-          <finalName>geowebcache-1.12-SNAPSHOT</finalName>
+          <finalName>geowebcache-1.13-SNAPSHOT</finalName>
           <outputDirectory>${project.build.directory}/release</outputDirectory>
         </configuration>
       </plugin>

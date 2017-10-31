@@ -110,11 +110,11 @@ public abstract class WMSSourceHelper {
 
         wmsParams.put("BBOX", bbox.toString());
 
-        Map<String, String> fullParameters = tile.getFullParameters();
-        if (fullParameters.isEmpty()) {
-            fullParameters = layer.getDefaultParameterFilters();
+        Map<String, String> filteringParameters = tile.getFilteringParameters();
+        if (filteringParameters.isEmpty()) {
+            filteringParameters = layer.getDefaultParameterFilters();
         }
-        wmsParams.putAll(fullParameters);
+        wmsParams.putAll(filteringParameters);
 
         if (tile.getMimeType() == XMLMime.kml) {
             // This is a hack for GeoServer to produce regionated KML,
@@ -144,11 +144,11 @@ public abstract class WMSSourceHelper {
 
         wmsParams.put("BBOX", bbox.toString());
 
-        Map<String, String> fullParameters = tile.getFullParameters();
-        if (fullParameters.isEmpty()) {
-            fullParameters = layer.getDefaultParameterFilters();
+        Map<String, String> filteringParameters = tile.getFilteringParameters();
+        if (filteringParameters.isEmpty()) {
+            filteringParameters = layer.getDefaultParameterFilters();
         }
-        wmsParams.putAll(fullParameters);
+        wmsParams.putAll(filteringParameters);
 
         wmsParams.put("X", String.valueOf(x));
         wmsParams.put("Y", String.valueOf(y));

@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.geowebcache</groupId>
         <artifactId>geowebcache</artifactId>
-        <version>1.12-SNAPSHOT</version><!-- GWC VERSION -->
+        <version>1.13-SNAPSHOT</version><!-- GWC VERSION -->
     </parent>
     <groupId>org.geowebcache</groupId>
     <artifactId>gwc-sqlite</artifactId>
@@ -83,11 +83,6 @@
         <dependency>
           <groupId>org.easymock</groupId>
           <artifactId>easymock</artifactId>
-          <scope>test</scope>
-          </dependency>
-        <dependency>
-          <groupId>org.easymock</groupId>
-          <artifactId>easymockclassextension</artifactId>
           <scope>test</scope>
         </dependency>
     </dependencies>

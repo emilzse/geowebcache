@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.geowebcache</groupId>
 		<artifactId>geowebcache</artifactId>
-		<version>1.12-SNAPSHOT</version><!-- GWC VERSION -->
+		<version>1.13-SNAPSHOT</version><!-- GWC VERSION -->
 	</parent>
 	<groupId>org.geowebcache</groupId>
 	<artifactId>gwc-config-xml</artifactId>
@@ -77,6 +77,18 @@
 			<artifactId>xmlunit-legacy</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+	      	<groupId>javax.servlet</groupId>
+	      	<artifactId>javax.servlet-api</artifactId>
+	      	<scope>test</scope>
+    	</dependency>
+    	<dependency>
+	      <groupId>org.geowebcache</groupId>
+	      <artifactId>gwc-core</artifactId>
+	      <version>${project.version}</version>
+	      <scope>test</scope>
+	      <classifier>tests</classifier>
+	    </dependency>
 
 	</dependencies>
 

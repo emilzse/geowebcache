@@ -17,6 +17,7 @@
 package org.geowebcache.seed;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,7 +58,7 @@ public abstract class GWCTask {
 
     protected long timeRemaining = -1;
 
-    protected long tilesDone = -1;
+    protected AtomicLong tilesDone = new AtomicLong(-1);
 
     protected long tilesTotal = -1;
 
@@ -130,9 +131,9 @@ public abstract class GWCTask {
     public long getTilesTotal() {
         return tilesTotal;
     }
-
+    
     public long getTilesDone() {
-        return tilesDone;
+        return tilesDone.get();
     }
 
     /**

@@ -37,7 +37,7 @@ import com.thoughtworks.xstream.XStream;
  *
  */
 public abstract class AbsConfigurationDispatcher {
-
+    
     public static XStream getConfiguredXStreamWithContext(XStream xs, WebApplicationContext context,
             ContextualConfigurationProvider.Context providerContext) {
 

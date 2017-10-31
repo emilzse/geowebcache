@@ -5,7 +5,7 @@ import java.util.Arrays;
 import org.geowebcache.grid.BoundingBox;
 
 public class InvalidateRequest {
-
+    
     private InvalidateConfig[] config;
 
     public InvalidateRequest(String zxy) {

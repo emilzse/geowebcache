@@ -77,6 +77,7 @@ import org.geowebcache.locks.LockProvider;
 import org.geowebcache.storage.DefaultStorageFinder;
 import org.geowebcache.util.ApplicationContextProvider;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 import org.w3c.dom.Document;
@@ -107,6 +108,8 @@ import com.thoughtworks.xstream.io.xml.DomReader;
  * @author Emil Zail - T-Kartor
  * @see XMLConfiguration
  */
+// Primary in case more than one implementation for Autowired (XMLConfiguration)
+@Primary
 public class PostgresConfiguration extends AbsConfigurationDispatcher
         implements ConfigurationDispatcher, InitializingBean {
 

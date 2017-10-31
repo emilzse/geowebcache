@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.geowebcache</groupId>
     <artifactId>geowebcache</artifactId>
-    <version>1.12-SNAPSHOT</version><!-- GWC VERSION -->
+    <version>1.13-SNAPSHOT</version><!-- GWC VERSION -->
   </parent>
   <groupId>org.geowebcache</groupId>
   <artifactId>gwc-rest</artifactId>
@@ -32,60 +32,6 @@
     <dependency>
      <groupId>org.freemarker</groupId>
      <artifactId>freemarker</artifactId>
-    </dependency>
-
-    <!-- restlet.org dependencies -->
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet</artifactId>
-      <classifier>noobjrep</classifier>
-    </dependency>
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.noelios.restlet</groupId>
-      <artifactId>com.noelios.restlet</artifactId>
-      <exclusions>
-       <exclusion>
-         <groupId>javax.servlet</groupId>
-         <artifactId>servlet-api</artifactId>
-       </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>com.noelios.restlet</groupId>
-      <artifactId>com.noelios.restlet.ext.simple</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet.ext.freemarker</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet.ext.spring</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.restlet</groupId>
-      <artifactId>org.restlet.ext.json</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.noelios.restlet</groupId>
-      <artifactId>com.noelios.restlet.ext.servlet</artifactId>
-      <exclusions>
-       <exclusion>
-         <groupId>javax.servlet</groupId>
-         <artifactId>servlet-api</artifactId>
-       </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- test dependencies  -->
@@ -117,16 +63,24 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymockclassextension</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
     </dependency>
-	<dependency>
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-test</artifactId>
+      </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>org.json</artifactId>
+      <version>2.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.geowebcache</groupId>
       <artifactId>gwc-config-xml</artifactId>
       <version>${project.version}</version>
