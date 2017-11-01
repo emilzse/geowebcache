@@ -88,7 +88,7 @@ public class InvalidateService extends AbsService {
     private GWCTask[] createTasks(TileLayer tl, InvalidateRequest ir, String jobId, int poolSize) throws GeoWebCacheException {
         InvalidateTask task;
         try {
-            task = new InvalidateTask(seeder.getStorageBroker(), quotaStoreProvider.getQuotaStore(), tl, ir.getInvalidateItems(), dataSource, tableName, jobId, poolSize);
+            task = new InvalidateTask(seeder.getStorageBroker(), quotaStoreProvider.getQuotaStore(), tl, ir.getInvalidateItems(), dataSource, tableName, jobId, seeder.getMaxPoolSize() < poolSize ? seeder.getMaxPoolSize() : poolSize);
         } catch (ConfigurationException | IOException e) {
             throw new GeoWebCacheException(e);
         }

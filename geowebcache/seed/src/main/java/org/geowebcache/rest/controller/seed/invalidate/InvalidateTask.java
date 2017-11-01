@@ -82,6 +82,8 @@ class InvalidateTask extends GWCTask {
 
     private AtomicLong sharedFailureCounter;
     
+    private AtomicLong sharedDeletedCounter;
+    
     private final TileLayer tl;
 
     private final InvalidateConfig[] invalidateList;
@@ -125,6 +127,7 @@ class InvalidateTask extends GWCTask {
         tileFailureRetryWaitTime = 100;
         totalFailuresBeforeAborting = 10000;
         sharedFailureCounter = new AtomicLong();
+        sharedDeletedCounter = new AtomicLong();
 
         super.parsedType = GWCTask.TYPE.INVALIDATE;
 
@@ -144,7 +147,7 @@ class InvalidateTask extends GWCTask {
         final long START_TIME = System.currentTimeMillis();
 
         log.info(getThreadName() + " begins invalidating tiles for " + layerName + ": invalidateConfigs="
-                + invalidateList.length);
+                + invalidateList.length + " with pool size " + poolSize);
 
         checkInterrupted();
 
@@ -256,6 +259,11 @@ class InvalidateTask extends GWCTask {
 
             // push list to db
             commit();
+            
+            // Set correct actual tiles deleted
+            this.tilesTotal = this.sharedDeletedCounter.get();
+            this.tilesDone.set(this.tilesTotal);
+                    
             
             if (!this.terminate) {
                 checkInterrupted();
@@ -380,24 +388,31 @@ class InvalidateTask extends GWCTask {
         }
 
         @Override
-        public void tileDeleted(String layerName, String gridSetId,
-                String blobFormat, String parametersId, long x, long y, int z,
+        public void tileDeleted(String layerName, String gridSetId, 
+                String blobFormat, String parametersId, long x, long y, int z, 
                 long blobSize) {
-
             // Checks that the tile is for this tile range (Could be other jobs deleting tiles)
-            if (tr == null || !tr.contains(x, y, z) || !controlTTL(tr.tilePage)) {
+            if (tr == null || !tr.contains(x, y, z)) {
                 return;
             }
-                
-            DeletedTile dt = new DeletedTile(layerName, gridSetId, x, y, z, blobFormat, tr.getParameters());
-                
-            // TODO remove or change log level
-            log.info("Deleted tile: " + dt.toString());
-                
-            if (!deletedTiles.offer(dt)) {
-                // push to db if no space left
-                commit();
-                deletedTiles.offer(dt);
+            
+            // increment how many tiles are deleted
+            sharedDeletedCounter.incrementAndGet();
+            
+            // check if it is expired
+            if (controlTTL(tr.tilePage)) {
+                // Add to list to regenerate
+                DeletedTile dt = new DeletedTile(layerName, gridSetId, x, y, z, blobFormat, tr.getParameters());
+                    
+                if (log.isDebugEnabled()) {
+                    log.info("Deleted tile: " + dt.toString());
+                }
+                    
+                if (!deletedTiles.offer(dt)) {
+                    // push to db if no space left
+                    commit();
+                    deletedTiles.offer(dt);
+                }
             }
         }
 
@@ -631,10 +646,10 @@ class InvalidateTask extends GWCTask {
                     checkInterrupted();
                 
                     long count = tr.tileCount();
-//                    if (log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         // Will delete by range
                         log.info("TileRange: tiles=" + count + " " + tr);
-//                    }
+                    }
                     // set current tile range
                     DeleteStoreListener listener = new DeleteStoreListener(tr);
                     storageBroker.addBlobStoreListener(listener);

@@ -136,7 +136,7 @@ class ValidateTask extends GWCTask {
         // approximate thread creation time
         final long START_TIME = System.currentTimeMillis();
 
-        log.info(getThreadName() + " begins validating tiles for " + layerName);
+        log.info(getThreadName() + " begins validating tiles for " + layerName + " with pool size " + poolSize);
 
         checkInterrupted();
 
@@ -246,7 +246,9 @@ class ValidateTask extends GWCTask {
     private void deleteInvalidated(String jobId, int limit) {
        String deleteList = String.format("DELETE FROM %s WHERE id IN (SELECT id FROM %s WHERE group_id = :jobId ORDER BY id ASC LIMIT %d)", tableName, tableName, limit);
 
-       log.info("Delete list of tiles: jobId=" + jobId + " sql=" + deleteList);
+       if (log.isDebugEnabled()) {
+           log.info("Delete list of tiles: jobId=" + jobId + " sql=" + deleteList);
+       }
       
        jt.update(deleteList, Collections.singletonMap("jobId", jobId));
     }
@@ -254,9 +256,9 @@ class ValidateTask extends GWCTask {
     private long getCount(String jobId) {
        String getCount = String.format("SELECT count(*) FROM %s WHERE group_id = :jobId", tableName);
 
-       //     if (log.isDebugEnabled()) {
-       log.info("Count invalidated tiles: jobId=" + jobId + " sql=" + getCount);
-//     }
+       if (log.isDebugEnabled()) {
+           log.info("Count invalidated tiles: jobId=" + jobId + " sql=" + getCount);
+       }
                 
        return jt.queryForObject(getCount, Collections.singletonMap("jobId", jobId), Long.class);
     }
@@ -264,10 +266,11 @@ class ValidateTask extends GWCTask {
     private List<DeletedTile> getList(String jobId, int limit) {
         String getList = String.format("SELECT * FROM %s WHERE group_id = :jobId ORDER BY id ASC LIMIT %d", tableName, limit);
         
-        //                 if (log.isDebugEnabled()) {
-        log.info("Get list of tiles: jobId=" + jobId + " sql=" + getList);
-        //                 }
-               return jt.query(getList, Collections.singletonMap("jobId", jobId), new RowMapper<DeletedTile>() {
+         if (log.isDebugEnabled()) {
+             log.info("Get list of tiles: jobId=" + jobId + " sql=" + getList);
+         }
+         
+         return jt.query(getList, Collections.singletonMap("jobId", jobId), new RowMapper<DeletedTile>() {
                    
                    public DeletedTile mapRow(ResultSet rs, int rowNum) throws SQLException {
                      // group_id, layer_name, gridset_id, x, y, z, mime_type, parameters_kvp
@@ -318,9 +321,7 @@ class ValidateTask extends GWCTask {
                     for (int fetchAttempt = 0; fetchAttempt <= tileFailureRetryCount; fetchAttempt++) {
                         try {
                             checkInterrupted();
-                            log.info("seeding tile: dt=" + dt.toString());
                             tl.seedTile(tile, true, false);
-                            log.info("seeding tile done: dt=" + dt.toString());
                             break;// success, let it go
                         } catch (Exception e) {
                             // if GWC_SEED_RETRY_COUNT was not set then none of the settings have effect, in

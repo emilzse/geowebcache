@@ -52,7 +52,7 @@ public class ValidateService extends AbsService {
     }
 
     private GWCTask[] createTasks(TileLayer tl, String jobId, int poolSize) throws GeoWebCacheException {
-        ValidateTask task = new ValidateTask(seeder.getStorageBroker(), tl, dataSource, tableName, jobId, poolSize);
+        ValidateTask task = new ValidateTask(seeder.getStorageBroker(), tl, dataSource, tableName, jobId, seeder.getMaxPoolSize() < poolSize ? seeder.getMaxPoolSize() : poolSize);
         
         AtomicLong failureCounter = new AtomicLong();
         AtomicInteger sharedThreadCount = new AtomicInteger();

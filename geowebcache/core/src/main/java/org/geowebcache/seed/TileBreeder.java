@@ -631,4 +631,8 @@ public class TileBreeder implements ApplicationContextAware {
         return totalFailuresBeforeAborting;
     }
 
+    public int getMaxPoolSize() {
+        return threadPool.getMaximumPoolSize();
+    }
+
 }
