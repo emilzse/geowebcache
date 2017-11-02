@@ -596,6 +596,9 @@ public class WMSTileFuser{
                 ConveyorTile tile = new ConveyorTile(sb, layer.getName(), gridSubset.getName(),
                         gridLoc, srcFormat, fullParameters, null, null);
                 
+                // set current layer
+                tile.setTileLayer(layer);
+                
                 securityDispatcher.checkSecurity(tile);
                 
                 // Check whether this tile is to be rendered at all
@@ -605,9 +608,6 @@ public class WMSTileFuser{
                     log.debug(e.getMessage(),e);
                     continue;
                 }
-
-                // set current layer
-                tile.setTileLayer(layer);
 
                 // Will try until gets a proper response
                 ConveyorTile singleTile = null;
