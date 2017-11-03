@@ -27,7 +27,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -195,8 +194,7 @@ public final class ResponseUtils {
         tile.servletResp.setHeader("geowebcache-message", message);
         TileLayer layer = tile.getLayer();
         if (layer != null) {
-                layer.setExpirationHeader(tile.servletResp, (int) tile.getTileIndex()[2]);
-            }
+            layer.setExpirationHeader(tile.servletResp, (int) tile.getTileIndex()[2]);
 
             if (layer.useETags()) {
                 String ifNoneMatch = tile.servletReq.getHeader("If-None-Match");
