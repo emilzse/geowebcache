@@ -105,8 +105,11 @@ public final class ResponseUtils {
             // A5) Ask the layer to provide the content for the tile
             convTile = layer.getTile(convTile);
 
-            // A6) Write response
-            writeData(convTile, runtimeStats);
+            // If null it was not able to lock and should contain a redirect
+            if (convTile != null) {
+                // A6) Write response
+                writeData(convTile, runtimeStats);
+            }
 
             // Alternatively:
         } catch (OutsideCoverageException e) {
