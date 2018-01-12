@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,25 +62,35 @@ public class DiskQuotaController {
 
     @RequestMapping(value = "/diskquota", method = RequestMethod.GET)
     public ResponseEntity<?> doGet(HttpServletRequest request) {
-        String layerName = request.getParameter("layer");
-        
-        Quota usedQuota;
-        try {
-            usedQuota = !StringUtils.isEmpty(layerName) ? monitor.getUsedQuotaByLayerName(layerName) : null;
-        } catch (InterruptedException e1) {
-            return new ResponseEntity<Object>("Failed to read layer quota : " + layerName, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        
         final DiskQuotaConfig config = monitor.getConfig();
 
         if (request.getPathInfo().contains("json")) {
             try {
-                return usedQuota != null ? getJsonRepresentation(usedQuota) : getJsonRepresentation(config);
+                return getJsonRepresentation(config);
             } catch (JSONException e) {
-                return new ResponseEntity<Object>("Caught JSON Execption.", HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<Object>("Caught JSON Exception.", HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {
-            return usedQuota != null ? getXmlRepresentation(usedQuota) : getXmlRepresentation(config);
+            return getXmlRepresentation(config);
+        }
+    }
+
+    @RequestMapping(value = "/diskquota/{layer}", method = RequestMethod.GET)
+    public ResponseEntity<?> doGet(HttpServletRequest request, @PathVariable("layer") String layer) {
+        try {
+            Quota usedQuota = monitor.getUsedQuotaByLayerName(layer);
+            if (!request.getPathInfo().contains("json")) {
+                return getXmlRepresentation(usedQuota);
+            } else {
+                try {
+                    return getJsonRepresentation(usedQuota);
+                } catch (JSONException e) {
+                    return new ResponseEntity<Object>("Caught JSON Exception.", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+
+        } catch (InterruptedException e1) {
+            return new ResponseEntity<Object>("Failed to read layer quota : " + layer, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -176,7 +187,7 @@ public class DiskQuotaController {
     }
 
     /**
-     * Private method for retunring a JSON representation of the Statistics
+     * Private method for returning a JSON representation of the Statistics
      *
      * @param config
      * @return a {@link ResponseEntity} object
@@ -196,7 +207,7 @@ public class DiskQuotaController {
     }
 
     /**
-     * Private method for retunring an XML representation of the Statistics
+     * Private method for returning an XML representation of the Statistics
      *
      * @param config
      * @return a {@link ResponseEntity} object
