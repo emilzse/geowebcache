@@ -122,10 +122,11 @@ public class FilePathFilter implements FilenameFilter {
             }
         }
         
-        String parameter = findParameter(gridSetPrefix, name);
         if(tr.getParametersId() == null) {
-            return parameter == null;
+            // GT: If no parameters provided delete always
+            return true;//parameter == null;
         } else {
+            String parameter = findParameter(gridSetPrefix, name);
             return tr.getParametersId().equals(parameter);
         }
     }
