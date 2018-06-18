@@ -123,16 +123,16 @@ public class MassTruncateController extends GWCSeedingController{
         String contentType = req.getContentType();
 
         XStream xs = configXStream(new GeoWebCacheXStream(new DomDriver()));
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(req.getInputStream(), writer, null);
-        String reqData = writer.toString();
 
         Object obj = null;
 
         if (contentType==null || contentType.toLowerCase().startsWith("text/xml")) {
-
-            obj = xs.fromXML(reqData);
+            obj = xs.fromXML(req.getInputStream());
         } else if (contentType.equalsIgnoreCase("json")) {
+            StringWriter writer = new StringWriter();
+            IOUtils.copy(req.getInputStream(), writer, null);
+            String reqData = writer.toString();
+
             obj = xs.fromXML(convertJson(reqData));
         } else {
             throw new RestException("Format extension unknown or not specified: "
