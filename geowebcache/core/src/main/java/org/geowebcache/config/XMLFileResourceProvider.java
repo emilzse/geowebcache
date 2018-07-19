@@ -53,7 +53,7 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
 
     /**
      * Web app context, used to look up {@link XMLConfigurationProvider}s. Will be null if used the
-     * {@link #XMLConfiguration(File)} constructor
+     * {@link XMLConfigurationProvider(File)} constructor
      */
     private final WebApplicationContext context;
 
@@ -133,7 +133,7 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
      * 
      * @param appCtx
      *            use to lookup {@link XMLConfigurationProvider} extenions, may be {@code null}
-     * @param defaultStorage
+     * @param storageDirFinder
      * @throws ConfigurationException
      */
     public XMLFileResourceProvider(final String configFileName,
@@ -149,7 +149,7 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
      * 
      * @param appCtx
      *            use to lookup {@link XMLConfigurationProvider} extenions, may be {@code null}
-     * @param defaultStorage
+     * @param storageDirFinder
      * @throws ConfigurationException
      */
     public XMLFileResourceProvider(final String configFileName,
@@ -207,11 +207,11 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
 
         if (!configDirectory.exists() && !configDirectory.mkdirs()) {
             throw new IOException(
-                    "Configuration directory does not exist and cannot be created: '"
+                    "TileLayerConfiguration directory does not exist and cannot be created: '"
                             + configDirectory.getAbsolutePath() + "'");
         }
         if (!configDirectory.canWrite()) {
-            throw new IOException("Configuration directory is not writable: '"
+            throw new IOException("TileLayerConfiguration directory is not writable: '"
                     + configDirectory.getAbsolutePath() + "'");
         }
 

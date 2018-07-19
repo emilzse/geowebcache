@@ -28,7 +28,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 
 import org.custommonkey.xmlunit.XMLAssert;
-import org.geowebcache.config.AbsConfigurationDispatcher;
+import org.geowebcache.config.ConfigurationDispatcher;
 import org.geowebcache.config.ContextualConfigurationProvider;
 import org.geowebcache.io.GeoWebCacheXStream;
 import org.hamcrest.Matchers;
@@ -52,7 +52,7 @@ public class IntegerParameterFilterTest {
         filter.setThreshold(1);
         
         xs = new GeoWebCacheXStream();
-        xs = AbsConfigurationDispatcher.getConfiguredXStreamWithContext(xs,
+        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs,
                 new StaticWebApplicationContext(), (ContextualConfigurationProvider.Context) null);
     }
     

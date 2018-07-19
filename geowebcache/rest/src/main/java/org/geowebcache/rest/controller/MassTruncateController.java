@@ -33,6 +33,7 @@ import org.geowebcache.rest.exception.RestException;
 import org.geowebcache.seed.*;
 import org.geowebcache.storage.StorageBroker;
 import org.geowebcache.storage.StorageException;
+import org.geowebcache.util.ApplicationContextProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -63,6 +65,11 @@ public class MassTruncateController extends GWCSeedingController{
 
     @Autowired
     private TileBreeder breeder;
+
+    @Autowired
+    public MassTruncateController(ApplicationContextProvider appCtx) {
+        super(appCtx);
+    }
 
     @ExceptionHandler(RestException.class)
     public ResponseEntity<?> handleRestException(RestException ex) {
@@ -130,7 +137,7 @@ public class MassTruncateController extends GWCSeedingController{
             obj = xs.fromXML(req.getInputStream());
         } else if (contentType.equalsIgnoreCase("json")) {
             StringWriter writer = new StringWriter();
-            IOUtils.copy(req.getInputStream(), writer, null);
+            IOUtils.copy(req.getInputStream(), writer, Charset.defaultCharset());
             String reqData = writer.toString();
 
             obj = xs.fromXML(convertJson(reqData));

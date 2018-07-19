@@ -21,10 +21,10 @@ import com.thoughtworks.xstream.io.HierarchicalStreamDriver;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.geowebcache.config.AbsConfigurationDispatcher;
 import org.geowebcache.config.ConfigurationDispatcher;
 import org.geowebcache.config.ContextualConfigurationProvider.Context;
 import org.geowebcache.diskquota.ConfigLoader;
@@ -33,6 +33,7 @@ import org.geowebcache.diskquota.DiskQuotaMonitor;
 import org.geowebcache.diskquota.storage.Quota;
 import org.geowebcache.io.GeoWebCacheXStream;
 import org.geowebcache.storage.blobstore.memory.CacheStatistics;
+import org.geowebcache.util.ApplicationContextProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,22 +42,33 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 
 @Component
 @RestController
 @RequestMapping(path="${gwc.context.suffix:}/rest")
 public class DiskQuotaController {
 
+    private final WebApplicationContext context;
+
     @Autowired
-    DiskQuotaMonitor monitor;
+    public DiskQuotaController(ApplicationContextProvider appCtx) {
+        context = appCtx == null ? null : appCtx.getApplicationContext();
+    }
+
+    static final Log log = LogFactory.getLog(DiskQuotaController.class);
 
     @Autowired
     ConfigurationDispatcher xmlConfig;
+
+    @Autowired
+    DiskQuotaMonitor monitor;
 
     public void setDiskQuotaMonitor(DiskQuotaMonitor monitor) {this.monitor = monitor;}
 
@@ -101,7 +113,7 @@ public class DiskQuotaController {
         String reqData = "";
         try {
             StringWriter writer = new StringWriter();
-            IOUtils.copy(request.getInputStream(), writer, null);
+            IOUtils.copy(request.getInputStream(), writer, Charset.defaultCharset());
             reqData = writer.toString();
             if (request.getPathInfo().contains("json")) {
                 newConfig = fromJSON(reqData);
@@ -196,12 +208,12 @@ public class DiskQuotaController {
     private ResponseEntity<?> getJsonRepresentation(DiskQuotaConfig config) throws JSONException {
         JSONObject rep = null;
         try {
-            XStream xs = xmlConfig.getConfiguredXStreamWithContext(new GeoWebCacheXStream(
-                    new JsonHierarchicalStreamDriver()), Context.REST);
+            XStream xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(new GeoWebCacheXStream(
+                    new JsonHierarchicalStreamDriver()), context, Context.REST);
             JSONObject obj = new JSONObject(xs.toXML(config));
             rep = obj;
         } catch (JSONException jse) {
-            jse.printStackTrace();
+            log.debug(jse);
         }
         return new ResponseEntity(rep.toString(), HttpStatus.OK);
     }
@@ -219,7 +231,7 @@ public class DiskQuotaController {
 
         return new ResponseEntity(xmlText, HttpStatus.OK);
     }
-    
+
     /**
      * Private method for returning a JSON representation of the Statistics
      *

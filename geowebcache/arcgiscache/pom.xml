@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.geowebcache</groupId>
     <artifactId>geowebcache</artifactId>
-    <version>1.13-SNAPSHOT</version><!-- GWC VERSION -->
+    <version>1.14-SNAPSHOT</version><!-- GWC VERSION -->
   </parent>
   <groupId>org.geowebcache</groupId>
   <artifactId>gwc-arcgiscache</artifactId>
@@ -17,6 +17,11 @@
     <dependency>
       <groupId>org.geowebcache</groupId>
       <artifactId>gwc-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geowebcache</groupId>
+      <artifactId>gwc-config-xml</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -37,6 +42,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <scope>test</scope>
@@ -44,6 +54,13 @@
     <dependency>
       <groupId>org.geowebcache</groupId>
       <artifactId>gwc-core</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.geowebcache</groupId>
+      <artifactId>gwc-config-xml</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
       <classifier>tests</classifier>

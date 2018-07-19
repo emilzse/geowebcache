@@ -1,3 +1,20 @@
+/**
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright 2018
+ *
+ */
 package org.geowebcache.config;
 
 import static org.easymock.EasyMock.capture;
@@ -8,6 +25,10 @@ import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.text.IsEqualIgnoringCase.equalToIgnoringCase;
+import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 
@@ -15,6 +36,8 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.HashMap;
+
 
 import org.easymock.Capture;
 import org.geotools.data.ows.CRSEnvelope;
@@ -24,6 +47,8 @@ import org.geotools.data.ows.StyleImpl;
 import org.geotools.data.ows.WMSCapabilities;
 import org.geotools.data.ows.WMSRequest;
 import org.geotools.data.wms.WebMapServer;
+import org.geowebcache.filter.parameters.ParameterFilter;
+import org.geowebcache.filter.parameters.StringParameterFilter;
 import org.geowebcache.grid.GridSetBroker;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.wms.WMSLayer;
@@ -34,25 +59,139 @@ import com.google.common.collect.Sets;
 
 public class GetCapabilitiesConfigurationTest {
     
+    WebMapServer server;
+    WMSCapabilities cap;
+    WMSRequest req;
+    OperationType gcOpType;
+    DefaultingConfiguration globalConfig;
+    Capture<TileLayer> layerCapture;
+    GridSetBroker broker;
+
     @Before
     public void setUp() throws Exception {
+        server = createNiceMock(WebMapServer.class);
+        cap = createNiceMock(WMSCapabilities.class);
+        req = createNiceMock(WMSRequest.class);
+        gcOpType = createNiceMock(OperationType.class);
+        globalConfig = createNiceMock(DefaultingConfiguration.class);
+        layerCapture = new Capture<TileLayer>();
+        broker = new GridSetBroker(false, false);
+
+        expect(server.getCapabilities()).andStubReturn(cap);
+        expect(cap.getRequest()).andStubReturn(req);
+        expect(req.getGetCapabilities()).andStubReturn(gcOpType);
+        expect(gcOpType.getGet()).andStubReturn(new URL("http://test/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=getcapabilities"));
+        expect(cap.getVersion()).andStubReturn("1.1.1");
     }
-    
+
+    @Test
+    public void testNullParameterFilters() throws Exception {
+        Layer l = new Layer();
+        l.setName("Foo");
+        l.setLatLonBoundingBox(new CRSEnvelope());
+        List<Layer> layers = new LinkedList<Layer>();
+        layers.add(l);
+        expect(cap.getLayerList()).andReturn(layers);
+
+        GetCapabilitiesConfiguration config =
+            new GetCapabilitiesConfiguration(broker,  "http://test/wms", "image/png", "3x3", "", null, "false"){
+
+                @Override
+                WebMapServer getWMS() {
+                    return server;
+                }
+
+            };
+
+        replay(server, cap, req, gcOpType, globalConfig);
+        config.setPrimaryConfig(globalConfig);
+        config.setGridSetBroker(broker);
+        config.afterPropertiesSet();
+
+        WMSLayer wmsLayer = (WMSLayer) config.getLayers(false).iterator().next();
+        List<ParameterFilter> outputParameterFilters = wmsLayer.getParameterFilters();
+
+        assertThat(outputParameterFilters, containsInAnyOrder(
+                hasProperty("key", equalToIgnoringCase("styles"))));
+    }
+
+    @Test
+    public void testEmptyParameterFilters() throws Exception {
+        Layer l = new Layer();
+        l.setName("Foo");
+        l.setLatLonBoundingBox(new CRSEnvelope());
+        List<Layer> layers = new LinkedList<Layer>();
+        layers.add(l);
+        expect(cap.getLayerList()).andReturn(layers);
+
+        GetCapabilitiesConfiguration config =
+                new GetCapabilitiesConfiguration(broker,  "http://test/wms", "image/png", "3x3", "", new HashMap(), "false"){
+
+                    @Override
+                    WebMapServer getWMS() {
+                        return server;
+                    }
+
+                };
+
+        replay(server, cap, req, gcOpType, globalConfig);
+        config.setPrimaryConfig(globalConfig);
+        config.setGridSetBroker(broker);
+        config.afterPropertiesSet();
+        WMSLayer wmsLayer = (WMSLayer) config.getLayers(false).iterator().next();
+        List<ParameterFilter> outputParameterFilters = wmsLayer.getParameterFilters();
+
+        assertThat(outputParameterFilters, containsInAnyOrder(
+                hasProperty("key", equalToIgnoringCase("styles"))));
+    }
+
+    @Test
+    public void testBlankParameterFilters() throws Exception {
+        Layer l = new Layer();
+        l.setName("Foo");
+        l.setLatLonBoundingBox(new CRSEnvelope());
+        List<Layer> layers = new LinkedList<Layer>();
+        layers.add(l);
+        expect(cap.getLayerList()).andReturn(layers);
+
+        HashMap<String, String> cachedParams = new HashMap<String, String>();
+        cachedParams.put("", "");
+
+        GetCapabilitiesConfiguration config =
+                new GetCapabilitiesConfiguration(broker,  "http://test/wms", "image/png", "3x3", "", cachedParams, "false"){
+
+                    @Override
+                    WebMapServer getWMS() {
+                        return server;
+                    }
+
+                };
+
+        replay(server, cap, req, gcOpType, globalConfig);
+        config.setPrimaryConfig(globalConfig);
+        config.setGridSetBroker(broker);
+        config.afterPropertiesSet();
+        WMSLayer wmsLayer = (WMSLayer) config.getLayers(false).iterator().next();
+        List<ParameterFilter> outputParameterFilters = wmsLayer.getParameterFilters();
+
+        assertThat(outputParameterFilters, containsInAnyOrder(
+                hasProperty("key", equalToIgnoringCase("styles"))));
+    }
+
     @Test
     public void testDelegateInitializingLayers() throws Exception {
         GridSetBroker broker = new GridSetBroker(false, false);
         String url = "http://test/wms";
         String mimeTypes = "image/png";
-        
-        final WebMapServer server = createMock(WebMapServer.class);
-        WMSCapabilities cap = createMock(WMSCapabilities.class);
-        WMSRequest req = createMock(WMSRequest.class);
-        OperationType gcOpType = createMock(OperationType.class);
-        XMLConfiguration globalConfig = createMock(XMLConfiguration.class);
-        Capture<TileLayer> layerCapture = new Capture<TileLayer>();
-        
-        GetCapabilitiesConfiguration config = 
-                new GetCapabilitiesConfiguration(broker, url, mimeTypes, "3x3", "false"){
+        String vendorParameters = "map=/osgeo/mapserver/msautotest/world/world.map";
+
+        HashMap<String, String> cachedParams = new HashMap<String, String>();
+
+        cachedParams.put("angle", "");
+        cachedParams.put("CQL_FILTER", "1=1");
+
+        GetCapabilitiesConfiguration config =
+            new GetCapabilitiesConfiguration(broker, url, mimeTypes, "3x3", vendorParameters, cachedParams, "false"){
 
                     @Override
                     WebMapServer getWMS() {
@@ -89,8 +228,10 @@ public class GetCapabilitiesConfigurationTest {
         replay(server, cap, req, gcOpType, globalConfig);
         
         config.setPrimaryConfig(globalConfig);
+        config.setGridSetBroker(broker);
+        config.afterPropertiesSet();
         
-        config.initialize(broker);
+        
         
         // Check that the XMLConfiguration's setDefaultValues method has been called on each of the layers returened.
         assertThat(Sets.newHashSet(config.getLayers(false)),
@@ -99,7 +240,7 @@ public class GetCapabilitiesConfigurationTest {
         verify(server, cap, req, gcOpType, globalConfig);
 
         // check legends information
-        WMSLayer wmsLayer = (WMSLayer) config.getTileLayer("Foo");
+        WMSLayer wmsLayer = (WMSLayer) config.getLayer("Foo").get();
         assertThat(wmsLayer, notNullValue());
         assertThat(wmsLayer.getLegends(), notNullValue());
         // check legends default for the test layer
@@ -112,6 +253,14 @@ public class GetCapabilitiesConfigurationTest {
         assertThat(wmsLayer.getLegends().getLegendsRawInfo().get(0).getWidth(), is(50));
         assertThat(wmsLayer.getLegends().getLegendsRawInfo().get(0).getHeight(), is(100));
         assertThat(wmsLayer.getLegends().getLegendsRawInfo().get(0).getFormat(), is("image/gif"));
+
+        List<ParameterFilter> outputParameterFilters = wmsLayer.getParameterFilters();
+
+        assertThat(outputParameterFilters, containsInAnyOrder(
+                hasProperty("key", equalToIgnoringCase("styles")),
+                hasProperty("key", equalToIgnoringCase("CQL_FILTER")),
+                hasProperty("key", equalToIgnoringCase("angle"))));
+
     }
     
 }

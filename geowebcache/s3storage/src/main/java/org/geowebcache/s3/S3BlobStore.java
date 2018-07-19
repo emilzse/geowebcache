@@ -90,12 +90,10 @@ public class S3BlobStore implements BlobStore {
     
     private CannedAccessControlList acl;
 
-    public S3BlobStore(S3BlobStoreConfig config, TileLayerDispatcher layers,
+    public S3BlobStore(S3BlobStoreInfo config, TileLayerDispatcher layers,
             LockProvider lockProvider) throws StorageException {
         checkNotNull(config);
         checkNotNull(layers);
-        checkNotNull(config.getAwsAccessKey(), "Access key not provided");
-        checkNotNull(config.getAwsSecretKey(), "Secret key not provided");
 
         this.bucketName = config.getBucket();
         String prefix = config.getPrefix() == null ? "" : config.getPrefix();

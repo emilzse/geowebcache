@@ -28,8 +28,8 @@ import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geowebcache.config.BlobStoreConfig;
-import org.geowebcache.config.ConfigurationDispatcher;
+import org.geowebcache.config.BlobStoreInfo;
+import org.geowebcache.config.ServerConfiguration;
 import org.geowebcache.layer.TileLayerDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,6 +41,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.geowebcache.config.BlobStoreConfiguration;
+
 @Controller
 @RequestMapping("**/sqlite")
 public class OperationsRest {
@@ -51,7 +62,9 @@ public class OperationsRest {
     private TileLayerDispatcher tileLayerDispatcher;
 
     @Autowired
-    private ConfigurationDispatcher gwcConfiguration;
+    private BlobStoreConfiguration blobConfiguration;
+    @Autowired
+    private ServerConfiguration gwcConfiguration;
 
     @RequestMapping(value = "/replace", method = RequestMethod.POST)
     public
@@ -171,8 +184,8 @@ public class OperationsRest {
     private SqliteBlobStore getBlobStoreForLayer(String layerName) throws Exception {
         // let's find layer associated store
         String blobStoreId = tileLayerDispatcher.getTileLayer(layerName).getBlobStoreId();
-        BlobStoreConfig blobStoreConfig = null;
-        for (BlobStoreConfig candidateBlobStoreConfig : gwcConfiguration.getBlobStores()) {
+        BlobStoreInfo blobStoreConfig = null;
+        for (BlobStoreInfo candidateBlobStoreConfig : blobConfiguration.getBlobStores()) {
             if (blobStoreId == null) {
                 // we need to find the default configuration
                 if (candidateBlobStoreConfig.isDefault()) {
@@ -181,13 +194,13 @@ public class OperationsRest {
                     break;
                 }
             }
-            if (candidateBlobStoreConfig.getId().equals(blobStoreId)) {
+            if (candidateBlobStoreConfig.getName().equals(blobStoreId)) {
                 // we need to find a specific store by is id
                 blobStoreConfig = candidateBlobStoreConfig;
                 break;
             }
         }
-        if (blobStoreConfig == null || !(blobStoreConfig instanceof SqliteConfiguration)) {
+        if (blobStoreConfig == null || !(blobStoreConfig instanceof SqliteInfo)) {
             // no store found or the store is not an sqlite store
             return null;
         }

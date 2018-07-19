@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.geowebcache</groupId>
 		<artifactId>geowebcache</artifactId>
-		<version>1.13-SNAPSHOT</version><!-- GWC VERSION -->
+		<version>1.14-SNAPSHOT</version><!-- GWC VERSION -->
 	</parent>
 
 	<packaging>jar</packaging>
@@ -58,6 +58,11 @@
 			<version>${postgresql.version}</version>
 			<scope>provided</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.geowebcache</groupId>
+            <artifactId>gwc-diskquota-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>

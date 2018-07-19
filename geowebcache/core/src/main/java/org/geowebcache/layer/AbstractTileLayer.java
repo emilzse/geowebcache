@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -128,7 +129,7 @@ public abstract class AbstractTileLayer extends TileLayer {
      * Registers a layer listener to be notified of layer events
      * 
      * @see #getTile(ConveyorTile)
-     * @see #seedTile(ConveyorTile, boolean)
+     * @see #seedTile(ConveyorTile, boolean, boolean)
      */
     @Override
     public void addLayerListener(TileLayerListener listener) {
@@ -237,6 +238,16 @@ public abstract class AbstractTileLayer extends TileLayer {
     }
 
     /**
+     * Retrieves a list of Grids for this layer
+     *
+     * @return
+     */
+    public Set<String> getGridSubsetss() {
+        return Collections.unmodifiableSet(this.gridSubsets.stream().map(XMLGridSubset::getGridSetName).collect(
+                        Collectors.toSet()));
+    }
+
+    /**
      * Initializes the layer, creating internal structures for calculating grid location and so
      * forth.
      * <p>
@@ -291,8 +302,7 @@ public abstract class AbstractTileLayer extends TileLayer {
                 formats.add(1, MimeType.createFromFormat("image/jpeg"));
             }
         } catch (GeoWebCacheException gwce) {
-            log.error(gwce.getMessage());
-            gwce.printStackTrace();
+            log.error(gwce);
         }
 
         try {
@@ -309,8 +319,7 @@ public abstract class AbstractTileLayer extends TileLayer {
             	infoFormats.add(MimeType.createFromFormat("application/vnd.ogc.gml"));
             }
         } catch (GeoWebCacheException gwce) {
-            log.error(gwce.getMessage());
-            gwce.printStackTrace();
+            log.error(gwce);
         }
         
         if (subSets == null) {
@@ -323,7 +332,7 @@ public abstract class AbstractTileLayer extends TileLayer {
 
         for (XMLGridSubset xmlGridSubset : gridSubsets) {
             GridSubset gridSubset = xmlGridSubset.getGridSubSet(gridSetBroker);
-
+            
             if (gridSubset == null) {
                 log.error(xmlGridSubset.getGridSetName()
                         + " is not known by the GridSetBroker, skipping for layer " + name);
@@ -347,10 +356,10 @@ public abstract class AbstractTileLayer extends TileLayer {
         }
 
         if (this.subSets.size() == 0) {
-            subSets.put(gridSetBroker.WORLD_EPSG4326.getName(),
-                    GridSubsetFactory.createGridSubSet(gridSetBroker.WORLD_EPSG4326));
-            subSets.put(gridSetBroker.WORLD_EPSG3857.getName(),
-                    GridSubsetFactory.createGridSubSet(gridSetBroker.WORLD_EPSG3857));
+            subSets.put(gridSetBroker.getWorldEpsg4326().getName(),
+                    GridSubsetFactory.createGridSubSet(gridSetBroker.getWorldEpsg4326()));
+            subSets.put(gridSetBroker.getWorldEpsg3857().getName(),
+                    GridSubsetFactory.createGridSubSet(gridSetBroker.getWorldEpsg3857()));
         }
 
         return initializeInternal(gridSetBroker);

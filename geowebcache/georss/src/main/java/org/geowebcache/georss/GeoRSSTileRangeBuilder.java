@@ -25,7 +25,7 @@ import org.geowebcache.grid.GridSubset;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.storage.GeometryRasterMaskBuilder;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Consumes a GeoRSS feed and creates a tile range filter based on the feed's geometries for the
@@ -129,7 +129,7 @@ class GeoRSSTileRangeBuilder {
 
     /**
      * Returns the value of the most recent updated property value out of all the georss entries
-     * processed at {@link #buildTileRangeMask(GeoRSSReader)}
+     * processed at {@link #buildTileRangeMask(GeoRSSReader, String)}
      * 
      * @return the latest georss updated value, or {@code null} if none was processed
      */

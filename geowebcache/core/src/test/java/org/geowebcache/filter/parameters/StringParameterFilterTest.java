@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import org.custommonkey.xmlunit.XMLAssert;
-import org.geowebcache.config.AbsConfigurationDispatcher;
+import org.geowebcache.config.ConfigurationDispatcher;
 import org.geowebcache.config.ContextualConfigurationProvider;
 import org.geowebcache.filter.parameters.CaseNormalizer.Case;
 import org.geowebcache.io.GeoWebCacheXStream;
@@ -53,7 +53,7 @@ public class StringParameterFilterTest {
         filter.setDefaultValue("Default");
         
         xs = new GeoWebCacheXStream();
-        xs = AbsConfigurationDispatcher.getConfiguredXStreamWithContext(xs,
+        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs,
                 new StaticWebApplicationContext(), (ContextualConfigurationProvider.Context) null);
     }
     

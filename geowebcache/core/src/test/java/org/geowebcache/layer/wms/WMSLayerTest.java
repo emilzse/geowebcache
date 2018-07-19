@@ -127,7 +127,7 @@ public class WMSLayerTest extends TileLayerTest {
 
         long[] gridLoc = { 0, 0, 0 };// x, y, level
         MimeType mimeType = layer.getMimeTypes().get(0);
-        GridSet gridSet = gridSetBroker.WORLD_EPSG4326;
+        GridSet gridSet = gridSetBroker.getWorldEpsg4326();
         String gridSetId = gridSet.getName();
         ConveyorTile tile = new ConveyorTile(mockStorageBroker, layerId, gridSetId, gridLoc,
                 mimeType, null, servletReq, servletResp);
@@ -225,7 +225,7 @@ public class WMSLayerTest extends TileLayerTest {
 
         long[] gridLoc = { 900, 600, 10 };// x, y, level
         MimeType mimeType = layer.getMimeTypes().get(0);
-        GridSet gridSet = gridSetBroker.WORLD_EPSG4326;
+        GridSet gridSet = gridSetBroker.getWorldEpsg4326();
         String gridSetId = gridSet.getName();
         ConveyorTile tile = new ConveyorTile(mockStorageBroker, layerId, gridSetId, gridLoc,
                 mimeType, null, servletReq, servletResp);
@@ -249,7 +249,7 @@ public class WMSLayerTest extends TileLayerTest {
         layer.setSourceHelper(new WMSHttpHelper() {
             @Override
             public GetMethod executeRequest(URL url, Map<String, String> queryParams,
-                    Integer backendTimeout) throws HttpException, IOException {
+                                            Integer backendTimeout, WMSLayer.HttpRequestMode httpRequestMode) throws HttpException, IOException {
                 GetMethod response = EasyMock.createMock(GetMethod.class);
                 expect(response.getStatusCode()).andReturn(200);
                 expect(response.getResponseBodyAsStream()).andReturn(new ByteArrayInputStream(responseBody));
@@ -275,7 +275,7 @@ public class WMSLayerTest extends TileLayerTest {
 
         long[] gridLoc = { 0, 0, 0 };// x, y, level
         MimeType mimeType = layer.getMimeTypes().get(0);
-        GridSet gridSet = gridSetBroker.WORLD_EPSG4326;
+        GridSet gridSet = gridSetBroker.getWorldEpsg4326();
         String gridSetId = gridSet.getName();
         ConveyorTile tile = new ConveyorTile(mockStorageBroker, layerId, gridSetId, gridLoc,
                 mimeType, null, servletReq, servletResp);

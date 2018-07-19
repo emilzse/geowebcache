@@ -17,7 +17,6 @@ import net.sf.ehcache.Element;
  * 
  * @author ez
  * @see Cache
- * @see ICache
  */
 public class EhCacheManager {
 
@@ -34,7 +33,7 @@ public class EhCacheManager {
         // name used in ehcache.xml
         public final String cacheName;
 
-        private CACHES(final String cacheName) {
+        CACHES(final String cacheName) {
             this.cacheName = cacheName;
         }
 
@@ -117,7 +116,7 @@ public class EhCacheManager {
     /**
      * Checks if cache exists, if not creates it
      * 
-     * @param name
+     * @param c
      */
     private Cache initCache(CACHES c) {
         String cacheName = c.cacheName;
@@ -160,5 +159,10 @@ public class EhCacheManager {
             logInfo(manager.getCache(name));
         }
     }
+
+    public void shutdown() {
+        manager.shutdown();
+    }
+
 
 }

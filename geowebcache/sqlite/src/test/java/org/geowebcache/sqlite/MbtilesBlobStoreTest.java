@@ -39,7 +39,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testTilePutGetDeleteOperations() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // create the tile that will be stored
@@ -72,7 +72,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testTileMetadataOperations() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // let's store some metadata
@@ -90,7 +90,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testTileMetadataOperationsWithNull() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // let's store some metadata with null values
@@ -106,7 +106,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testDeleteLayerOperation() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // created database files for different layers
@@ -134,7 +134,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testDeleteLayerWithGridSetOperation() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // created database files for different layers
@@ -162,7 +162,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testDeleteLayerWithTileRangeEager() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         // activate eager mode
         configuration.setEagerDelete(true);
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
@@ -192,7 +192,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testDeleteLayerWithTileRangeNoEager() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // create the tile range
@@ -226,7 +226,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testLayerExistsOperation() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // created layer database file
@@ -239,7 +239,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
     @Test
     public void testRenameOperation() throws Exception {
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         MbtilesBlobStore store = new MbtilesBlobStore(configuration);
         addStoresToClean(store);
         // create layers database files
@@ -269,7 +269,7 @@ public final class MbtilesBlobStoreTest extends TestSupport {
                 "version=1.0" + System.lineSeparator();
         writeToFile(mbtilesMetadataFile, mbtilesMetadata);
         // instantiating the store
-        MbtilesConfiguration configuration = getDefaultConfiguration();
+        MbtilesInfo configuration = getDefaultConfiguration();
         configuration.setMbtilesMetadataDirectory(mbtilesMetadataDirectory.getPath());
         SqliteConnectionManager connectionManager = new SqliteConnectionManager(configuration);
         MbtilesBlobStore store = new MbtilesBlobStore(configuration, connectionManager);

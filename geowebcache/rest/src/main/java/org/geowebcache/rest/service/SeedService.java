@@ -32,6 +32,8 @@ import com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.config.ConfigurationDispatcher;
 import org.geowebcache.config.ContextualConfigurationProvider;
@@ -41,12 +43,14 @@ import org.geowebcache.rest.exception.RestException;
 import org.geowebcache.seed.GWCTask;
 import org.geowebcache.seed.SeedRequest;
 import org.geowebcache.seed.TileBreeder;
+import org.geowebcache.util.ApplicationContextProvider;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -60,11 +64,18 @@ import java.util.Map;
 
 @Service
 public class SeedService {
+
+    static final Log log = LogFactory.getLog(SeedService.class);
+
     @Autowired
     TileBreeder seeder;
 
+    private final WebApplicationContext context;
+
     @Autowired
-    protected ConfigurationDispatcher configDispatcher;
+    public SeedService(ApplicationContextProvider appCtx) {
+        context = appCtx.getApplicationContext();
+    }
 
     /**
      * GET method for querying running GWC tasks
@@ -83,7 +94,7 @@ public class SeedService {
             return new ResponseEntity<Object>("error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     /**
      * GET method for querying running tasks for the provided layer
      * @param request
@@ -118,7 +129,7 @@ public class SeedService {
             obj = new JSONObject(xs.toXML(list));
             return new ResponseEntity<>(obj.toString(), HttpStatus.OK);
         } catch (JSONException jse) {
-            jse.printStackTrace();
+            log.error(jse);
             return new ResponseEntity<Object>("error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -230,7 +241,7 @@ public class SeedService {
      * METHOD that handles the seeding/truncating task from the POST method.
      * @param layerName
      * @param obj
-     * @return 
+     * @return
      */
     protected long[] handleRequest(String layerName, Object obj) {
         final SeedRequest sr = (SeedRequest) obj;
@@ -244,7 +255,7 @@ public class SeedService {
     }
 
     protected XStream configXStream(XStream xs) {
-        return configDispatcher.getConfiguredXStreamWithContext(xs, ContextualConfigurationProvider.Context.REST);
+        return ConfigurationDispatcher.getConfiguredXStreamWithContext(xs, context, ContextualConfigurationProvider.Context.REST);
     }
 
     private Map<String, String> splitToMap(String data) {

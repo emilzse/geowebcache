@@ -53,7 +53,7 @@ public class XMLConfigurationXSchemaTest {
         
         XStream xs = new GeoWebCacheXStream();
         
-        xs = XMLConfiguration.getConfiguredXStreamWithContext(xs, wac, pc);
+        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs, wac, pc);
         
         exception.expect(com.thoughtworks.xstream.security.ForbiddenClassException.class);
         
@@ -70,7 +70,7 @@ public class XMLConfigurationXSchemaTest {
         
         XStream xs = new GeoWebCacheXStream();
         
-        xs = XMLConfiguration.getConfiguredXStreamWithContext(xs, wac, pc);
+        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs, wac, pc);
         
         exception.expect(com.thoughtworks.xstream.security.ForbiddenClassException.class);
         
@@ -103,7 +103,7 @@ public class XMLConfigurationXSchemaTest {
         
         EasyMock.replay(wac,provider);
         
-        xs = XMLConfiguration.getConfiguredXStreamWithContext(xs, wac, pc);
+        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs, wac, pc);
         
         Object o = xs.fromXML("<"+org.easymock.Capture.class.getCanonicalName()+" />");
         
@@ -123,7 +123,7 @@ public class XMLConfigurationXSchemaTest {
         XStream xs = new GeoWebCacheXStream();
         
         
-        xs = XMLConfiguration.getConfiguredXStreamWithContext(xs, wac, pc);
+        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs, wac, pc);
         
         Object o = xs.fromXML("<"+org.easymock.Capture.class.getCanonicalName()+" />");
         
@@ -142,7 +142,7 @@ public class XMLConfigurationXSchemaTest {
         XStream xs = new GeoWebCacheXStream();
         
         
-        xs = XMLConfiguration.getConfiguredXStreamWithContext(xs, wac, pc);
+        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs, wac, pc);
         
         Object o1 = xs.fromXML("<"+org.easymock.Capture.class.getCanonicalName()+" />");
         Object o2 = xs.fromXML("<"+org.junit.rules.TestName.class.getCanonicalName()+" />");

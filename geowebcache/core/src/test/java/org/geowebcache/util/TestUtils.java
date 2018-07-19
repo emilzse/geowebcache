@@ -17,6 +17,9 @@
  */
 package org.geowebcache.util;
 
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +28,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -35,6 +40,10 @@ import org.geowebcache.grid.GridSetBroker;
 import org.geowebcache.grid.GridSubset;
 import org.geowebcache.grid.GridSubsetFactory;
 import org.geowebcache.layer.wms.WMSLayer;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.CustomMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 
 public class TestUtils {
 
@@ -65,7 +74,7 @@ public class TestUtils {
 
         Hashtable<String, GridSubset> grids = new Hashtable<String, GridSubset>();
 
-        GridSubset grid = GridSubsetFactory.createGridSubSet(gridSetBroker.WORLD_EPSG4326,
+        GridSubset grid = GridSubsetFactory.createGridSubSet(gridSetBroker.getWorldEpsg4326(),
                 boundingBox, 0, 10);
 
         grids.put(grid.getName(), grid);
@@ -132,4 +141,60 @@ public class TestUtils {
         }
     }
 
+    public static <T> Matcher<Optional<T>> notPresent() {
+        return hasProperty("present", is(false));
+    }
+
+    public static <T> Matcher<Optional<T>> isPresent(Matcher<T> valueMatcher) {
+        return new BaseMatcher<Optional<T>>() {
+            
+            @Override
+            public boolean matches(Object item) {
+                if(! (item instanceof Optional)) {
+                    return false;
+                } else {
+                    return ((Optional<?>)item).map(valueMatcher::matches).orElse(false);
+                }
+            }
+            
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Optional with value ").appendDescriptionOf(valueMatcher);
+            }
+            
+            @Override
+            public void describeMismatch(Object item, Description description) {
+                if(! (item instanceof Optional)) {
+                    description.appendText(item.toString()+" is not an Optional");
+                } else if(!((Optional<?>)item).isPresent()){
+                    description.appendText("Value was not present");
+                } else {
+                    valueMatcher.describeMismatch(((Optional<?>)item).get(), description);
+                }
+            }
+            
+        };
+    }
+
+    public static <T> Matcher<Optional<T>> isPresent() {
+        return hasProperty("present", is(true));
+    }
+
+    /**
+     * Match string matching a regular expression
+     * @param regex
+     * @return
+     */
+    public static Matcher<String> matchesRegex(String regex) {
+        final Pattern p = Pattern.compile(regex);
+        return new CustomMatcher<String>("matching /"+regex+"/") {
+            
+            @Override
+            public boolean matches(Object arg0) {
+                return p.matcher((CharSequence) arg0).matches();
+            }
+            
+        };
+    }
+    
 }

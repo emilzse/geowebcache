@@ -1,5 +1,26 @@
 package org.geowebcache.arcgis.layer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geowebcache.GeoWebCacheException;
+import org.geowebcache.arcgis.compact.ArcGISCompactCache;
+import org.geowebcache.arcgis.compact.ArcGISCompactCacheV1;
+import org.geowebcache.arcgis.compact.ArcGISCompactCacheV2;
+import org.geowebcache.arcgis.config.*;
+import org.geowebcache.conveyor.Conveyor.CacheResult;
+import org.geowebcache.conveyor.ConveyorTile;
+import org.geowebcache.grid.*;
+import org.geowebcache.io.FileResource;
+import org.geowebcache.io.Resource;
+import org.geowebcache.layer.AbstractTileLayer;
+import org.geowebcache.layer.ExpirationRule;
+import org.geowebcache.mime.MimeException;
+import org.geowebcache.mime.MimeType;
+import org.geowebcache.util.GWCVars;
+
+import com.google.common.annotations.VisibleForTesting;
+
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -9,37 +30,9 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geowebcache.GeoWebCacheException;
-import org.geowebcache.arcgis.compact.ArcGISCompactCache;
-import org.geowebcache.arcgis.compact.ArcGISCompactCacheV1;
-import org.geowebcache.arcgis.compact.ArcGISCompactCacheV2;
-import org.geowebcache.arcgis.config.CacheInfo;
-import org.geowebcache.arcgis.config.CacheInfoPersister;
-import org.geowebcache.arcgis.config.CacheStorageInfo;
-import org.geowebcache.arcgis.config.LODInfo;
-import org.geowebcache.arcgis.config.TileCacheInfo;
-import org.geowebcache.conveyor.Conveyor.CacheResult;
-import org.geowebcache.conveyor.ConveyorTile;
-import org.geowebcache.grid.BoundingBox;
-import org.geowebcache.grid.Grid;
-import org.geowebcache.grid.GridSet;
-import org.geowebcache.grid.GridSetBroker;
-import org.geowebcache.grid.GridSubset;
-import org.geowebcache.grid.GridSubsetFactory;
-import org.geowebcache.grid.OutsideCoverageException;
-import org.geowebcache.io.FileResource;
-import org.geowebcache.io.Resource;
-import org.geowebcache.layer.AbstractTileLayer;
-import org.geowebcache.layer.ExpirationRule;
-import org.geowebcache.mime.MimeException;
-import org.geowebcache.mime.MimeType;
-import org.geowebcache.util.GWCVars;
-
 /**
+ * {@link org.geowebcache.layer.TileLayer} implementation for ArcGIS tile layers
+ *
  * @author Gabriel Roldan
  */
 public class ArcGISCacheLayer extends AbstractTileLayer {
@@ -76,7 +69,12 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
 
     private String storageFormat;
 
-    private ArcGISCompactCache compactCache;
+    private transient ArcGISCompactCache compactCache;
+
+    @VisibleForTesting
+    ArcGISCacheLayer(String name) {
+        this.name = name;
+    }
 
     /**
      * @return {@code null}, this kind of layer handles its own storage.
@@ -220,7 +218,7 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
         final GridSetBuilder gsBuilder = new GridSetBuilder();
         GridSet gridSet = gsBuilder.buildGridset(layerName, info, layerBounds);
 
-        gridSetBroker.put(gridSet);
+        getGridsetConfiguration(gridSetBroker).addInternal(gridSet);
 
         final List<LODInfo> lodInfos = tileCacheInfo.getLodInfos();
         Integer zoomStart = lodInfos.get(0).getLevelID();
@@ -232,6 +230,19 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
         Hashtable<String, GridSubset> subsets = new Hashtable<String, GridSubset>();
         subsets.put(gridSet.getName(), subSet);
         return subsets;
+    }
+
+    private ArcGISCacheGridsetConfiguration getGridsetConfiguration(final GridSetBroker gridSetBroker) {
+        List<? extends ArcGISCacheGridsetConfiguration> configs = gridSetBroker
+                        .getConfigurations(ArcGISCacheGridsetConfiguration.class);
+        if (configs.size() == 0) {
+            throw new IllegalStateException("No ArcGISCacheGridsetConfiguration could be found");
+        } else {
+            if (configs.size() > 1) {
+                log.warn("Multiple instances of ArcGISCacheGridsetConfiguration, using first");
+            }
+            return configs.iterator().next();
+        }
     }
 
     /**
@@ -312,7 +323,7 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
         } catch (Exception e) {
             // Sometimes this doesn't work (network conditions?),
             // and it's really not worth getting caught up on it.
-            e.printStackTrace();
+            log.debug(e);
         }
     }
 

@@ -27,12 +27,25 @@ import org.geowebcache.layer.TileLayerDispatcher;
 import org.geowebcache.rest.exception.RestException;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Base/utility class for MVC controllers.
+ */
 public class GWCController {
+    /**
+     * Gets and verifies a tile layer from the dispatcher
+     * @param layerName the layer name
+     * @param layerDispatcher the dispatcher
+     * @return The tile layer
+     * @throws RestException if the layer name is null or empty, if the layer does not exist, or if an error was
+     *                       encountered retrieving the layer from the dispatcher.
+     */
     protected static TileLayer findTileLayer(String layerName, 
             TileLayerDispatcher layerDispatcher) throws RestException {
         if (layerName == null || layerName.length() == 0) {
             throw new RestException("Layer not specified", HttpStatus.BAD_REQUEST );
         }
+        //GWC supports using + instead of space in layer names.
+        layerName = layerName.replace("+", " ");
 
         if (!layerDispatcher.layerExists(layerName)) {
             throw new RestException("Unknown layer: " + layerName, HttpStatus.NOT_FOUND);

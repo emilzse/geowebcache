@@ -45,7 +45,7 @@ class CacheCleanerTask implements Runnable {
     private final Map<String, Future<?>> perLayerRunningCleanUps;
 
     /**
-     * Caches the currently running {@link GlobalQuotaEnforcementTask} so that not two are launched
+     * Caches the currently running {@link LayerQuotaEnforcementTask} so that not two are launched
      * at the same time
      */
     private Future<?> globalCleanUpTask;
@@ -84,7 +84,6 @@ class CacheCleanerTask implements Runnable {
             innerRun();
         } catch (InterruptedException e) {
             log.info("CacheCleanerTask called for shut down", e);
-            e.printStackTrace();
         } catch (Exception e) {
             log.error("Error running cache diskquota enforcement task", e);
         }

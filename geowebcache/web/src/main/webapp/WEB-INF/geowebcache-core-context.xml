@@ -12,8 +12,8 @@
   <bean id="gwcAppCtx" class="org.geowebcache.util.ApplicationContextProvider" />
   
   <!-- Use org.geowebcache.config.PostgresConfiguration to store WMS-layers in database -->
-  
-  <!-- The location of a static configuration file for GeoWebCache. 
+
+  <!-- The location of a static configuration file for GeoWebCache.
        By default this lives in WEB-INF/classes/geowebcache.xml -->
   <bean id="gwcConfigDispatcher" class="org.geowebcache.config.XMLConfiguration">
     <constructor-arg ref="gwcAppCtx" />
@@ -29,11 +29,11 @@
         cache directory if one doesn't already exist.
       </description>
     </property>
-    
+
     <!-- org.geowebcache.config.PostgresConfiguration options
-	<property name="jndiName" value="jdbc/DBDS"> 
-    <description>jndiName for DataSource 
-       </description> 
+	<property name="jndiName" value="jdbc/DBDS">
+    <description>jndiName for DataSource
+       </description>
      </property>
     <property name="url" value="jdbc:postgresql://host:port/db">
     <description>url to postgres database (mandatory if no jndiName)
@@ -52,7 +52,7 @@
       </description>
     </property>
     <property name="schema" value="gwc">
-    <description>schema for layers table in database (defaults to public) (must exists) 
+    <description>schema for layers table in database (defaults to public) (must exists)
       </description>
     </property>
     <property name="maxBackendRequests" value="64">
@@ -86,6 +86,16 @@
           to add any vendor specific parameter.
       </description>
     </constructor-arg>
+    <constructor-arg>
+      <description>
+        Cached parameters, requests will be cached separately based on the value of these filters.
+        For each cached vender parameter add an entry line between the map tags.
+        The entry's "key" is the parameter key, "value" is the default value which will be used when the parameter isn't included in a request.
+      </description>
+      <map>
+        <entry key="" value="" />
+      </map>
+    </constructor-arg>
     <constructor-arg value="false">
       <description>Whether to allow cached=false to specificed for certain requests</description>
     </constructor-arg>
@@ -103,7 +113,13 @@
     </description>
     <constructor-arg ref="gwcGridSetBroker"/>
   </bean>
-  
+
+  <bean id="gwcBlobStoreAggregator" class="org.geowebcache.storage.BlobStoreAggregator">
+    <description>
+      BlobStoreAggregator serves up BlobStoreInfos from the available Configurations in the application context
+    </description>
+  </bean>
+
   <bean id="gwcDefaultStorageFinder" class="org.geowebcache.storage.DefaultStorageFinder">
   	<constructor-arg ref="gwcAppCtx" />
   </bean>
@@ -111,6 +127,7 @@
   <bean id="gwcBlobStore" class="org.geowebcache.storage.CompositeBlobStore" destroy-method="destroy">
     <constructor-arg ref="gwcTLDispatcher"/>
     <constructor-arg ref="gwcDefaultStorageFinder" />
+    <constructor-arg ref="gwcBlobStoreAggregator"/>
     <constructor-arg ref="gwcConfigDispatcher"/>
   </bean>
 
@@ -136,6 +153,9 @@
   
   
   <bean id="gwcGridSetBroker" class="org.geowebcache.grid.GridSetBroker">
+  </bean>
+
+  <bean id="gwcDefaultGridsets" class="org.geowebcache.config.DefaultGridsets">
     <!-- Should we used EPSG:900913 instead of EPSG:3857 ? -->
     <constructor-arg type="boolean" value="TRUE" />
     <!--
@@ -180,6 +200,7 @@
     <constructor-arg ref="gwcTLDispatcher"/>
     <constructor-arg ref="gwcGridSetBroker"/>
     <constructor-arg ref="gwcStorageBroker"/>
+    <constructor-arg ref="gwcBlobStoreAggregator"/>
     <constructor-arg ref="gwcConfigDispatcher"/>
     <constructor-arg ref="gwcRuntimeStats"/>
     <property name="defaultStorageFinder" ref="gwcDefaultStorageFinder"/>

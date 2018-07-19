@@ -86,7 +86,7 @@ public class WMSTileFuser{
     
     /**
      * Available to parse GTWMSLayer with special deserializer
-     * 
+     *
      * @see WMSLayerDeserializer
      */
     private final static Gson GSON;
@@ -291,12 +291,12 @@ public class WMSTileFuser{
             }
         }
     }
-    
+
     protected WMSTileFuser(TileLayerDispatcher tld, StorageBroker sb, HttpServletRequest servReq)
             throws GeoWebCacheException {
         this(tld, sb, servReq, null);
     }
-    
+
     protected WMSTileFuser(TileLayerDispatcher tld, StorageBroker sb, HttpServletRequest servReq, String gridSetId)
             throws GeoWebCacheException {
         this.sb = sb;
@@ -369,6 +369,12 @@ public class WMSTileFuser{
         }        
     }
 
+    /**
+     * This was used for unit tests and should not have been used elsewhere.  It will likely cause
+     * NullPointerExceptions if used in production.  Use WMSTileFuser(TileLayerDispatcher tld,
+     * StorageBroker sb, HttpServletRequest servReq) instead.  It will be removed in future.
+     */
+    @Deprecated
     protected WMSTileFuser(TileLayer layer, GridSubset gridSubset, BoundingBox bounds, int width,
             int height) {
         this.sb = null;
@@ -598,7 +604,7 @@ public class WMSTileFuser{
                 
                 // set current layer
                 tile.setTileLayer(layer);
-                
+
                 securityDispatcher.checkSecurity(tile);
                 
                 // Check whether this tile is to be rendered at all
@@ -624,7 +630,7 @@ public class WMSTileFuser{
                                 + layer.getName() + " msg="
                                 + (e.getMessage() == null && e.getCause() != null
                                         ? e.getCause().getMessage() : e.getMessage()));
-                        
+
                         if (log.isDebugEnabled()) {
                             log.debug("Failed getting tile, will retry", e);
                         }
@@ -756,7 +762,7 @@ public class WMSTileFuser{
         private final boolean seeding;
 
         /**
-         * 
+         *
          * @param gridX
          *            tile x position
          * @param gridY
@@ -881,7 +887,7 @@ public class WMSTileFuser{
 
     /**
      * Get missing tiles
-     * 
+     *
      * @param response
      * @throws IOException
      * @throws OutsideCoverageException
@@ -910,7 +916,7 @@ public class WMSTileFuser{
             log.debug("Could not read missing tiles: " + e.getMessage(), e);
         }
     }
-	
+
     /**
      * Setting of the ApplicationContext associated for extracting the related beans
      * 
@@ -941,7 +947,7 @@ public class WMSTileFuser{
 
     /**
      * Consumer for seeding missing tiles
-     * 
+     *
      * @author ez
      *
      */

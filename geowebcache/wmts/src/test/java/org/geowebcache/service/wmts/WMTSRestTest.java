@@ -31,6 +31,7 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import org.geowebcache.config.ServerConfiguration;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +43,11 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @WebAppConfiguration
 @ContextConfiguration(classes = WMTSRestWebConfig.class)
@@ -66,7 +72,7 @@ public class WMTSRestTest {
     public void testGetCap() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         mockMvc.perform(get("/rest/wmts/WMTSCapabilities.xml"))
-                .andExpect(content().contentType("application/vnd.ogc.wms_xml"))
+                .andExpect(content().contentType("text/xml"))
                 .andExpect(status().is(200))
                 .andExpect(xpath("//wmts:Contents/wmts:Layer", namespaces).nodeCount(1))
                 .andExpect(
@@ -95,7 +101,7 @@ public class WMTSRestTest {
                         namespaces).nodeCount(1))
                 .andExpect(
                         xpath("//wmts:ServiceMetadataURL[@xlink:href='http://localhost/service/wmts"
-                                + "?REQUEST=getcapabilities&VERSION=1.0.0']", namespaces)
+                                + "?SERVICE=wmts&REQUEST=getcapabilities&VERSION=1.0.0']", namespaces)
                                         .nodeCount(1))
                 .andExpect(
                         xpath("//wmts:ServiceMetadataURL[@xlink:href='http://localhost/rest/wmts"
@@ -130,14 +136,14 @@ public class WMTSRestTest {
         BufferedImage originalImage = ImageIO.read(imgPath);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(originalImage, "png", baos);
-        mockMvc.perform(get("/rest/wmts/mockLayer/style-a/EPSG:4326/EPSG:4326:0/0/0/0/0?format=text/plain"))
+        mockMvc.perform(get("/rest/wmts/mockLayer/style-a/EPSG:4326/EPSG:4326:0/0/0/0/0?format=text/plain").header("Host", new String("localhost")))
                 .andExpect(status().isOk()).andExpect(content().contentType("text/plain"));
     }
 
     @Test
     public void testGetInfoWithoutStyle() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        mockMvc.perform(get("/rest/wmts/mockLayer/EPSG:4326/EPSG:4326:0/0/0/0/0?format=text/plain"))
+        mockMvc.perform(get("/rest/wmts/mockLayer/EPSG:4326/EPSG:4326:0/0/0/0/0?format=text/plain").header("Host", new String("localhost")))
                 .andExpect(status().isOk()).andExpect(content().contentType("text/plain"));
     }
 
@@ -151,4 +157,50 @@ public class WMTSRestTest {
                                 namespaces).nodeCount(1));
     }
 
+    @FunctionalInterface
+    public interface TestToExecute {
+        void execute() throws Exception;
+    }
+
+    @Test
+    public void testGetCapabilitiesWithCiteValidation() throws Exception {
+        testCiteValidationIsSuccessful(this::testGetCap);
+    }
+    
+    @Test
+    public void testGetTileWithCiteValidation() throws Exception {
+        testCiteValidationIsSuccessful(() -> {
+            testGetTileWithStyle();
+            testGetTileWithoutStyle();
+        });
+    }
+
+    @Test
+    public void testGetInfoWithCiteValidation() throws Exception {
+        testCiteValidationIsSuccessful(() -> {
+            testGetInfoWithStyle();
+            testGetInfoWithoutStyle();
+        });
+    }
+
+    /**
+     * Helper method that just executes the provided test with
+     * CITE validation activated.
+     */
+    private void testCiteValidationIsSuccessful(TestToExecute request) throws Exception {
+        // mock server configuration to activate CITE compliance checks
+        ServerConfiguration configuration = mock(ServerConfiguration.class);
+        when(configuration.isWmtsCiteCompliant()).thenReturn(true);
+        // update WTMS service whit the mocked server configuration
+        WMTSService wmtsService = webApplicationContext.getBean(WMTSService.class);
+        ServerConfiguration previousConfiguration = wmtsService.getMainConfiguration();
+        wmtsService.setMainConfiguration(configuration);
+        try {
+            // the following test should be successful
+            request.execute();
+        } finally {
+            // set whatever was the previous server configuration used by WMTS service
+            wmtsService.setMainConfiguration(previousConfiguration);
+        }
+    }
 }

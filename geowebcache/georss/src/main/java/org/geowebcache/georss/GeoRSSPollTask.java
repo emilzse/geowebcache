@@ -204,7 +204,7 @@ class GeoRSSPollTask implements Runnable {
      * For debug purposes only, writes down the bitmask images to the directory specified by the
      * System property (ej, {@code -Dorg.geowebcache.georss.debugToDisk=target/})
      * 
-     * @param tileRangeMask
+     * @param matrix
      */
     private void _logImagesToDisk(final GeometryRasterMaskBuilder matrix) {
         if (null == System.getProperty("org.geowebcache.georss.debugToDisk")) {
@@ -226,7 +226,7 @@ class GeoRSSPollTask implements Runnable {
             try {
                 ImageIO.write(byLevelMasks[i], "TIFF", output);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.debug(e);
             }
         }
     }
@@ -338,7 +338,7 @@ class GeoRSSPollTask implements Runnable {
                         + " running seed threads. Waiting 3s for them to terminate.");
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.debug(e);
             }
 
             liveCount = 0;

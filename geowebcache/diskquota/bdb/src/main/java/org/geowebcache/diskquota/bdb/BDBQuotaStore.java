@@ -720,7 +720,6 @@ public class BDBQuotaStore implements QuotaStore {
                 tx.commit();
                 return null;
             } catch (RuntimeException e) {
-                e.printStackTrace();
                 tx.abort();
                 throw e;
             }
@@ -830,11 +829,6 @@ public class BDBQuotaStore implements QuotaStore {
         return nextToExpire;
     }
 
-    /**
-     * @param expirationPolicyIndex
-     * @param layerNames
-     * @return
-     */
     private class FindPageToExpireByLayer implements Callable<TilePage> {
         private final SecondaryIndex<Float, Long, PageStats> expirationPolicyIndex;
 

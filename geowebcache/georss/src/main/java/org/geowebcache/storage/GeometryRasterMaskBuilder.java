@@ -39,14 +39,14 @@ import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * An object that builds a mask of tiles affected by geometries
  * 
  * @author Gabriel Roldan (OpenGeo)
- * @see GeoRSSTileRangeBuilder
+ * @see org.geowebcache.georss.GeoRSSTileRangeBuilder
  */
 public class GeometryRasterMaskBuilder {
 
@@ -317,7 +317,7 @@ public class GeometryRasterMaskBuilder {
     /**
      * Returns the tile range of the mask bounding box at a specific zoom level.
      * 
-     * @param i
+     * @param level
      * @return the bounds of the set tiles for the given level, or {@code null} if none is set
      */
     public synchronized long[] getCoveredBounds(final int level) {

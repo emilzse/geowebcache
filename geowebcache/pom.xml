@@ -5,172 +5,172 @@
   <groupId>org.geowebcache</groupId>
   <artifactId>geowebcache</artifactId>
   <packaging>pom</packaging>
-  <version>1.13-SNAPSHOT</version><!-- GWC VERSION -->
+  <version>1.14-SNAPSHOT</version><!-- GWC VERSION -->
   <name>geowebcache</name>
   <url>http://geowebcache.org</url>
 
   <properties>
-    <gt.version>19-SNAPSHOT</gt.version>
-    <jts.version>1.14.0</jts.version>
-    <jaiext.version>1.0.16</jaiext.version>
+    <gt.version>20-SNAPSHOT</gt.version>
+    <jts.version>1.15.1</jts.version>
+    <jaiext.version>1.1.1</jaiext.version>
     <spring.version>4.2.5.RELEASE</spring.version>
-    <restlet.noelios.version>1.0.11</restlet.noelios.version>
-    <xstream.version>1.4.7</xstream.version>
-    <spring.security.version>4.0.4.RELEASE</spring.security.version>
-    <commons-logging.version>1.1.1</commons-logging.version>
-    <commons-io.version>2.1</commons-io.version>
-    <commons-dbcp.version>1.4</commons-dbcp.version>
-    <commons-lang.version>2.4</commons-lang.version>
-    <commons-collections.version>3.2.2</commons-collections.version>
-    <commons-codec.version>1.10</commons-codec.version>
-    <guava.version>17.0</guava.version>
-    <jsr305.version>3.0.1</jsr305.version>
-    <log4j.version>1.2.14</log4j.version>
-    <h2.version>1.1.119</h2.version>
-    <postgresql.version>9.4.1208</postgresql.version>
-    <oracle.version/>
-    <java.awt.headless>true</java.awt.headless>
-    <jalopy.phase>disabled</jalopy.phase>
-    <jalopy.srcExcludesPattern>disabled</jalopy.srcExcludesPattern>
-    <test.maxHeapSize>64M</test.maxHeapSize>
-    <maven.test.jvmargs/>
-    <imageio-ext.version>1.1.24</imageio-ext.version>
-    <hazelcast.version>2.3.1</hazelcast.version>
-    <joda-time.version>2.8.1</joda-time.version>
-  </properties>
-  
-  <repositories>
-    <repository>
-      <id>boundless</id>
-      <name>Boundless Maven Repository</name>
-      <url>https://repo.boundlessgeo.com/main/</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>osgeo</id>
-      <name>Open Source Geospatial Foundation Repository</name>
-      <url>http://download.osgeo.org/webdav/geotools/</url>
-    </repository>
-    <repository>
-      <id>maven-restlet</id>
-      <name>Public online Restlet repository</name>
-      <url>http://maven.restlet.org</url>
-    </repository>
-    <repository>
-      <id>oracleReleases</id>
-      <name>Oracle Released Java Packages</name>
-      <url>http://download.oracle.com/maven</url>
-      <layout>default</layout>
-    </repository>
-  </repositories>
- 
-  <distributionManagement>
-    <repository>
-      <id>boundless</id>
-      <name>Boundless</name>
-      <url>https://repo.boundlessgeo.com/release/</url>
-      <uniqueVersion>false</uniqueVersion>
-    </repository>
-    <snapshotRepository>
-      <id>boundless</id>
-      <uniqueVersion>false</uniqueVersion>
-      <name>Boundless Maven Repository</name>
-      <url>https://repo.boundlessgeo.com/snapshot/</url>
-     </snapshotRepository>
-  </distributionManagement>
+    <xstream.version>1.4.10</xstream.version>
+     <!-- <restlet.noelios.version>1.0.11</restlet.noelios.version> -->
+     <spring.security.version>4.0.4.RELEASE</spring.security.version>
+     <commons-logging.version>1.1.1</commons-logging.version>
+     <commons-io.version>2.6</commons-io.version>
+     <commons-dbcp.version>1.4</commons-dbcp.version>
+     <commons-lang.version>2.4</commons-lang.version>
+     <commons-collections.version>3.2.2</commons-collections.version>
+     <commons-codec.version>1.10</commons-codec.version>
+     <guava.version>25.1-jre</guava.version>
+     <jsr305.version>3.0.1</jsr305.version>
+     <log4j.version>1.2.14</log4j.version>
+     <h2.version>1.1.119</h2.version>
+     <postgresql.version>9.4.1208</postgresql.version>
+     <oracle.version/>
+     <java.awt.headless>true</java.awt.headless>
+     <jalopy.phase>disabled</jalopy.phase>
+     <jalopy.srcExcludesPattern>disabled</jalopy.srcExcludesPattern>
+     <test.maxHeapSize>64M</test.maxHeapSize>
+     <maven.test.jvmargs/>
+     <imageio-ext.version>1.1.24</imageio-ext.version>
+     <hazelcast.version>2.3.1</hazelcast.version>
+     <joda-time.version>2.8.1</joda-time.version>
+   </properties>
 
- <dependencyManagement>
-  <dependencies>
-    <dependency>
-      <groupId>org.geowebcache</groupId>
-      <artifactId>gwc-core</artifactId>
-      <version>${project.version}</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
+   <repositories>
+     <repository>
+       <id>boundless</id>
+       <name>Boundless Maven Repository</name>
+       <url>https://repo.boundlessgeo.com/main/</url>
+       <snapshots>
+         <enabled>true</enabled>
+       </snapshots>
+     </repository>
+     <repository>
+       <id>osgeo</id>
+       <name>Open Source Geospatial Foundation Repository</name>
+       <url>http://download.osgeo.org/webdav/geotools/</url>
+     </repository>
+     <repository>
+       <id>maven-restlet</id>
+       <name>Public online Restlet repository</name>
+       <url>http://maven.restlet.org</url>
+     </repository>
+     <repository>
+       <id>oracleReleases</id>
+       <name>Oracle Released Java Packages</name>
+       <url>http://download.oracle.com/maven</url>
+       <layout>default</layout>
+     </repository>
+   </repositories>
 
-    <dependency>
-      <groupId>com.vividsolutions</groupId>
-      <artifactId>jts</artifactId>
-      <version>1.13</version>
-      <exclusions>
-        <exclusion>
-          <groupId>xerces</groupId>
-          <artifactId>xercesImpl</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <version>${jsr305.version}</version>
-    </dependency>
+   <distributionManagement>
+     <repository>
+       <id>boundless</id>
+       <name>Boundless</name>
+       <url>https://repo.boundlessgeo.com/release/</url>
+       <uniqueVersion>false</uniqueVersion>
+     </repository>
+     <snapshotRepository>
+       <id>boundless</id>
+       <uniqueVersion>false</uniqueVersion>
+       <name>Boundless Maven Repository</name>
+       <url>https://repo.boundlessgeo.com/snapshot/</url>
+      </snapshotRepository>
+   </distributionManagement>
 
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>${commons-logging.version}</version>
-      <exclusions>
-    <exclusion>
-      <groupId>avalon-framework</groupId>
-      <artifactId>avalon-framework</artifactId>
-    </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>commons-dbcp</groupId>
-      <artifactId>commons-dbcp</artifactId>
-      <version>${commons-dbcp.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>${commons-io.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>${commons-lang.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
-      <version>${commons-collections.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>${commons-codec.version}</version>
-    </dependency>
+  <dependencyManagement>
+   <dependencies>
+     <dependency>
+       <groupId>org.geowebcache</groupId>
+       <artifactId>gwc-core</artifactId>
+       <version>${project.version}</version>
+       <classifier>tests</classifier>
+       <scope>test</scope>
+     </dependency>
 
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
+     <dependency>
+       <groupId>org.locationtech.jts</groupId>
+       <artifactId>jts-core</artifactId>
+       <version>${jts.version}</version>
+       <exclusions>
+         <exclusion>
+           <groupId>xerces</groupId>
+           <artifactId>xercesImpl</artifactId>
+         </exclusion>
+       </exclusions>
+     </dependency>
 
-    <dependency>
-      <groupId>it.geosolutions.jaiext.utilities</groupId>
-      <artifactId>jt-utilities</artifactId>
-      <version>${jaiext.version}</version>
-    </dependency>
-    
-	<!-- PNG Encoder dependencies -->
+     <dependency>
+       <groupId>javax.servlet</groupId>
+       <artifactId>javax.servlet-api</artifactId>
+       <version>3.1.0</version>
+       <scope>provided</scope>
+     </dependency>
+
+     <dependency>
+       <groupId>com.google.guava</groupId>
+       <artifactId>guava</artifactId>
+       <version>${guava.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>com.google.code.findbugs</groupId>
+       <artifactId>jsr305</artifactId>
+       <version>${jsr305.version}</version>
+     </dependency>
+
+     <dependency>
+       <groupId>commons-logging</groupId>
+       <artifactId>commons-logging</artifactId>
+       <version>${commons-logging.version}</version>
+       <exclusions>
+     <exclusion>
+       <groupId>avalon-framework</groupId>
+       <artifactId>avalon-framework</artifactId>
+     </exclusion>
+       </exclusions>
+     </dependency>
+     <dependency>
+       <groupId>commons-dbcp</groupId>
+       <artifactId>commons-dbcp</artifactId>
+       <version>${commons-dbcp.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>commons-io</groupId>
+       <artifactId>commons-io</artifactId>
+       <version>${commons-io.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>commons-lang</groupId>
+       <artifactId>commons-lang</artifactId>
+       <version>${commons-lang.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>commons-collections</groupId>
+       <artifactId>commons-collections</artifactId>
+       <version>${commons-collections.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>commons-codec</groupId>
+       <artifactId>commons-codec</artifactId>
+       <version>${commons-codec.version}</version>
+     </dependency>
+
+     <dependency>
+       <groupId>log4j</groupId>
+       <artifactId>log4j</artifactId>
+       <version>${log4j.version}</version>
+     </dependency>
+
+     <dependency>
+       <groupId>it.geosolutions.jaiext.utilities</groupId>
+       <artifactId>jt-utilities</artifactId>
+       <version>${jaiext.version}</version>
+     </dependency>
+
+     <!-- PNG Encoder dependencies -->
 	<dependency>
       <groupId>it.geosolutions.imageio-ext</groupId>
       <artifactId>imageio-ext-png</artifactId>
@@ -568,7 +568,7 @@
             <descriptor>release/war.xml</descriptor>
             <descriptor>release/doc.xml</descriptor>
           </descriptors>
-          <finalName>geowebcache-1.13-SNAPSHOT</finalName>
+          <finalName>geowebcache-1.14-SNAPSHOT</finalName>
           <outputDirectory>${project.build.directory}/release</outputDirectory>
         </configuration>
       </plugin>

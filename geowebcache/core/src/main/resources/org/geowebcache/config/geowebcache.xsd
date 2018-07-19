@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xml="http://www.w3.org/XML/1998/namespace"
-  targetNamespace="http://geowebcache.org/schema/1.13.0" xmlns:gwc="http://geowebcache.org/schema/1.13.0"
-  elementFormDefault="qualified" version="1.13.0">
+  targetNamespace="http://geowebcache.org/schema/1.14.0" xmlns:gwc="http://geowebcache.org/schema/1.14.0"
+  elementFormDefault="qualified" version="1.14.0">
 
   <xs:element name="gwcConfiguration">
     <xs:annotation>
@@ -27,6 +27,14 @@
               will wait for a
               backend server to return something
               before closing the connection.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="wmtsCiteCompliant" type="xs:boolean" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation xml:lang="en">
+              If TRUE the implementation of WMTS service will strictly
+              comply with the corresponding CITE tests.
             </xs:documentation>
           </xs:annotation>
         </xs:element>
@@ -252,12 +260,12 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="awsAccessKey" type="xs:string" minOccurs="1">
+            <xs:element name="awsAccessKey" type="xs:string" minOccurs="0">
               <xs:annotation>
                 <xs:documentation xml:lang="en">The public access key the client uses to connect to S3.</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="awsSecretKey" type="xs:string" minOccurs="1">
+            <xs:element name="awsSecretKey" type="xs:string" minOccurs="0">
               <xs:annotation>
                 <xs:documentation xml:lang="en">The secret key the client uses to connect to S3</xs:documentation>
               </xs:annotation>
@@ -728,6 +736,20 @@
                 Defines legends information for this layer styles.
               </xs:documentation>
             </xs:annotation>
+          </xs:element>
+          <xs:element name="httpRequestMode" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation xml:lang="en">
+                What WMS request mode to use, Get, the default WMS stardard mode, FormPost, a urlencoded form POST
+                supported by many servers, useful to cascade large requests exceeding the limits of a URL length
+              </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="Get"/>
+                <xs:enumeration value="FormPost"/>
+              </xs:restriction>
+            </xs:simpleType>
           </xs:element>
         </xs:sequence>
      </xs:extension>
