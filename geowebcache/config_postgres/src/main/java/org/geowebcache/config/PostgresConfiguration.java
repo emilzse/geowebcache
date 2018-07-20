@@ -770,6 +770,15 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         initialize(tl);
 
         addedLayers.put(tl.getName(), (WMSLayer) tl);
+
+        try {
+            // CRUD for WMS layers
+            createDeleteOrUpdateLayers();
+        } catch (SQLException e) {
+            LOGGER.error(e);
+
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -787,6 +796,15 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         initialize(tl);
 
         addedLayers.put(tl.getName(), (WMSLayer) tl);
+
+        try {
+            // CRUD for WMS layers
+            createDeleteOrUpdateLayers();
+        } catch (SQLException e) {
+            LOGGER.error(e);
+
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -808,6 +826,15 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
         // in case it was added but not saved before remove
         addedLayers.remove(layerName);
+
+        try {
+            // CRUD for WMS layers
+            createDeleteOrUpdateLayers();
+        } catch (SQLException e) {
+            LOGGER.error(e);
+
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
