@@ -1,17 +1,14 @@
 /**
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ * <p>You should have received a copy of the GNU Lesser General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.geowebcache.storage.blobstore.memory;
 
@@ -20,9 +17,9 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -31,20 +28,15 @@ import org.geowebcache.io.ByteArrayResource;
 import org.geowebcache.io.Resource;
 import org.geowebcache.storage.BlobStore;
 import org.geowebcache.storage.StorageBrokerTest;
-import org.geowebcache.storage.StorageException;
 import org.geowebcache.storage.TileObject;
 import org.geowebcache.storage.blobstore.file.FileBlobStore;
-import org.geowebcache.storage.blobstore.memory.CacheConfiguration;
-import org.geowebcache.storage.blobstore.memory.CacheProvider;
-import org.geowebcache.storage.blobstore.memory.MemoryBlobStore;
-import org.geowebcache.storage.blobstore.memory.NullBlobStore;
 import org.geowebcache.storage.blobstore.memory.guava.GuavaCacheProvider;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 /**
- * This test class is used for testing {@link MemoryBlobStore} functionality
- * 
+ * This test class is used for testing {@link
+ * org.geowebcache.storage.blobstore.memory.MemoryBlobStore} functionality
+ *
  * @author Nicola Lagomarsini Geosolutions
  */
 public class MemoryBlobStoreTest {
@@ -55,10 +47,27 @@ public class MemoryBlobStoreTest {
     public static final String TEST_BLOB_DIR_NAME = "gwcTestBlobs";
 
     /** Cache object */
-    private static CacheProvider cache;
+    private CacheProvider cache;
 
-    @BeforeClass
-    public static void initialSetup() {
+    private MemoryBlobStore mbs;
+    private NullBlobStore nbs;
+    private BlobStore fbs;
+
+    @After
+    public void destroyBlobStores() {
+        if (mbs != null) {
+            mbs.destroy();
+        }
+        if (nbs != null) {
+            nbs.destroy();
+        }
+        if (fbs != null) {
+            fbs.destroy();
+        }
+    }
+
+    @Before
+    public void initCache() {
         // Initial cache configuration
         cache = new GuavaCacheProvider(new CacheConfiguration());
     }
@@ -66,26 +75,28 @@ public class MemoryBlobStoreTest {
     @Test
     public void testNullStore() throws Exception {
         // Add a nullblobstore to the memory blobstore
-        NullBlobStore nbs = new NullBlobStore();
+        nbs = new NullBlobStore();
         cache.clear();
 
-        MemoryBlobStore mbs = new MemoryBlobStore();
+        mbs = new MemoryBlobStore();
         mbs.setStore(nbs);
         mbs.setCacheProvider(cache);
 
         // Put a TileObject
         Resource bytes = new ByteArrayResource("1 2 3 4 5 6 test".getBytes());
-        long[] xyz = { 1L, 2L, 3L };
+        long[] xyz = {1L, 2L, 3L};
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("a", "x");
         parameters.put("b", "ø");
-        TileObject to = TileObject.createCompleteTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters, bytes);
+        TileObject to =
+                TileObject.createCompleteTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters, bytes);
 
         mbs.put(to);
         // Try to get the same TileObject
-        TileObject to2 = TileObject.createQueryTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters);
+        TileObject to2 =
+                TileObject.createQueryTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters);
         mbs.get(to2);
 
         // Checks on the format
@@ -113,27 +124,29 @@ public class MemoryBlobStoreTest {
     @Test
     public void testTilePut() throws Exception {
         // Add a fileblobstore to the memory blobstore
-        BlobStore fbs = setup();
+        fbs = setup();
         cache.clear();
 
-        MemoryBlobStore mbs = new MemoryBlobStore();
+        mbs = new MemoryBlobStore();
         mbs.setStore(fbs);
         mbs.setCacheProvider(cache);
 
         // Put a TileObject
         Resource bytes = new ByteArrayResource("1 2 3 4 5 6 test".getBytes());
-        long[] xyz = { 1L, 2L, 3L };
+        long[] xyz = {1L, 2L, 3L};
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("a", "x");
         parameters.put("b", "ø");
-        TileObject to = TileObject.createCompleteTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters, bytes);
+        TileObject to =
+                TileObject.createCompleteTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters, bytes);
 
         mbs.put(to);
 
         // Try to get the same TileObject
-        TileObject to2 = TileObject.createQueryTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters);
+        TileObject to2 =
+                TileObject.createQueryTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters);
         mbs.get(to2);
 
         // Checks on the format
@@ -158,10 +171,10 @@ public class MemoryBlobStoreTest {
     @Test
     public void testTileDelete() throws Exception {
         // Add a fileblobstore to the memory blobstore
-        BlobStore fbs = setup();
+        fbs = setup();
         cache.clear();
 
-        MemoryBlobStore mbs = new MemoryBlobStore();
+        mbs = new MemoryBlobStore();
         mbs.setStore(fbs);
         mbs.setCacheProvider(cache);
 
@@ -171,15 +184,17 @@ public class MemoryBlobStoreTest {
 
         // Put a TileObject
         Resource bytes = new ByteArrayResource("1 2 3 4 5 6 test".getBytes());
-        long[] xyz = { 5L, 6L, 7L };
-        TileObject to = TileObject.createCompleteTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters, bytes);
+        long[] xyz = {5L, 6L, 7L};
+        TileObject to =
+                TileObject.createCompleteTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters, bytes);
 
         mbs.put(to);
 
         // Try to get the same TileObject
-        TileObject to2 = TileObject.createQueryTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters);
+        TileObject to2 =
+                TileObject.createQueryTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters);
         mbs.get(to2);
 
         // Checks if the resources are equals
@@ -188,60 +203,66 @@ public class MemoryBlobStoreTest {
         checkInputStreams(is, is2);
 
         // Delete TileObject
-        TileObject to3 = TileObject.createQueryTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters);
+        TileObject to3 =
+                TileObject.createQueryTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters);
         mbs.delete(to3);
 
         // Checks if the resource is not present
-        TileObject to4 = TileObject.createQueryTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters);
+        TileObject to4 =
+                TileObject.createQueryTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters);
         assertFalse(mbs.get(to4));
 
         // Ensure that cache does not contain the TileObject
         TileObject to5 = cache.getTileObj(to);
         assertNull(to5);
     }
-    
+
     @Test
     public void testLastModifiedFromFilesystem() throws Exception {
         // Add a fileblobstore to the memory blobstore
-        BlobStore fbs = setup();
+        fbs = setup();
         cache.clear();
 
-        MemoryBlobStore mbs = new MemoryBlobStore();
+        mbs = new MemoryBlobStore();
         mbs.setStore(fbs);
         mbs.setCacheProvider(cache);
 
         // Put a TileObject
         Resource bytes = new ByteArrayResource("1 2 3 4 5 6 test".getBytes());
-        long[] xyz = { 1L, 2L, 3L };
+        long[] xyz = {1L, 2L, 3L};
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("a", "x");
         parameters.put("b", "ø");
-        TileObject to = TileObject.createCompleteTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters, bytes);
+        TileObject to =
+                TileObject.createCompleteTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters, bytes);
 
         mbs.put(to);
         mbs.clear();
 
         // Try to get the same TileObject twice with a cache cleanup in the middle
-        TileObject to2 = TileObject.createQueryTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters);
+        TileObject to2 =
+                TileObject.createQueryTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters);
         mbs.get(to2);
         mbs.clear();
-        // wait a second to ensure we are not getting the same time because the machine is just that fast
-        Thread.sleep(1000); 
-        TileObject to3 = TileObject.createQueryTileObject("test:123123 112", xyz, "EPSG:4326",
-                "image/jpeg", parameters);
+        // wait a second to ensure we are not getting the same tile because the machine is just that
+        // fast
+        Thread.sleep(1000);
+        TileObject to3 =
+                TileObject.createQueryTileObject(
+                        "test:123123 112", xyz, "EPSG:4326", "image/jpeg", parameters);
         mbs.get(to3);
-        
+
         // check the last modified is the same
         assertEquals(to2.getCreated(), to3.getCreated());
     }
 
-    /***
-     * Private method for creating a {@link FileBlobStore}
-     * 
+    /**
+     * * Private method for creating a {@link FileBlobStore}
+     *
      * @return a new FileBlobStore
      * @throws Exception
      */
@@ -251,12 +272,12 @@ public class MemoryBlobStoreTest {
         if (fh.exists()) {
             FileUtils.deleteDirectory(fh);
         }
-        if (!fh.exists() && !fh.mkdirs()) {
-            throw new StorageException("Unable to create " + fh.getAbsolutePath());
+        if (!fh.exists()) {
+            Files.createDirectories(fh.toPath());
         }
 
-        return new FileBlobStore(StorageBrokerTest.findTempDir() + File.separator
-                + TEST_BLOB_DIR_NAME);
+        return new FileBlobStore(
+                StorageBrokerTest.findTempDir() + File.separator + TEST_BLOB_DIR_NAME);
     }
 
     /**

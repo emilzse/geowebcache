@@ -19,16 +19,12 @@ public class FileResource implements Resource {
         this.file = file;
     }
 
-    /**
-     * @see org.geowebcache.io.Resource#getLastModified()
-     */
+    /** @see org.geowebcache.io.Resource#getLastModified() */
     public long getLastModified() {
         return file.lastModified();
     }
 
-    /**
-     * @see org.geowebcache.io.Resource#getSize()
-     */
+    /** @see org.geowebcache.io.Resource#getSize() */
     public long getSize() {
         // avoid a (relatively expensive) call to File.exists(), file.length() returns 0 if the file
         // doesn't exist anyway
@@ -37,25 +33,20 @@ public class FileResource implements Resource {
     }
 
     public long transferTo(WritableByteChannel target) throws IOException {
-        FileChannel in = new FileInputStream(file).getChannel();
         // FileLock lock = in.lock();
-        try {
+        try (FileChannel in = new FileInputStream(file).getChannel()) {
             final long size = in.size();
             long written = 0;
-            while ((written += in.transferTo(written, size, target)) < size) {
-                ;
+            while ((written += in.transferTo(written, size, target)) < size) {;
             }
             return size;
-        } finally {
-            in.close();
-            // lock.release();
         }
     }
 
     public long transferFrom(ReadableByteChannel channel) throws IOException {
-        final FileChannel out = new FileOutputStream(file).getChannel();
-        final FileLock lock = out.lock();
-        try {
+        FileLock lock = null;
+        try (FileChannel out = new FileOutputStream(file).getChannel()) {
+            lock = out.lock();
             final int buffsize = 4096;
             long position = 0;
             long read;
@@ -64,8 +55,9 @@ public class FileResource implements Resource {
             }
             return position;
         } finally {
-            out.close();
-            lock.release();
+            if (lock != null) {
+                lock.release();
+            }
         }
     }
 

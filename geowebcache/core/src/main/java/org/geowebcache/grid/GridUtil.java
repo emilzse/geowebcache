@@ -12,11 +12,15 @@ public class GridUtil {
      * @param matchingTileIndexTarget
      * @param requestSrs
      * @return null if none matches, the gridset with a tile index closest to the requested bounds
-     *         and dimensions otherwise
+     *     and dimensions otherwise
      */
-    public static GridSubset findBestMatchingGrid(final BoundingBox reqBounds,
-            final List<GridSubset> crsMatchingGridSubsets, final Integer expectedTileWidth,
-            final Integer expectedTileHeight, long[] matchingTileIndexTarget, String requestSrs) {
+    public static GridSubset findBestMatchingGrid(
+            final BoundingBox reqBounds,
+            final List<GridSubset> crsMatchingGridSubsets,
+            final Integer expectedTileWidth,
+            final Integer expectedTileHeight,
+            long[] matchingTileIndexTarget,
+            String requestSrs) {
 
         GridSubset bestMatch = null;
         long[] bestMatchingTileIndex = null;
@@ -26,7 +30,8 @@ public class GridUtil {
                 final int tileWidth = crsMatch.getTileWidth();
                 final int tileHeight = crsMatch.getTileHeight();
                 if ((expectedTileWidth != null && expectedTileWidth.intValue() != tileWidth)
-                        || (expectedTileHeight != null && expectedTileHeight.intValue() != tileHeight)) {
+                        || (expectedTileHeight != null
+                                && expectedTileHeight.intValue() != tileHeight)) {
                     // don't even consider it
                     continue;
                 }
@@ -70,5 +75,4 @@ public class GridUtil {
         }
         return bestMatch;
     }
-
 }

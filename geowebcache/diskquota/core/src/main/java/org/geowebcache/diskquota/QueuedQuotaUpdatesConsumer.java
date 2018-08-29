@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.diskquota.storage.PageStatsPayload;
@@ -43,49 +42,40 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
     private final QuotaStore quotaStore;
 
     private final TilePageCalculator tilePageCalculator;
-    
+
     private final BlockingQueue<QuotaUpdate> queue;
 
     /**
-     * Tracks aggregated quota size diffs per TileSet until committed by
-     * {@link #commit(TimedQuotaUpdate)} as the result of {@link #checkAggregatedTimeouts()} or
-     * {@link #checkAggregatedTimeout(TimedQuotaUpdate)} at {@link #call()}
+     * Tracks aggregated quota size diffs per TileSet until committed by {@link
+     * #commit(TimedQuotaUpdate)} as the result of {@link #checkAggregatedTimeouts()} or {@link
+     * #checkAggregatedTimeout(TimedQuotaUpdate)} at {@link #call()}
      */
     private Map<TileSet, TimedQuotaUpdate> aggregatedDelayedUpdates;
-    
+
     boolean terminate = false;
 
     /**
      * Tracks accumulated quota difference for a single TileSet and accumulated number of tiles
      * difference for pages in the same TileSet
-     * 
+     *
      * @author groldan
-     * 
      */
     private static class TimedQuotaUpdate {
 
         private final TilePageCalculator tpc;
 
         private final TileSet tileSet;
-        
-        /**
-         * tracks the last time the aggregated updates for a given tile set were committed
-         */
+
+        /** tracks the last time the aggregated updates for a given tile set were committed */
         private final long creationTime;
 
-        /**
-         * tracks how many quota updates this aggregated value is made of
-         */
+        /** tracks how many quota updates this aggregated value is made of */
         private int numAggregations;
 
-        /**
-         * Tracks accumulated quota difference per TileSet
-         */
+        /** Tracks accumulated quota difference per TileSet */
         private Quota accumQuotaDiff;
 
-        /**
-         * Tracks accumulated number of tiles per TilePage id
-         */
+        /** Tracks accumulated number of tiles per TilePage id */
         private Map<String, PageStatsPayload> tilePages;
 
         private StringBuilder pageIdTarget;
@@ -110,26 +100,26 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
 
             long[] tileIndex = quotaUpdate.getTileIndex();
             tpc.pageIndexForTile(tileSet, tileIndex, pageIndexTarget);
-            
+
             int pageX = pageIndexTarget[0];
             int pageY = pageIndexTarget[1];
             byte pageZ = (byte) pageIndexTarget[2];
             pageIdTarget.setLength(0);
             TilePage.computeId(tileSetId, pageX, pageY, pageZ, pageIdTarget);
             String pageIdForTile = pageIdTarget.toString();
-            
+
             final int tileCountDiff = size > 0 ? 1 : -1;
             PageStatsPayload payload = tilePages.get(pageIdForTile);
             if (payload == null) {
                 TilePage page;
                 page = new TilePage(tileSetId, pageX, pageY, pageZ, quotaUpdate.getParametersKvp());
-                
+
                 page.setPageCoverage(tpc.toGridCoverage(tileSet, page)[pageZ]);
                 page.setEwkt(tpc.toEwkt(tileSet, page));
                 payload = new PageStatsPayload(page);
                 tilePages.put(pageIdForTile, payload);
             }
-            
+
             int previousCount = payload.getNumTiles();
             payload.setNumTiles(previousCount + tileCountDiff);
 
@@ -155,8 +145,10 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
             sb.append(numAggregations).append(" aggregated updates, ");
             sb.append(tilePages.size()).append(" different pages, ");
             sb.append("accum quota diff: ").append(accumQuotaDiff.toNiceString());
-            sb.append(", created ").append((System.currentTimeMillis() - creationTime))
-                    .append("ms ago").append(']');
+            sb.append(", created ")
+                    .append((System.currentTimeMillis() - creationTime))
+                    .append("ms ago")
+                    .append(']');
             return sb.toString();
         }
     }
@@ -171,18 +163,18 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
         aggregatedDelayedUpdates = new HashMap<TileSet, TimedQuotaUpdate>();
     }
 
-    /**
-     * @see java.util.concurrent.Callable#call()
-     */
+    /** @see java.util.concurrent.Callable#call() */
     public Long call() {
         while (true) {
             if (Thread.interrupted()) {
-                log.debug("Job " + getClass().getSimpleName()
-                        + " finished due to interrupted thread.");
+                log.debug(
+                        "Job "
+                                + getClass().getSimpleName()
+                                + " finished due to interrupted thread.");
                 break;
             }
-            
-            if(terminate) {
+
+            if (terminate) {
                 log.debug("Exiting on explicit termination request: " + getClass().getSimpleName());
                 break;
             }
@@ -214,14 +206,12 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
                 log.debug(e);
                 // throw e;
             }
-
         }
 
         return null;
     }
 
     /**
-     * 
      * @param updateData
      * @throws InterruptedException
      */
@@ -243,7 +233,7 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
 
     /**
      * Makes sure no cached updates are held for too long before synchronizing with the store
-     * 
+     *
      * @throws InterruptedException
      */
     private void checkAggregatedTimeouts() throws InterruptedException {
@@ -275,10 +265,10 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
      * Makes sure the given cached updates are not held for too long before synchronizing with the
      * store, either because it's been held for too long, or because too many updates have happened
      * on it since the last time it was saved to the store.
-     * 
+     *
      * @param timedUpadte
-     * @return {@code true} if it's ok to prune the timedUpdate from the
-     *         {@link #aggregatedDelayedUpdates local cache}
+     * @return {@code true} if it's ok to prune the timedUpdate from the {@link
+     *     #aggregatedDelayedUpdates local cache}
      * @throws InterruptedException
      */
     private boolean checkAggregatedTimeout(TimedQuotaUpdate timedUpadte)
@@ -288,15 +278,17 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
         boolean timeout = timeSinceLastCommit >= DEFAULT_SYNC_TIMEOUT;
         final int numAggregations = timedUpadte.numAggregations;
         boolean tooManyPendingCommits = numAggregations >= MAX_AGGREGATES_BEFORE_COMMIT;
-        boolean canWaitABitLonger = timeSinceLastCommit < 2000
-                && timedUpadte.tilePages.size() < 1000;
+        boolean canWaitABitLonger =
+                timeSinceLastCommit < 2000 && timedUpadte.tilePages.size() < 1000;
         if (!canWaitABitLonger && (timeout || tooManyPendingCommits)) {
             if (log.isDebugEnabled()) {
-                log.debug("Committing "
-                        + timedUpadte
-                        + " to quota store due to "
-                        + (tooManyPendingCommits ? "too many pending commits"
-                                : "max wait time reached"));
+                log.debug(
+                        "Committing "
+                                + timedUpadte
+                                + " to quota store due to "
+                                + (tooManyPendingCommits
+                                        ? "too many pending commits"
+                                        : "max wait time reached"));
             }
             commit(timedUpadte);
             return true;
@@ -310,16 +302,16 @@ public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable 
         final Quota quotaDiff = aggregatedUpadte.getAccummulatedQuotaDifference();
 
         Collection<PageStatsPayload> tileCountDiffs;
-        tileCountDiffs = new ArrayList<PageStatsPayload>(
-                aggregatedUpadte.getAccummulatedTilePageCounts());
+        tileCountDiffs =
+                new ArrayList<PageStatsPayload>(aggregatedUpadte.getAccummulatedTilePageCounts());
 
         if (quotaDiff.getBytes().compareTo(BigInteger.ZERO) == 0 && tileCountDiffs.size() == 0) {
             return;
         }
-        
+
         quotaStore.addToQuotaAndTileCounts(tileSet, quotaDiff, tileCountDiffs);
     }
-    
+
     public void shutdown() {
         this.terminate = true;
     }

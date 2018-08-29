@@ -13,20 +13,26 @@ public class QuotaUpdate {
     private String parametersKvp;
 
     /**
-     * 
      * @param layerName
      * @param gridsetId
      * @param blobFormat
      * @param parametersId
-     * @param size
-     *            bytes to add or subtract from a quota: positive value increase quota, negative
-     *            value decreases it
+     * @param size bytes to add or subtract from a quota: positive value increase quota, negative
+     *     value decreases it
      * @param tileIndex
      */
-    public QuotaUpdate(String layerName, String gridsetId, String blobFormat, String parametersId,
-            long size, long[] tileIndex, int epsgId, double[] bbox, String parametersKvp) {
+    public QuotaUpdate(
+            String layerName,
+            String gridsetId,
+            String blobFormat,
+            String parametersId,
+            long size,
+            long[] tileIndex,
+            int epsgId,
+            double[] bbox,
+            String parametersKvp) {
         this(new TileSet(layerName, gridsetId, blobFormat, parametersId), size, tileIndex, epsgId,
-                bbox, parametersKvp);
+                        bbox, parametersKvp);
     }
 
     public QuotaUpdate(TileSet tileset, long quotaUpdateSize, long[] tileIndex, int epsgId,
@@ -59,7 +65,11 @@ public class QuotaUpdate {
 
     @Override
     public String toString() {
-        return new StringBuilder("[").append(tileSet.toString()).append(", ").append(size)
-                .append(" bytes]").toString();
+        return new StringBuilder("[")
+                .append(tileSet.toString())
+                .append(", ")
+                .append(size)
+                .append(" bytes]")
+                .toString();
     }
 }

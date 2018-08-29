@@ -1,19 +1,16 @@
 /**
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ * <p>You should have received a copy of the GNU Lesser General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
+ *
  * @author Gabriel Roldan (OpenGeo) 2010
- *  
  */
 package org.geowebcache.diskquota.storage;
 
@@ -30,17 +27,14 @@ import org.springframework.util.Assert;
 
 /**
  * Pyramid of tile pages for a given {@link GridSubset}
- * <p>
- * This is a support class for {@link TilePageCalculator}, hence package visible.
- * </p>
- * 
+ *
+ * <p>This is a support class for {@link TilePageCalculator}, hence package visible.
+ *
  * @author groldan
  */
 class PagePyramid {
 
-    /**
-     * {@code [level][numTilesPerPageX, numTilesPerPageY, numPagesX, numPagesY]}
-     */
+    /** {@code [level][numTilesPerPageX, numTilesPerPageY, numPagesX, numPagesY]} */
     private Map<Integer, PageLevelInfo> pageInfo;
 
     private Map<Integer, long[]> gridSubsetCoverages;
@@ -48,9 +42,9 @@ class PagePyramid {
     private final int zoomStart;
 
     private final int zoomStop;
-    
+
     private final BoundingBox bbox;
-    
+
     private final int epsgId;
 
     public static final class PageLevelInfo {
@@ -73,14 +67,21 @@ class PagePyramid {
 
         public final long coverageMaxY;
 
-        public PageLevelInfo(int pagesX, int pagesY, int tilesPerPageX, int tilesPerPageY,
-                long coverageMinX, long coverageMinY, long coverageMaxX, long coverageMaxY) {
+        public PageLevelInfo(
+                int pagesX,
+                int pagesY,
+                int tilesPerPageX,
+                int tilesPerPageY,
+                long coverageMinX,
+                long coverageMinY,
+                long coverageMaxX,
+                long coverageMaxY) {
             this.pagesX = pagesX;
             this.pagesY = pagesY;
             this.tilesPerPageX = tilesPerPageX;
             this.tilesPerPageY = tilesPerPageY;
-            this.tilesPerPage = BigInteger.valueOf(tilesPerPageX).multiply(
-                    BigInteger.valueOf(tilesPerPageY));
+            this.tilesPerPage =
+                    BigInteger.valueOf(tilesPerPageX).multiply(BigInteger.valueOf(tilesPerPageY));
             this.coverageMinX = coverageMinX;
             this.coverageMinY = coverageMinY;
             this.coverageMaxX = coverageMaxX;
@@ -92,15 +93,26 @@ class PagePyramid {
             NumberFormat nf = NumberFormat.getInstance(new Locale("es"));
             nf.setGroupingUsed(true);
 
-            return "Pages: " + pagesX + " x " + pagesY + " (" + nf.format(pagesX * pagesY) + "), "
-                    + "tiles:" + tilesPerPageX + " x " + tilesPerPageY + " ("
-                    + nf.format(tilesPerPageX * (long) tilesPerPageY) + ")";
+            return "Pages: "
+                    + pagesX
+                    + " x "
+                    + pagesY
+                    + " ("
+                    + nf.format(pagesX * pagesY)
+                    + "), "
+                    + "tiles:"
+                    + tilesPerPageX
+                    + " x "
+                    + tilesPerPageY
+                    + " ("
+                    + nf.format(tilesPerPageX * (long) tilesPerPageY)
+                    + ")";
         }
     }
 
     /**
-     * @param gridSubsetCoverages
-     *            grid subset coverage per level, as per {@link GridSubset#getCoverages()}
+     * @param gridSubsetCoverages grid subset coverage per level, as per {@link
+     *     GridSubset#getCoverages()}
      * @param zoomStop
      * @param zoomStart
      */
@@ -140,12 +152,10 @@ class PagePyramid {
     }
 
     /**
-     * 
-     * @param coverage
-     *            {@code [minx, miny, maxx, maxy, zoomlevel]} gridsubset coverage for a given zoom
-     *            level
+     * @param coverage {@code [minx, miny, maxx, maxy, zoomlevel]} gridsubset coverage for a given
+     *     zoom level
      * @return {@code [numTilesPerPageX, numTilesPerPageY, numPagesX, numPagesY]} number of pages in
-     *         both directions for the given coverage
+     *     both directions for the given coverage
      */
     public PageLevelInfo calculatePageInfo(final long[] coverage) {
 
@@ -163,8 +173,16 @@ class PagePyramid {
         final int numPagesX = (int) Math.ceil((double) coverageTilesWide / tilesPerPageX);
         final int numPagesY = (int) Math.ceil((double) coverageTilesHigh / tilesPerPageY);
 
-        PageLevelInfo pli = new PageLevelInfo(numPagesX, numPagesY, tilesPerPageX, tilesPerPageY,
-                coverageMinX, coverageMinY, coverageMaxX, coverageMaxY);
+        PageLevelInfo pli =
+                new PageLevelInfo(
+                        numPagesX,
+                        numPagesY,
+                        tilesPerPageX,
+                        tilesPerPageY,
+                        coverageMinX,
+                        coverageMinY,
+                        coverageMaxX,
+                        coverageMaxY);
 
         // if (log.isDebugEnabled()) {
         // log.debug("Coverage: " + Arrays.toString(coverage) + " (" + coverageTilesWide + "x"
@@ -179,14 +197,12 @@ class PagePyramid {
      * Calculates the number of tiles per page for a gridset coverage over one of its axes (this
      * method doesn't care which of them, either X or Y), client code knows which zoom level it
      * belongs too.
-     * <p>
-     * The number of pages for each zoom level is different, and currently calculated on a
+     *
+     * <p>The number of pages for each zoom level is different, and currently calculated on a
      * logarithmic basis.
-     * </p>
-     * 
-     * @param numTilesInAxis
-     *            number of tiles in either the x or y axis for the {@link GridSubset} coverage at
-     *            one of its zoom levels
+     *
+     * @param numTilesInAxis number of tiles in either the x or y axis for the {@link GridSubset}
+     *     coverage at one of its zoom levels
      * @return the number of pages corresponding to {@code numTilesInAxis}
      */
     private int calculateNumTilesPerPage(long numTilesInAxis) {
@@ -198,8 +214,8 @@ class PagePyramid {
         final double log = (Math.log(numTilesInAxis) / Math.log(logBase));
 
         // log(1) == 0, so be careful
-        final int numTilesPerPage = numTilesInAxis == 1 ? 1 : (int) Math
-                .ceil((numTilesInAxis / log));
+        final int numTilesPerPage =
+                numTilesInAxis == 1 ? 1 : (int) Math.ceil((numTilesInAxis / log));
         return numTilesPerPage;
     }
 
@@ -220,7 +236,7 @@ class PagePyramid {
 
     /**
      * Returns a grid subset coverage range suitable for {@link TileRange}
-     * 
+     *
      * @param pageX
      * @param pageY
      * @param level
@@ -237,20 +253,20 @@ class PagePyramid {
 
         long minTileX = coverageMinX + (long) pageX * numTilesPerPageX;
         long minTileY = coverageMinY + (long) pageY * numTilesPerPageY;
-        long maxTileX = minTileX + numTilesPerPageX - 1;// these are indexes, so rest one
-        long maxTileY = minTileY + numTilesPerPageY - 1;// same thing
+        long maxTileX = minTileX + numTilesPerPageX - 1; // these are indexes, so rest one
+        long maxTileY = minTileY + numTilesPerPageY - 1; // same thing
 
-        long[] pageCoverage = { minTileX, minTileY, maxTileX, maxTileY, level };
+        long[] pageCoverage = {minTileX, minTileY, maxTileX, maxTileY, level};
 
         final int numLevels = gridSubsetCoverages.size();
         long[][] allLevelsCoverage = new long[numLevels][];
         allLevelsCoverage[level] = pageCoverage;
         return allLevelsCoverage;
     }
-    
+
     /**
      * Returns EWKT for page
-     * 
+     *
      * @param page
      * @return {@code SRID=epsgId;WKT}
      */
@@ -269,26 +285,26 @@ class PagePyramid {
         long minTileY = coverageMinY + (long) pageY * numTilesPerPageY;
         long maxTileX = minTileX + numTilesPerPageX - 1;// these are indexes, so rest one
         long maxTileY = minTileY + numTilesPerPageY - 1;// same thing
-        
+
         double[] coords = bbox.getCoords();
 
         // get width/height
         double width = Math.abs(coords[0] - coords[2]);
         double height = Math.abs(coords[1] - coords[3]);
-        
+
         // calculate diff
         double diffW = width / (coverageMaxX - coverageMinX + 1);
         double diffH = height / (coverageMaxY - coverageMinY + 1);
-        
+
         // calculate bbox for page
         double minX = coords[0] + ((minTileX - coverageMinX) * diffW);
         double minY = coords[1] + ((minTileY - coverageMinY) * diffH);
         double maxX = coords[2] + ((maxTileX - coverageMaxX) * diffW);
         double maxY = coords[3] + ((maxTileY - coverageMaxY) * diffH);
-        
+
         // generate EWKT
         String ewkt = new StringBuilder("SRID=").append(Integer.toString(epsgId)).append(";").append(new BoundingBox(minX, minY, maxX, maxY).toWkt()).toString();;
-        
+
         return ewkt;
     }
 
