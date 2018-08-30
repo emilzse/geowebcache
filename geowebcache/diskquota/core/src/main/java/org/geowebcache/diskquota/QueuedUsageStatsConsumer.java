@@ -167,7 +167,7 @@ public class QueuedUsageStatsConsumer implements Callable<Long>, Serializable {
             TilePage page = new TilePage(tileSetId, pageX, pageY, pageZ, parametersKvp);
             page.setPageCoverage(tilePageCalculator.toGridCoverage(tileSet, page)[pageZ]);
             page.setEwkt(tilePageCalculator.toEwkt(tileSet, page));
-            
+
             timedUpdate = new PageStatsPayload(page);
             timedUpdate.setTileSet(tileSet);
 

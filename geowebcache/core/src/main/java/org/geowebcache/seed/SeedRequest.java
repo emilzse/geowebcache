@@ -182,7 +182,7 @@ public class SeedRequest {
      * <ul>
      *   <li>seed - (default) seeds new tiles
      *   <li>reseed - seeds new tiles and replaces old ones
-     *   <li>renew - seeds existing tiles only by replacing existing ones</li>
+     *   <li>renew - seeds existing tiles only by replacing existing ones
      *   <li>truncate - removes tiles
      * </ul>
      *

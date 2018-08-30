@@ -16,7 +16,6 @@ package org.geowebcache.seed;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
@@ -30,6 +29,7 @@ public abstract class GWCTask {
         UNSET,
         SEED,
         RESEED,
+        RENEW,
         TRUNCATE,
         INVALIDATE,
         VALIDATE

@@ -1,17 +1,15 @@
 /**
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ * <p>You should have received a copy of the GNU Lesser General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
+ *
  * @author Emil Zail / T-Kartor 2016 (original code from XMLConfiguration)
  */
 package org.geowebcache.config;
@@ -20,6 +18,30 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomReader;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.*;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.annotation.PreDestroy;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,46 +69,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import javax.annotation.PreDestroy;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.*;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 /**
  * This class will configure gwc-layers (currently only WMSLayer's) into a PostgreSQL database. This
  * class is based on XMLConfiguration class and is configuring everything except layers using
  * 'geowebcache.xml' file.
  *
- * <p>
- * NOTE {@link #setGridSetBroker(GridSetBroker)} MUST have been called before any other method is used,
- * otherwise this configuration is in an inconsistent and unpredictable state, and will throw an
- * {@link IllegalStateException}. This is set automatically by Spring through the use of {@link Autowired}
- * </p>
+ * <p>NOTE {@link #setGridSetBroker(GridSetBroker)} MUST have been called before any other method is
+ * used, otherwise this configuration is in an inconsistent and unpredictable state, and will throw
+ * an {@link IllegalStateException}. This is set automatically by Spring through the use of {@link
+ * Autowired}
  *
- * <p>
- * Database connection can be created with jndiName (DataSource) or by providing url/user/password.
- * Optionally schema can be set if table should be created outside of default public
- * </p>
+ * <p>Database connection can be created with jndiName (DataSource) or by providing
+ * url/user/password. Optionally schema can be set if table should be created outside of default
+ * public
  *
  * @author Emil Zail - T-Kartor
  * @see XMLConfiguration
@@ -102,10 +97,11 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
      *
      * @see WMSLayerDeserializer
      */
-    public final static Gson GSON;
+    public static final Gson GSON;
 
     private static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
-    private static final Log LOGGER = LogFactory.getLog(org.geowebcache.config.PostgresConfiguration.class);
+    private static final Log LOGGER =
+            LogFactory.getLog(org.geowebcache.config.PostgresConfiguration.class);
 
     static {
         GsonBuilder gsonBuilder = new GsonBuilder();
@@ -158,9 +154,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
     private boolean gridsetsUpdated = false;
 
     /**
-     * A flag for whether the config needs to be loaded at {@link #setGridSetBroker(GridSetBroker)}. If
-     * the constructor loads the configuration, will set it to false, then each call to initialize()
-     * will reset this flag to true
+     * A flag for whether the config needs to be loaded at {@link #setGridSetBroker(GridSetBroker)}.
+     * If the constructor loads the configuration, will set it to false, then each call to
+     * initialize() will reset this flag to true
      */
     private boolean reloadConfigOnInit = true;
 
@@ -172,30 +168,36 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
     private static final String SELECT_ALL_FROM_GWC_LAYERS = "SELECT * FROM %s.gwc_layers;";
 
-    private static final String SELECT_COUNT_FROM_GWC_LAYERS = "SELECT count(*) FROM %s.gwc_layers;";
+    private static final String SELECT_COUNT_FROM_GWC_LAYERS =
+            "SELECT count(*) FROM %s.gwc_layers;";
 
-    private static final String SELECT_FROM_GWC_LAYERS_BY_NAME = "SELECT * FROM %s.gwc_layers WHERE name = '%s'";
+    private static final String SELECT_FROM_GWC_LAYERS_BY_NAME =
+            "SELECT * FROM %s.gwc_layers WHERE name = '%s'";
 
-    private static final String CREATE_TABLE_IF_NOT_EXISTS_GWC_LAYERS = "CREATE TABLE IF NOT EXISTS %s.gwc_layers ( name text,  layer text,  PRIMARY KEY (name) );";
+    private static final String CREATE_TABLE_IF_NOT_EXISTS_GWC_LAYERS =
+            "CREATE TABLE IF NOT EXISTS %s.gwc_layers ( name text,  layer text,  PRIMARY KEY (name) );";
 
     private static final String DELETE_FROM_GWC_LAYER = "DELETE FROM %s.gwc_layers WHERE name = ?;";
 
-    private static final String UPDATE_GWC_LAYERS = "UPDATE %s.gwc_layers SET layer = ? WHERE name = ?;";
+    private static final String UPDATE_GWC_LAYERS =
+            "UPDATE %s.gwc_layers SET layer = ? WHERE name = ?;";
 
-    private static final String INSERT_INTO_GWC_LAYERS = "INSERT INTO %s.gwc_layers (name, layer) VALUES (?, ?);";
+    private static final String INSERT_INTO_GWC_LAYERS =
+            "INSERT INTO %s.gwc_layers (name, layer) VALUES (?, ?);";
 
-    private static final String SELECT_EXISTS_BY_NAME = "SELECT CASE WHEN count(name) = 1 THEN true ELSE false END FROM %s.gwc_layers WHERE name = '%s'";
+    private static final String SELECT_EXISTS_BY_NAME =
+            "SELECT CASE WHEN count(name) = 1 THEN true ELSE false END FROM %s.gwc_layers WHERE name = '%s'";
 
     private static final String SELECT_NAME_FROM_GWC_LAYERS = "SELECT name FROM %s.gwc_layers;";
 
     /**
      * Base Constructor with custom ConfiguratioNResourceProvider
      *
-     * @param appCtx
-     *            use to lookup {@link XMLConfigurationProvider} extensions, may be {@code null}
+     * @param appCtx use to lookup {@link XMLConfigurationProvider} extensions, may be {@code null}
      * @param inFac
      */
-    public PostgresConfiguration(final ApplicationContextProvider appCtx, final ConfigurationResourceProvider inFac) {
+    public PostgresConfiguration(
+            final ApplicationContextProvider appCtx, final ConfigurationResourceProvider inFac) {
         this.context = appCtx == null ? null : appCtx.getApplicationContext();
         this.resourceProvider = inFac;
 
@@ -205,31 +207,41 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
     /**
      * File System based Constructor
      *
-     * @param appCtx
-     *            use to lookup {@link XMLConfigurationProvider} extensions, may be {@code null}
+     * @param appCtx use to lookup {@link XMLConfigurationProvider} extensions, may be {@code null}
      * @param configFileDirectory
      * @param storageDirFinder
      * @throws ConfigurationException
      */
-    public PostgresConfiguration(final ApplicationContextProvider appCtx, final String configFileDirectory,
-                    final DefaultStorageFinder storageDirFinder) throws ConfigurationException {
-        this(appCtx, new XMLFileResourceProvider(DEFAULT_CONFIGURATION_FILE_NAME, appCtx, configFileDirectory,
+    public PostgresConfiguration(
+            final ApplicationContextProvider appCtx,
+            final String configFileDirectory,
+            final DefaultStorageFinder storageDirFinder)
+            throws ConfigurationException {
+        this(
+                appCtx,
+                new XMLFileResourceProvider(
+                        DEFAULT_CONFIGURATION_FILE_NAME,
+                        appCtx,
+                        configFileDirectory,
                         storageDirFinder));
         resourceProvider.setTemplate("/" + DEFAULT_CONFIGURATION_FILE_NAME);
     }
 
     /**
-     * Constructor that will look for {@code geowebcache.xml} at the directory defined by
-     * {@code storageDirFinder}
+     * Constructor that will look for {@code geowebcache.xml} at the directory defined by {@code
+     * storageDirFinder}
      *
-     * @param appCtx
-     *            use to lookup {@link XMLConfigurationProvider} extensions, may be {@code null}
+     * @param appCtx use to lookup {@link XMLConfigurationProvider} extensions, may be {@code null}
      * @param storageDirFinder
      * @throws ConfigurationException
      */
-    public PostgresConfiguration(final ApplicationContextProvider appCtx, final DefaultStorageFinder storageDirFinder)
-                    throws ConfigurationException {
-        this(appCtx, new XMLFileResourceProvider(DEFAULT_CONFIGURATION_FILE_NAME, appCtx, storageDirFinder));
+    public PostgresConfiguration(
+            final ApplicationContextProvider appCtx, final DefaultStorageFinder storageDirFinder)
+            throws ConfigurationException {
+        this(
+                appCtx,
+                new XMLFileResourceProvider(
+                        DEFAULT_CONFIGURATION_FILE_NAME, appCtx, storageDirFinder));
         resourceProvider.setTemplate("/" + DEFAULT_CONFIGURATION_FILE_NAME);
     }
 
@@ -240,8 +252,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
      * @param configFileDirectory
      * @throws ConfigurationException
      */
-    public PostgresConfiguration(final ApplicationContextProvider appCtx, final String configFileDirectory)
-                    throws ConfigurationException {
+    public PostgresConfiguration(
+            final ApplicationContextProvider appCtx, final String configFileDirectory)
+            throws ConfigurationException {
         this(appCtx, configFileDirectory, null);
     }
 
@@ -251,49 +264,50 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
      * @throws ConfigurationException
      */
     public PostgresConfiguration(final InputStream is) throws ConfigurationException {
-        this(null, new ConfigurationResourceProvider() {
+        this(
+                null,
+                new ConfigurationResourceProvider() {
 
-            @Override
-            public InputStream in() {
-                throw new UnsupportedOperationException();
-            }
+                    @Override
+                    public InputStream in() {
+                        throw new UnsupportedOperationException();
+                    }
 
-            @Override
-            public OutputStream out() throws IOException {
-                throw new UnsupportedOperationException();
-            }
+                    @Override
+                    public OutputStream out() throws IOException {
+                        throw new UnsupportedOperationException();
+                    }
 
-            @Override
-            public void backup() throws IOException {
-                throw new UnsupportedOperationException();
-            }
+                    @Override
+                    public void backup() throws IOException {
+                        throw new UnsupportedOperationException();
+                    }
 
-            @Override
-            public void setTemplate(String template) {
-                throw new UnsupportedOperationException();
-            }
+                    @Override
+                    public void setTemplate(String template) {
+                        throw new UnsupportedOperationException();
+                    }
 
-            @Override
-            public String getLocation() throws IOException {
-                throw new UnsupportedOperationException();
-            }
+                    @Override
+                    public String getLocation() throws IOException {
+                        throw new UnsupportedOperationException();
+                    }
 
-            @Override
-            public String getId() {
-                return "mockConfig";
-            }
+                    @Override
+                    public String getId() {
+                        return "mockConfig";
+                    }
 
-            @Override
-            public boolean hasInput() {
-                return false;
-            }
+                    @Override
+                    public boolean hasInput() {
+                        return false;
+                    }
 
-            @Override
-            public boolean hasOutput() {
-                return false;
-            }
-
-        });
+                    @Override
+                    public boolean hasOutput() {
+                        return false;
+                    }
+                });
         try {
             gwcConfig = loadConfiguration(is);
         } catch (IOException e) {
@@ -357,9 +371,7 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         this.monitor = monitor;
     }
 
-    /**
-     * @return bean for monitoring
-     */
+    /** @return bean for monitoring */
     public DiskQuotaMonitor getMonitor() {
         return this.monitor;
     }
@@ -465,7 +477,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
         // Check again after transform
         if (!rootNode.getNodeName().equals("gwcConfiguration")) {
-            LOGGER.error("Unable to parse file, expected gwcConfiguration at root after transform.");
+            LOGGER.error(
+                    "Unable to parse file, expected gwcConfiguration at root after transform.");
             throw new ConfigurationException("Unable to parse after transform.");
         } else {
             // Parsing the schema file
@@ -479,7 +492,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
                 String warndecoration = new String(c).substring(0, 80);
                 LOGGER.warn(warndecoration);
                 LOGGER.warn(msg);
-                LOGGER.warn("*** Will try to use configuration anyway. Please check the order of declared elements against the schema.");
+                LOGGER.warn(
+                        "*** Will try to use configuration anyway. Please check the order of declared elements against the schema.");
                 LOGGER.warn(warndecoration);
             } catch (IOException e) {
                 throw new RuntimeException(e.getMessage(), e);
@@ -538,7 +552,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
                 throw new Exception("url and user must be provided if no jndiName");
             }
         } catch (Throwable e) {
-            LOGGER.error("Failed to create data source or mandatory properties have not been defined", e);
+            LOGGER.error(
+                    "Failed to create data source or mandatory properties have not been defined",
+                    e);
 
             throw new RuntimeException(e);
         }
@@ -566,7 +582,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
     @Override
     public Boolean isRuntimeStatsEnabled() {
-        return gwcConfig == null || gwcConfig.getRuntimeStats() == null || gwcConfig.getRuntimeStats();
+        return gwcConfig == null
+                || gwcConfig.getRuntimeStats() == null
+                || gwcConfig.getRuntimeStats();
     }
 
     /**
@@ -631,17 +649,28 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
                     LOGGER.debug("Using proxy " + proxyUrl.getHost() + ":" + proxyUrl.getPort());
                 }
             } catch (MalformedURLException e) {
-                LOGGER.error("could not parse proxy URL " + wl.getProxyUrl() + " ! continuing WITHOUT proxy!", e);
+                LOGGER.error(
+                        "could not parse proxy URL "
+                                + wl.getProxyUrl()
+                                + " ! continuing WITHOUT proxy!",
+                        e);
             }
 
             final WMSHttpHelper sourceHelper;
 
             if (wl.getHttpUsername() != null) {
-                sourceHelper = new WMSHttpHelper(wl.getHttpUsername(), wl.getHttpPassword(), proxyUrl);
-                LOGGER.debug("Using per-layer HTTP credentials for " + wl.getName() + ", " + "username " + wl
-                                .getHttpUsername());
+                sourceHelper =
+                        new WMSHttpHelper(wl.getHttpUsername(), wl.getHttpPassword(), proxyUrl);
+                LOGGER.debug(
+                        "Using per-layer HTTP credentials for "
+                                + wl.getName()
+                                + ", "
+                                + "username "
+                                + wl.getHttpUsername());
             } else if (gwcConfig.getHttpUsername() != null) {
-                sourceHelper = new WMSHttpHelper(gwcConfig.getHttpUsername(), gwcConfig.getHttpPassword(), proxyUrl);
+                sourceHelper =
+                        new WMSHttpHelper(
+                                gwcConfig.getHttpUsername(), gwcConfig.getHttpPassword(), proxyUrl);
                 LOGGER.debug("Using global HTTP credentials for " + wl.getName());
             } else {
                 sourceHelper = new WMSHttpHelper(null, null, proxyUrl);
@@ -664,11 +693,13 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
                 in.close();
             }
         } catch (IOException e) {
-            throw new ConfigurationException("Error parsing config file " + resourceProvider.getId(), e);
+            throw new ConfigurationException(
+                    "Error parsing config file " + resourceProvider.getId(), e);
         }
     }
 
-    private GeoWebCacheConfiguration loadConfiguration(InputStream xmlFile) throws IOException, ConfigurationException {
+    private GeoWebCacheConfiguration loadConfiguration(InputStream xmlFile)
+            throws IOException, ConfigurationException {
         Node rootNode = loadDocument(xmlFile);
         XStream xs = getConfiguredXStreamWithContext(new GeoWebCacheXStream(), Context.PERSIST);
 
@@ -677,15 +708,16 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         return config;
     }
 
-    public XStream getConfiguredXStreamWithContext(XStream xs,
-                    ContextualConfigurationProvider.Context providerContext) {
-        return ConfigurationDispatcher.getConfiguredXStreamWithContext(xs, this.context, providerContext);
+    public XStream getConfiguredXStreamWithContext(
+            XStream xs, ContextualConfigurationProvider.Context providerContext) {
+        return ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                xs, this.context, providerContext);
     }
 
     /**
      * Method responsible for writing out the entire GeoWebCacheConfiguration object
      *
-     * throws an exception if it does not succeed
+     * <p>throws an exception if it does not succeed
      */
     private void persistToFile() throws IOException {
         Assert.isTrue(resourceProvider.hasOutput());
@@ -705,7 +737,12 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         } catch (FileNotFoundException fnfe) {
             throw fnfe;
         } catch (IOException e) {
-            throw (IOException) new IOException("Error writing to " + resourceProvider.getId() + ": " + e.getMessage())
+            throw (IOException)
+                    new IOException(
+                                    "Error writing to "
+                                            + resourceProvider.getId()
+                                            + ": "
+                                            + e.getMessage())
                             .initCause(e);
         }
 
@@ -735,7 +772,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
             try {
                 resourceProvider.backup();
             } catch (Exception e) {
-                LOGGER.warn("Error creating backup of configuration file " + resourceProvider.getId(), e);
+                LOGGER.warn(
+                        "Error creating backup of configuration file " + resourceProvider.getId(),
+                        e);
             }
 
             persistToFile();
@@ -761,7 +800,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
             throw new NullPointerException();
         }
         if (!(tl instanceof WMSLayer)) {
-            throw new IllegalArgumentException("Can't add layers of type " + tl.getClass().getName());
+            throw new IllegalArgumentException(
+                    "Can't add layers of type " + tl.getClass().getName());
         }
         if (containsLayer(tl.getName())) {
             throw new IllegalArgumentException("Layer '" + tl.getName() + "' already exists");
@@ -807,12 +847,12 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         }
     }
 
-    /**
-     * @see TileLayerConfiguration#renameLayer(String, String)
-     */
+    /** @see TileLayerConfiguration#renameLayer(String, String) */
     @Override
-    public void renameLayer(String oldName, String newName) throws NoSuchElementException, IllegalArgumentException {
-        throw new UnsupportedOperationException("renameLayer is not supported by " + getClass().getSimpleName());
+    public void renameLayer(String oldName, String newName)
+            throws NoSuchElementException, IllegalArgumentException {
+        throw new UnsupportedOperationException(
+                "renameLayer is not supported by " + getClass().getSimpleName());
     }
 
     /**
@@ -841,7 +881,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
      * @param gridSet
      * @throws GeoWebCacheException
      */
-    private synchronized void addOrReplaceGridSet(final XMLGridSet gridSet) throws IllegalArgumentException {
+    private synchronized void addOrReplaceGridSet(final XMLGridSet gridSet)
+            throws IllegalArgumentException {
         final String gridsetName = gridSet.getName();
 
         // should store new xml file
@@ -925,73 +966,85 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
     private void createDeleteOrUpdateLayers() throws SQLException {
         if (!addedLayers.isEmpty() || !removeLayers.isEmpty()) {
             // create layers
-            runCommand(new PostgresCommand() {
+            runCommand(
+                    new PostgresCommand() {
 
-                private boolean exists(Connection con, String layerName) throws SQLException {
-                    Statement s = null;
-                    ResultSet rs = null;
-                    try {
-                        s = con.createStatement();
-                        rs = s.executeQuery(String.format(SELECT_EXISTS_BY_NAME, getSchema(), layerName));
+                        private boolean exists(Connection con, String layerName)
+                                throws SQLException {
+                            Statement s = null;
+                            ResultSet rs = null;
+                            try {
+                                s = con.createStatement();
+                                rs =
+                                        s.executeQuery(
+                                                String.format(
+                                                        SELECT_EXISTS_BY_NAME,
+                                                        getSchema(),
+                                                        layerName));
 
-                        if (rs.next()) {
-                            return rs.getBoolean(1);
-                        }
+                                if (rs.next()) {
+                                    return rs.getBoolean(1);
+                                }
 
-                        return false;
-                    } finally {
-                        SQLUtils.closeQuietly(rs);
-                        SQLUtils.closeQuietly(s);
-                    }
-                }
-
-                @Override
-                public void execute(Connection con) throws SQLException {
-                    PreparedStatement insert = null;
-                    PreparedStatement update = null;
-                    PreparedStatement delete = null;
-                    try {
-                        insert = con.prepareStatement(String.format(INSERT_INTO_GWC_LAYERS, getSchema()));
-                        update = con.prepareStatement(String.format(UPDATE_GWC_LAYERS, getSchema()));
-                        delete = con.prepareStatement(String.format(DELETE_FROM_GWC_LAYER, getSchema()));
-
-                        for (Entry<String, WMSLayer> layer : addedLayers.entrySet()) {
-                            String layerName = layer.getKey();
-
-                            // removes from cache if exists
-                            cacheManager.removeLayer(layerName);
-
-                            if (exists(con, layerName)) {
-                                LOGGER.debug("Updating layer: name=" + layerName);
-                                update.setString(1, JSONUtils.stringify(layer.getValue()));
-                                update.setString(2, layerName);
-                                update.executeUpdate();
-                            } else {
-                                LOGGER.debug("Creating layer: name=" + layerName);
-                                insert.setString(1, layerName);
-                                insert.setString(2, JSONUtils.stringify(layer.getValue()));
-                                insert.executeUpdate();
+                                return false;
+                            } finally {
+                                SQLUtils.closeQuietly(rs);
+                                SQLUtils.closeQuietly(s);
                             }
                         }
 
-                        for (String layerName : removeLayers) {
-                            LOGGER.debug("Deleting layer: name=" + layerName);
-                            delete.setString(1, layerName);
-                            delete.executeUpdate();
+                        @Override
+                        public void execute(Connection con) throws SQLException {
+                            PreparedStatement insert = null;
+                            PreparedStatement update = null;
+                            PreparedStatement delete = null;
+                            try {
+                                insert =
+                                        con.prepareStatement(
+                                                String.format(INSERT_INTO_GWC_LAYERS, getSchema()));
+                                update =
+                                        con.prepareStatement(
+                                                String.format(UPDATE_GWC_LAYERS, getSchema()));
+                                delete =
+                                        con.prepareStatement(
+                                                String.format(DELETE_FROM_GWC_LAYER, getSchema()));
 
-                            // removes from cache if exists
-                            cacheManager.removeLayer(layerName);
+                                for (Entry<String, WMSLayer> layer : addedLayers.entrySet()) {
+                                    String layerName = layer.getKey();
+
+                                    // removes from cache if exists
+                                    cacheManager.removeLayer(layerName);
+
+                                    if (exists(con, layerName)) {
+                                        LOGGER.debug("Updating layer: name=" + layerName);
+                                        update.setString(1, JSONUtils.stringify(layer.getValue()));
+                                        update.setString(2, layerName);
+                                        update.executeUpdate();
+                                    } else {
+                                        LOGGER.debug("Creating layer: name=" + layerName);
+                                        insert.setString(1, layerName);
+                                        insert.setString(2, JSONUtils.stringify(layer.getValue()));
+                                        insert.executeUpdate();
+                                    }
+                                }
+
+                                for (String layerName : removeLayers) {
+                                    LOGGER.debug("Deleting layer: name=" + layerName);
+                                    delete.setString(1, layerName);
+                                    delete.executeUpdate();
+
+                                    // removes from cache if exists
+                                    cacheManager.removeLayer(layerName);
+                                }
+                            } catch (SQLException e) {
+                                LOGGER.error("Failed to get connection", e);
+                            } finally {
+                                SQLUtils.closeQuietly(insert);
+                                SQLUtils.closeQuietly(update);
+                                SQLUtils.closeQuietly(delete);
+                            }
                         }
-                    } catch (SQLException e) {
-                        LOGGER.error("Failed to get connection", e);
-                    } finally {
-                        SQLUtils.closeQuietly(insert);
-                        SQLUtils.closeQuietly(update);
-                        SQLUtils.closeQuietly(delete);
-                    }
-
-                }
-            });
+                    });
 
             // clears internal lists
             addedLayers.clear();
@@ -1004,26 +1057,28 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
         // create schema/table
         try {
-            runCommand(new PostgresCommand() {
+            runCommand(
+                    new PostgresCommand() {
 
-                @Override
-                public void execute(Connection con) throws SQLException {
-                    PreparedStatement create = null;
-                    try {
-                        String createTable = String.format(CREATE_TABLE_IF_NOT_EXISTS_GWC_LAYERS, getSchema());
+                        @Override
+                        public void execute(Connection con) throws SQLException {
+                            PreparedStatement create = null;
+                            try {
+                                String createTable =
+                                        String.format(
+                                                CREATE_TABLE_IF_NOT_EXISTS_GWC_LAYERS, getSchema());
 
-                        LOGGER.info(createTable);
+                                LOGGER.info(createTable);
 
-                        create = con.prepareStatement(createTable);
-                        create.executeUpdate();
-                    } catch (SQLException e) {
-                        LOGGER.error("Failed to get connection", e);
-                    } finally {
-                        SQLUtils.closeQuietly(create);
-                    }
-
-                }
-            });
+                                create = con.prepareStatement(createTable);
+                                create.executeUpdate();
+                            } catch (SQLException e) {
+                                LOGGER.error("Failed to get connection", e);
+                            } finally {
+                                SQLUtils.closeQuietly(create);
+                            }
+                        }
+                    });
         } catch (SQLException e) {
             LOGGER.error(e.getMessage());
 
@@ -1032,7 +1087,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
     }
 
     private Connection getConnection() throws SQLException {
-        return dataSource == null ? DriverManager.getConnection(url, user, password) : dataSource.getConnection();
+        return dataSource == null
+                ? DriverManager.getConnection(url, user, password)
+                : dataSource.getConnection();
     }
 
     private synchronized void createDataSource() throws NamingException {
@@ -1045,7 +1102,6 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
     /**
      * @see #schema
-     *
      * @return schema (public if {@code schema==null})
      */
     private String getSchema() {
@@ -1082,16 +1138,12 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         layer.initialize(gridSetBroker);
     }
 
-    /**
-     * @see TileLayerConfiguration#getIdentifier()
-     */
+    /** @see TileLayerConfiguration#getIdentifier() */
     public String getIdentifier() {
         return resourceProvider.getId();
     }
 
-    /**
-     * @see TileLayerConfiguration#getTileLayers()
-     */
+    /** @see TileLayerConfiguration#getTileLayers() */
     @Override
     public List<TileLayer> getTileLayers() {
         List<TileLayer> layers = new ArrayList<>();
@@ -1100,9 +1152,7 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         return layers;
     }
 
-    /**
-     * @see TileLayerConfiguration#getLayers(boolean)
-     */
+    /** @see TileLayerConfiguration#getLayers(boolean) */
     public Collection<TileLayer> getLayers(boolean activeOnly) {
         if (activeOnly) {
             return new ArrayList<>(cacheManager.getLayers());
@@ -1112,19 +1162,19 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
         List<TileLayer> layers = null;
         try {
-            layers = new ResultSetHandler<List<TileLayer>>() {
+            layers =
+                    new ResultSetHandler<List<TileLayer>>() {
 
-                @Override
-                public List<TileLayer> executeImpl(ResultSet rs) throws SQLException {
-                    List<TileLayer> iterable = new ArrayList<TileLayer>();
-                    while (rs.next()) {
-                        iterable.add(parseLayer(rs.getString(2)));
-                    }
+                        @Override
+                        public List<TileLayer> executeImpl(ResultSet rs) throws SQLException {
+                            List<TileLayer> iterable = new ArrayList<TileLayer>();
+                            while (rs.next()) {
+                                iterable.add(parseLayer(rs.getString(2)));
+                            }
 
-                    return iterable;
-
-                }
-            }.execute(sql);
+                            return iterable;
+                        }
+                    }.execute(sql);
         } catch (SQLException e) {
             LOGGER.error(e);
         }
@@ -1132,24 +1182,18 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         return layers;
     }
 
-    /**
-     * @see TileLayerConfiguration#getLayer(java.lang.String)
-     */
+    /** @see TileLayerConfiguration#getLayer(java.lang.String) */
     public Optional<TileLayer> getLayer(String layerName) {
         return Optional.ofNullable(getTileLayer(layerName));
     }
 
-    /**
-     * @see TileLayerConfiguration#getTileLayer(java.lang.String)
-     */
+    /** @see TileLayerConfiguration#getTileLayer(java.lang.String) */
     @Deprecated
     public TileLayer getTileLayer(String layerName) {
         return getTileLayerById(layerName);
     }
 
-    /**
-     * @see TileLayerConfiguration#getTileLayerById(String)
-     */
+    /** @see TileLayerConfiguration#getTileLayerById(String) */
     @Deprecated
     public TileLayer getTileLayerById(String layerId) {
         WMSLayer layer = cacheManager.getLayer(layerId);
@@ -1161,19 +1205,18 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         final String sql = String.format(SELECT_FROM_GWC_LAYERS_BY_NAME, getSchema(), layerId);
 
         try {
-            layer = new ResultSetHandler<WMSLayer>() {
+            layer =
+                    new ResultSetHandler<WMSLayer>() {
 
-                @Override
-                public WMSLayer executeImpl(ResultSet rs) throws SQLException {
-                    if (rs.next()) {
-                        return parseLayer(rs.getString(2));
-                    }
+                        @Override
+                        public WMSLayer executeImpl(ResultSet rs) throws SQLException {
+                            if (rs.next()) {
+                                return parseLayer(rs.getString(2));
+                            }
 
-                    return null;
-
-                }
-
-            }.execute(sql);
+                            return null;
+                        }
+                    }.execute(sql);
 
             if (layer != null) {
                 cacheManager.addLayer(layer);
@@ -1190,7 +1233,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
                     TileLayerListener listener = monitor.getLayerListener();
                     if (listener != null) {
-                        LOGGER.debug("Adding listener: class='" + listener.getClass().getName() + "'");
+                        LOGGER.debug(
+                                "Adding listener: class='" + listener.getClass().getName() + "'");
                         layer.addLayerListener(listener);
                     }
                 }
@@ -1202,9 +1246,7 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         return layer;
     }
 
-    /**
-     * @see TileLayerConfiguration#containsLayer(java.lang.String)
-     */
+    /** @see TileLayerConfiguration#containsLayer(java.lang.String) */
     public boolean containsLayer(String layerId) {
         TileLayer layer = cacheManager.getLayer(layerId);
 
@@ -1216,18 +1258,18 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
         boolean exists = false;
         try {
-            exists = new ResultSetHandler<Boolean>() {
+            exists =
+                    new ResultSetHandler<Boolean>() {
 
-                @Override
-                public Boolean executeImpl(ResultSet rs) throws SQLException {
-                    if (rs.next()) {
-                        return rs.getBoolean(1);
-                    }
+                        @Override
+                        public Boolean executeImpl(ResultSet rs) throws SQLException {
+                            if (rs.next()) {
+                                return rs.getBoolean(1);
+                            }
 
-                    return false;
-
-                }
-            }.execute(sql);
+                            return false;
+                        }
+                    }.execute(sql);
         } catch (SQLException e) {
             LOGGER.error(e);
         }
@@ -1235,34 +1277,30 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         return exists;
     }
 
-    /**
-     * @see TileLayerConfiguration#getLayerCount()
-     */
+    /** @see TileLayerConfiguration#getLayerCount() */
     public int getLayerCount() {
         return getTileLayerCount();
     }
 
-    /**
-     * @see TileLayerConfiguration#getTileLayerCount()
-     */
+    /** @see TileLayerConfiguration#getTileLayerCount() */
     @Deprecated
     public int getTileLayerCount() {
         final String sql = String.format(SELECT_COUNT_FROM_GWC_LAYERS, getSchema());
 
         int count = -1;
         try {
-            count = new ResultSetHandler<Integer>() {
+            count =
+                    new ResultSetHandler<Integer>() {
 
-                @Override
-                public Integer executeImpl(ResultSet rs) throws SQLException {
-                    if (rs.next()) {
-                        return rs.getInt(1);
-                    }
+                        @Override
+                        public Integer executeImpl(ResultSet rs) throws SQLException {
+                            if (rs.next()) {
+                                return rs.getInt(1);
+                            }
 
-                    return -1;
-
-                }
-            }.execute(sql);
+                            return -1;
+                        }
+                    }.execute(sql);
         } catch (SQLException e) {
             LOGGER.error(e);
         }
@@ -1270,35 +1308,31 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         return count;
     }
 
-    /**
-     * @see TileLayerConfiguration#getLayerNames()
-     */
+    /** @see TileLayerConfiguration#getLayerNames() */
     public Set<String> getLayerNames() {
         return Collections.unmodifiableSet(getTileLayerNames());
     }
 
-    /**
-     * @see TileLayerConfiguration#getTileLayerNames()
-     */
+    /** @see TileLayerConfiguration#getTileLayerNames() */
     @Deprecated
     public Set<String> getTileLayerNames() {
         final String sql = String.format(SELECT_NAME_FROM_GWC_LAYERS, getSchema());
 
         Set<String> list = new HashSet<String>();
         try {
-            list = new ResultSetHandler<Set<String>>() {
+            list =
+                    new ResultSetHandler<Set<String>>() {
 
-                @Override
-                public Set<String> executeImpl(ResultSet rs) throws SQLException {
-                    Set<String> list = new HashSet<String>();
-                    while (rs.next()) {
-                        list.add(rs.getString(1));
-                    }
+                        @Override
+                        public Set<String> executeImpl(ResultSet rs) throws SQLException {
+                            Set<String> list = new HashSet<String>();
+                            while (rs.next()) {
+                                list.add(rs.getString(1));
+                            }
 
-                    return list;
-
-                }
-            }.execute(sql);
+                            return list;
+                        }
+                    }.execute(sql);
         } catch (SQLException e) {
             LOGGER.error(e);
         }
@@ -1310,9 +1344,7 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         return gwcConfig.getVersion();
     }
 
-    /**
-     * @see ServerConfiguration#isFullWMS()
-     */
+    /** @see ServerConfiguration#isFullWMS() */
     @Override
     public Boolean isFullWMS() {
         return gwcConfig != null ? gwcConfig.getFullWMS() : null;
@@ -1330,23 +1362,27 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
     public List<BlobStoreInfo> getBlobStores() {
         // need to return an unmodifiable list of unmodifiable BlobStoreInfos
-        return Collections.unmodifiableList(gwcConfig.getBlobStores().
-                        stream().map((info) -> (BlobStoreInfo) info.clone()).collect(Collectors.toList()));
+        return Collections.unmodifiableList(
+                gwcConfig
+                        .getBlobStores()
+                        .stream()
+                        .map((info) -> (BlobStoreInfo) info.clone())
+                        .collect(Collectors.toList()));
     }
 
-    /**
-     * @see BlobStoreConfiguration#addBlobStore(org.geowebcache.config.BlobStoreInfo)
-     */
+    /** @see BlobStoreConfiguration#addBlobStore(org.geowebcache.config.BlobStoreInfo) */
     @Override
     public synchronized void addBlobStore(BlobStoreInfo info) {
         if (info.getName() == null) {
-            throw new IllegalArgumentException("Failed to add BlobStoreInfo. A BlobStoreInfo name cannot be null");
+            throw new IllegalArgumentException(
+                    "Failed to add BlobStoreInfo. A BlobStoreInfo name cannot be null");
         }
         // ensure there isn't a BlobStoreInfo with the same name already
         if (getBlobStoreNames().contains(info.getName())) {
             throw new IllegalArgumentException(
-                            String.format("Failed to add BlobStoreInfo. A BlobStoreInfo with name \"$s\" already exists",
-                                            info.getName()));
+                    String.format(
+                            "Failed to add BlobStoreInfo. A BlobStoreInfo with name \"$s\" already exists",
+                            info.getName()));
         }
         // add the BlobStoreInfo
         final List<BlobStoreInfo> blobStores = gwcConfig.getBlobStores();
@@ -1360,22 +1396,21 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         } catch (IOException | GeoWebCacheException ioe) {
             // save failed, roll back the add
             blobStores.remove(info);
-            throw new ConfigurationPersistenceException(String.format("Unable to add BlobStoreInfo \"%s\"", info), ioe);
+            throw new ConfigurationPersistenceException(
+                    String.format("Unable to add BlobStoreInfo \"%s\"", info), ioe);
         }
-
     }
 
-    /**
-     * @see BlobStoreConfiguration#removeBlobStore(java.lang.String)
-     */
+    /** @see BlobStoreConfiguration#removeBlobStore(java.lang.String) */
     @Override
     public synchronized void removeBlobStore(String name) {
         // ensure there is a BlobStoreInfo with the name
         final Optional<BlobStoreInfo> optionalInfo = getBlobStore(name);
         if (!optionalInfo.isPresent()) {
             throw new NoSuchElementException(
-                            String.format("Failed to remove BlobStoreInfo. A BlobStoreInfo with name \"%s\" does not exist.",
-                                            name));
+                    String.format(
+                            "Failed to remove BlobStoreInfo. A BlobStoreInfo with name \"%s\" does not exist.",
+                            name));
         }
         // remove the BlobStoreInfo
         final List<BlobStoreInfo> blobStores = gwcConfig.getBlobStores();
@@ -1390,15 +1425,12 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         } catch (IOException | GeoWebCacheException ioe) {
             // save failed, roll back the delete
             blobStores.add(infoToRemove);
-            throw new ConfigurationPersistenceException(String.format("Unable to remove BlobStoreInfo \"%s\"", name),
-                            ioe);
+            throw new ConfigurationPersistenceException(
+                    String.format("Unable to remove BlobStoreInfo \"%s\"", name), ioe);
         }
-
     }
 
-    /**
-     * @see BlobStoreConfiguration#modifyBlobStore(org.geowebcache.config.BlobStoreInfo)
-     */
+    /** @see BlobStoreConfiguration#modifyBlobStore(org.geowebcache.config.BlobStoreInfo) */
     @Override
     public synchronized void modifyBlobStore(BlobStoreInfo info) {
         if (info.getName() == null) {
@@ -1408,8 +1440,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         final Optional<BlobStoreInfo> optionalInfo = getBlobStore(info.getName());
         if (!optionalInfo.isPresent()) {
             throw new NoSuchElementException(
-                            String.format("Failed to modify BlobStoreInfo. A BlobStoreInfo with name \"%s\" does not exist.",
-                                            info.getName()));
+                    String.format(
+                            "Failed to modify BlobStoreInfo. A BlobStoreInfo with name \"%s\" does not exist.",
+                            info.getName()));
         }
         // remove existing and add the new one
         final List<BlobStoreInfo> blobStores = gwcConfig.getBlobStores();
@@ -1427,58 +1460,57 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
             blobStores.remove(info);
             blobStores.add(infoToRemove);
             throw new ConfigurationPersistenceException(
-                            String.format("Unable to modify BlobStoreInfo \"%s\"", info.getName()), ioe);
+                    String.format("Unable to modify BlobStoreInfo \"%s\"", info.getName()), ioe);
         }
-
     }
 
-    /**
-     * @see BlobStoreConfiguration#getBlobStoreCount()
-     */
+    /** @see BlobStoreConfiguration#getBlobStoreCount() */
     @Override
     public int getBlobStoreCount() {
         return gwcConfig.getBlobStores().size();
     }
 
-    /**
-     * @see BlobStoreConfiguration#getBlobStoreNames()
-     */
+    /** @see BlobStoreConfiguration#getBlobStoreNames() */
     @Override
     public Set<String> getBlobStoreNames() {
-        return gwcConfig.getBlobStores().stream().map(BlobStoreInfo::getName).collect(Collectors.toSet());
+        return gwcConfig
+                .getBlobStores()
+                .stream()
+                .map(BlobStoreInfo::getName)
+                .collect(Collectors.toSet());
     }
 
-    /**
-     * @see BlobStoreConfiguration#getBlobStore(java.lang.String)
-     */
+    /** @see BlobStoreConfiguration#getBlobStore(java.lang.String) */
     @Override
     public Optional<BlobStoreInfo> getBlobStore(String name) {
-        return gwcConfig.getBlobStores().stream().filter(info -> info.getName().equals(name))
-                        .map(i -> (BlobStoreInfo) i.clone()).findFirst();
+        return gwcConfig
+                .getBlobStores()
+                .stream()
+                .filter(info -> info.getName().equals(name))
+                .map(i -> (BlobStoreInfo) i.clone())
+                .findFirst();
     }
 
-    /**
-     * @see BlobStoreConfiguration#canSave(org.geowebcache.config.BlobStoreInfo)
-     */
+    /** @see BlobStoreConfiguration#canSave(org.geowebcache.config.BlobStoreInfo) */
     @Override
     public boolean canSave(BlobStoreInfo info) {
-        // if the resourceProvider has output, then it should be saveable. NOTE, this does not guarantee that there are
+        // if the resourceProvider has output, then it should be saveable. NOTE, this does not
+        // guarantee that there are
         // sufficient write permissions to the underlying resource.
         return resourceProvider.hasOutput();
     }
 
-    /**
-     * @see BlobStoreConfiguration#renameBlobStore(java.lang.String, java.lang.String)
-     */
+    /** @see BlobStoreConfiguration#renameBlobStore(java.lang.String, java.lang.String) */
     @Override
     public void renameBlobStore(String oldName, String newName)
-                    throws NoSuchElementException, IllegalArgumentException {
+            throws NoSuchElementException, IllegalArgumentException {
         // if a BlobStoreInfo with newName already exists, throw IllegalArgumentException
         final Optional<BlobStoreInfo> newInfo = getBlobStore(newName);
         if (newInfo.isPresent()) {
             throw new IllegalArgumentException(
-                            "BlobStoreInfo rename unsuccessful. A BlobStoreInfo with name \"" + newName
-                                            + "\" already exists.");
+                    "BlobStoreInfo rename unsuccessful. A BlobStoreInfo with name \""
+                            + newName
+                            + "\" already exists.");
         }
         // get the list of BlobStoreInfos
         final List<BlobStoreInfo> blobStoreInfos = gwcConfig.getBlobStores();
@@ -1497,8 +1529,9 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         // if we didn't remove one, it wasn't in there to be removed
         if (blobStoreInfoToRename == null) {
             throw new NoSuchElementException(
-                            "BlobStoreInfo rename unsuccessful. No BlobStoreInfo with name \"" + oldName
-                                            + "\" exists.");
+                    "BlobStoreInfo rename unsuccessful. No BlobStoreInfo with name \""
+                            + oldName
+                            + "\" exists.");
         }
         // rename it and add it back to the list
         // for BlobStoreInfo instances, "name" and "id" are the same thing.
@@ -1512,7 +1545,10 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(String.format("BlobStoreInfo rename from \"%s\" to \"%s\" successful.", oldName, newName));
+                LOGGER.trace(
+                        String.format(
+                                "BlobStoreInfo rename from \"%s\" to \"%s\" successful.",
+                                oldName, newName));
             }
         } catch (IOException | GeoWebCacheException ioe) {
             // save didn't work, need to roll things back
@@ -1527,23 +1563,25 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
                 }
             }
             if (blobStoreInfoToRevert == null) {
-                // we're really messed up now as we couldn't find the BlobStoreInfo that was just renamed.
+                // we're really messed up now as we couldn't find the BlobStoreInfo that was just
+                // renamed.
                 throw new IllegalArgumentException(
-                                String.format("Error reverting BlobStoreInfo modification. Could not revert rename from \"%s\" to \"%s\"",
-                                                oldName, newName));
+                        String.format(
+                                "Error reverting BlobStoreInfo modification. Could not revert rename from \"%s\" to \"%s\"",
+                                oldName, newName));
             }
             // revert the name and add it back to the list
             blobStoreInfoToRevert.setName(oldName);
             blobStoreInfos.add(blobStoreInfoToRevert);
             throw new IllegalArgumentException(
-                            String.format("Unable to rename BlobStoreInfo from \"%s\" to \"%s\"", oldName, newName),
-                            ioe);
+                    String.format(
+                            "Unable to rename BlobStoreInfo from \"%s\" to \"%s\"",
+                            oldName, newName),
+                    ioe);
         }
     }
 
-    /**
-     * @see BlobStoreConfiguration#containsBlobStore(java.lang.String)
-     */
+    /** @see BlobStoreConfiguration#containsBlobStore(java.lang.String) */
     @Override
     public boolean containsBlobStore(String name) {
         return name != null && getBlobStore(name).isPresent();
@@ -1561,9 +1599,7 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         }
     }
 
-    /**
-     * @see ServerConfiguration#getLockProvider()
-     */
+    /** @see ServerConfiguration#getLockProvider() */
     @Override
     public LockProvider getLockProvider() {
         return gwcConfig.getLockProvider();
@@ -1582,7 +1618,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
     @Override
     public Boolean isWmtsCiteCompliant() {
         if (gwcConfig == null) {
-            // if there is not configuration available we consider CITE strict compliance to be deactivated
+            // if there is not configuration available we consider CITE strict compliance to be
+            // deactivated
             return false;
         }
         // return whatever CITE compliance mode is defined
@@ -1593,8 +1630,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
      * Can be used to force WMTS service implementation to be strictly compliant with the
      * correspondent CITE tests.
      *
-     * @param wmtsCiteStrictCompliant TRUE or FALSE, activating or deactivation CITE
-     *                                strict compliance mode for WMTS
+     * @param wmtsCiteStrictCompliant TRUE or FALSE, activating or deactivation CITE strict
+     *     compliance mode for WMTS
      */
     public void setWmtsCiteCompliant(Boolean wmtsCiteStrictCompliant) throws IOException {
         if (gwcConfig != null) {
@@ -1604,39 +1641,30 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         save();
     }
 
-    /**
-     * @see ServerConfiguration#getBackendTimeout()
-     */
+    /** @see ServerConfiguration#getBackendTimeout() */
     @Override
     public Integer getBackendTimeout() {
         return gwcConfig.getBackendTimeout();
     }
 
-    /**
-     * @see ServerConfiguration#setBackendTimeout(Integer)
-     */
+    /** @see ServerConfiguration#setBackendTimeout(Integer) */
     @Override
     public void setBackendTimeout(Integer backendTimeout) throws IOException {
         gwcConfig.setBackendTimeout(backendTimeout);
         save(true);
     }
 
-    /**
-     * @see ServerConfiguration#isCacheBypassAllowed()
-     */
+    /** @see ServerConfiguration#isCacheBypassAllowed() */
     @Override
     public Boolean isCacheBypassAllowed() {
         return gwcConfig.getCacheBypassAllowed();
     }
 
-    /**
-     * @see ServerConfiguration#setCacheBypassAllowed(Boolean)
-     */
+    /** @see ServerConfiguration#setCacheBypassAllowed(Boolean) */
     @Override
     public void setCacheBypassAllowed(Boolean cacheBypassAllowed) throws IOException {
         gwcConfig.setCacheBypassAllowed(cacheBypassAllowed);
         save(true);
-
     }
 
     @Override
@@ -1659,7 +1687,10 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
             throw new IllegalArgumentException("GridSet " + gridSet.getName() + " already exists");
         }
 
-        assert gwcConfig.getGridSets().stream().noneMatch(xgs -> xgs.getName().equals(gridSet.getName()));
+        assert gwcConfig
+                .getGridSets()
+                .stream()
+                .noneMatch(xgs -> xgs.getName().equals(gridSet.getName()));
 
         try {
             saveGridSet(gridSet);
@@ -1692,10 +1723,14 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
      */
     @Deprecated
     public synchronized XMLGridSet removeGridset(final String gridsetName) {
-        return getGridSet(gridsetName).map(g -> {
-            removeGridSet(gridsetName);
-            return g;
-        }).map(XMLGridSet::new).orElse(null);
+        return getGridSet(gridsetName)
+                .map(
+                        g -> {
+                            removeGridSet(gridsetName);
+                            return g;
+                        })
+                .map(XMLGridSet::new)
+                .orElse(null);
     }
 
     @Override
@@ -1714,7 +1749,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         assert Objects.isNull(gsRemoved) == Objects.isNull(xgsRemoved);
 
         if (Objects.isNull(gsRemoved)) {
-            throw new NoSuchElementException("Could not remove GridSet " + gridSetName + " as it does not exist");
+            throw new NoSuchElementException(
+                    "Could not remove GridSet " + gridSetName + " as it does not exist");
         }
 
         try {
@@ -1722,7 +1758,8 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         } catch (IOException ex) {
             getGridSetsInternal().put(gridSetName, gsRemoved);
             gwcConfig.getGridSets().add(xgsRemoved);
-            throw new ConfigurationPersistenceException("Could not persist removal of Gridset " + gridSetName, ex);
+            throw new ConfigurationPersistenceException(
+                    "Could not persist removal of Gridset " + gridSetName, ex);
         }
     }
 
@@ -1745,30 +1782,46 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
     private void loadGridSets() {
         if (gwcConfig.getGridSets() != null) {
-            this.gridSets = gwcConfig.getGridSets().stream().map((xmlGridSet) -> {
+            this.gridSets =
+                    gwcConfig
+                            .getGridSets()
+                            .stream()
+                            .map(
+                                    (xmlGridSet) -> {
+                                        if (LOGGER.isDebugEnabled()) {
+                                            LOGGER.debug("Reading " + xmlGridSet.getName());
+                                        }
 
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Reading " + xmlGridSet.getName());
-                }
+                                        GridSet gridSet = xmlGridSet.makeGridSet();
 
-                GridSet gridSet = xmlGridSet.makeGridSet();
-
-                LOGGER.info("Read GridSet " + gridSet.getName());
-                return gridSet;
-            }).collect(Collectors.toMap(GridSet::getName, Function.identity(), (GridSet x, GridSet y) -> {
-                throw new IllegalStateException("Gridsets with duplicate name " + x.getName());
-            }, HashMap::new));
+                                        LOGGER.info("Read GridSet " + gridSet.getName());
+                                        return gridSet;
+                                    })
+                            .collect(
+                                    Collectors.toMap(
+                                            GridSet::getName,
+                                            Function.identity(),
+                                            (GridSet x, GridSet y) -> {
+                                                throw new IllegalStateException(
+                                                        "Gridsets with duplicate name "
+                                                                + x.getName());
+                                            },
+                                            HashMap::new));
         }
     }
 
     @Override
     public Collection<GridSet> getGridSets() {
-        return getGridSetsInternal().values().stream().map(GridSet::new).collect(Collectors.toList());
+        return getGridSetsInternal()
+                .values()
+                .stream()
+                .map(GridSet::new)
+                .collect(Collectors.toList());
     }
 
     @Override
     public synchronized void modifyGridSet(GridSet gridSet)
-                    throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
+            throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
         validateGridSet(gridSet);
 
         GridSet old = getGridSetsInternal().get(gridSet.getName());
@@ -1776,7 +1829,10 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
             throw new NoSuchElementException("GridSet " + gridSet.getName() + " does not exist");
         }
 
-        assert gwcConfig.getGridSets().stream().anyMatch(xgs -> xgs.getName().equals(gridSet.getName()));
+        assert gwcConfig
+                .getGridSets()
+                .stream()
+                .anyMatch(xgs -> xgs.getName().equals(gridSet.getName()));
 
         try {
             saveGridSet(gridSet);
@@ -1788,7 +1844,7 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
 
     @Override
     public void renameGridSet(String oldName, String newName)
-                    throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
+            throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
 
@@ -1860,29 +1916,29 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         public E execute(final String query) throws SQLException {
             final PostgresResultSet<E> res = new PostgresResultSet<E>();
 
-            runCommand(new PostgresCommand() {
+            runCommand(
+                    new PostgresCommand() {
 
-                @Override
-                public void execute(Connection con) throws SQLException {
-                    Statement s = null;
-                    ResultSet rs = null;
-                    try {
-                        s = con.createStatement();
-                        rs = s.executeQuery(query);
+                        @Override
+                        public void execute(Connection con) throws SQLException {
+                            Statement s = null;
+                            ResultSet rs = null;
+                            try {
+                                s = con.createStatement();
+                                rs = s.executeQuery(query);
 
-                        res.setObj(executeImpl(rs));
-                    } finally {
-                        SQLUtils.closeQuietly(rs);
-                        SQLUtils.closeQuietly(s);
-                    }
-                }
-            });
+                                res.setObj(executeImpl(rs));
+                            } finally {
+                                SQLUtils.closeQuietly(rs);
+                                SQLUtils.closeQuietly(s);
+                            }
+                        }
+                    });
 
             return res.getObj();
         }
 
         public abstract E executeImpl(ResultSet rs) throws SQLException;
-
     }
 
     private WMSLayer parseLayer(String json) {
@@ -1902,5 +1958,4 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         cacheManager.shutdown();
         LOGGER.info("Cache manager is shutdown");
     }
-
 }

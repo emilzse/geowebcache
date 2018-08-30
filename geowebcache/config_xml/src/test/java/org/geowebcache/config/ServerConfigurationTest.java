@@ -115,7 +115,8 @@ public class ServerConfigurationTest {
                         XMLConfiguration.DEFAULT_CONFIGURATION_FILE_NAME,
                         (WebApplicationContext) null,
                         configDir.getAbsolutePath(),
-                        null, 4);
+                        null,
+                        4);
         config = new XMLConfiguration(null, configProvider);
         ((XMLConfiguration) config).setGridSetBroker(gridSetBroker);
         config.afterPropertiesSet();

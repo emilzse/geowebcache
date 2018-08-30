@@ -25,10 +25,8 @@ import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.GeoWebCacheExtensions;
 import org.geowebcache.config.BaseConfiguration;
 import org.geowebcache.config.ConfigurationAggregator;
-import org.geowebcache.config.TileLayerConfiguration;
-import org.geowebcache.config.ServerConfiguration;
 import org.geowebcache.config.ConfigurationDispatcher;
-import org.geowebcache.config.XMLGridSet;
+import org.geowebcache.config.TileLayerConfiguration;
 import org.geowebcache.config.meta.ServiceInformation;
 import org.geowebcache.grid.GridSet;
 import org.geowebcache.grid.GridSetBroker;
@@ -149,17 +147,15 @@ public class TileLayerDispatcher
 
     /**
      * Returns a list of all the layers. The consumer may still have to initialize each layer!
-     * <p>
-     * Modifications to the returned layer do not change the internal list of layers, but layers ARE
-     * mutable.
-     * </p>
+     *
+     * <p>Modifications to the returned layer do not change the internal list of layers, but layers
+     * ARE mutable.
      *
      * @return a list view of this tile layer dispatcher's internal layers
      */
     @SuppressWarnings("unchecked")
     public Iterable<TileLayer> getLayerList(boolean activeOnly) {
-        List<Iterable<TileLayer>> perConfigLayers = new ArrayList<>(
-                configs.size());
+        List<Iterable<TileLayer>> perConfigLayers = new ArrayList<>(configs.size());
 
         for (TileLayerConfiguration config : configs) {
             perConfigLayers.add((Iterable<TileLayer>) config.getLayers(activeOnly));

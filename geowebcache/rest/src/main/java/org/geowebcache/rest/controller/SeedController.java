@@ -82,13 +82,15 @@ public class SeedController {
 
     /**
      * GET method for querying running tasks for the provided layer and specific task
+     *
      * @param req
      * @param layer
      * @param taskId
      * @return
      */
     @RequestMapping(value = "/seed/{layer}/{taskId}.json", method = RequestMethod.GET)
-    public ResponseEntity<?> doGet(HttpServletRequest req, @PathVariable String layer, @PathVariable Long taskId) {
+    public ResponseEntity<?> doGet(
+            HttpServletRequest req, @PathVariable String layer, @PathVariable Long taskId) {
         return seedService.getRunningLayerTasks(req, layer, taskId);
     }
 

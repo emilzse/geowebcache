@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.geowebcache.storage.StorageException;
 import org.geowebcache.storage.TileRange;
 
@@ -119,7 +118,7 @@ public class FilePathFilter implements FilenameFilter {
 
         if (tr.getParametersId() == null) {
             // GT: If no parameters provided delete always
-            return true;//parameter == null;
+            return true; // parameter == null;
         } else {
             String parameter = findParameter(gridSetPrefix, name);
             return tr.getParametersId().equals(parameter);
@@ -174,7 +173,6 @@ public class FilePathFilter implements FilenameFilter {
                 paths.add(path.toString());
             }
         }
-
 
         return paths;
     }

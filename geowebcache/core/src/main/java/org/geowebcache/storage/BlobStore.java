@@ -101,9 +101,8 @@ public interface BlobStore {
 
     /**
      * Delete the cached blob associated with the tiles in the given list.
-     * 
-     * @param obj
-     *            the tiles
+     *
+     * @param obj the tiles
      * @return {@literal true} if successful, {@literal false} otherwise
      * @throws StorageException
      */

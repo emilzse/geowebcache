@@ -119,7 +119,7 @@ public class MassTruncateController extends GWCSeedingController {
 
         Object obj = null;
 
-        if (contentType==null || contentType.toLowerCase().startsWith("text/xml")) {
+        if (contentType == null || contentType.toLowerCase().startsWith("text/xml")) {
             obj = xs.fromXML(req.getInputStream());
         } else if (contentType.equalsIgnoreCase("json")) {
             StringWriter writer = new StringWriter();

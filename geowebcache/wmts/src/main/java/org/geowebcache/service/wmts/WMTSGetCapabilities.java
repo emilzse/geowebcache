@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.CaseInsensitiveMap;
 import org.apache.commons.logging.Log;
@@ -66,24 +65,16 @@ public class WMTSGetCapabilities {
 
     private GridSetBroker gsb;
 
-    /**
-     * @see #GWC_LAYERS
-     */
+    /** @see #GWC_LAYERS */
     private List<TileLayer> layers = new ArrayList<TileLayer>();
 
-    /**
-     * @see #GWC_SRS
-     */
+    /** @see #GWC_SRS */
     private String srs;
 
-    /**
-     * To restrict response provide SRS parameter
-     */
+    /** To restrict response provide SRS parameter */
     private static final String GWC_SRS = "SRS";
 
-    /**
-     * To restrict response to a specific layer provide LAYERS parameter
-     */
+    /** To restrict response to a specific layer provide LAYERS parameter */
     private static final String GWC_LAYERS = "LAYERS";
 
     private String baseUrl;
@@ -131,7 +122,7 @@ public class WMTSGetCapabilities {
         if (layers.isEmpty()) {
             if (!allowAllLayers) {
                 throw new IllegalArgumentException(
-                                "LAYERS-parameter is mandatory with atleast one existing layer");
+                        "LAYERS-parameter is mandatory with atleast one existing layer");
             }
 
             // get all layers
@@ -140,7 +131,6 @@ public class WMTSGetCapabilities {
 
         // only return grid set for following srs
         srs = map.containsKey(GWC_SRS) ? ((String[]) map.get(GWC_SRS))[0] : null;
-
 
         String forcedBaseUrl =
                 ServletUtils.stringFromMap(
@@ -747,30 +737,32 @@ public class WMTSGetCapabilities {
         for (String gridSetId : layer.getGridSubsets()) {
             // only selected SRS
             if (srs == null || srs.equals(gridSetId)) {
-            GridSubset gridSubset = layer.getGridSubset(gridSetId);
+                GridSubset gridSubset = layer.getGridSubset(gridSetId);
 
-            xml.indentElement("TileMatrixSetLink");
-            xml.simpleElement("TileMatrixSet", gridSubset.getName(), true);
+                xml.indentElement("TileMatrixSetLink");
+                xml.simpleElement("TileMatrixSet", gridSubset.getName(), true);
 
-            if (!gridSubset.fullGridSetCoverage()) {
-                String[] levelNames = gridSubset.getGridNames();
-                long[][] wmtsLimits = gridSubset.getWMTSCoverages();
+                if (!gridSubset.fullGridSetCoverage()) {
+                    String[] levelNames = gridSubset.getGridNames();
+                    long[][] wmtsLimits = gridSubset.getWMTSCoverages();
 
-                xml.indentElement("TileMatrixSetLimits");
-                for (int i = 0; i < levelNames.length; i++) {
-                    xml.indentElement("TileMatrixLimits");
-                    xml.simpleElement("TileMatrix", levelNames[i], true);
-                    xml.simpleElement("MinTileRow", Long.toString(wmtsLimits[i][1]), true);
-                    xml.simpleElement("MaxTileRow", Long.toString(wmtsLimits[i][3]), true);
-                    xml.simpleElement("MinTileCol", Long.toString(wmtsLimits[i][0]), true);
-                    xml.simpleElement("MaxTileCol", Long.toString(wmtsLimits[i][2]), true);
+                    xml.indentElement("TileMatrixSetLimits");
+                    for (int i = 0; i < levelNames.length; i++) {
+                        xml.indentElement("TileMatrixLimits");
+                        xml.simpleElement("TileMatrix", levelNames[i], true);
+                        xml.simpleElement("MinTileRow", Long.toString(wmtsLimits[i][1]), true);
+                        xml.simpleElement("MaxTileRow", Long.toString(wmtsLimits[i][3]), true);
+                        xml.simpleElement("MinTileCol", Long.toString(wmtsLimits[i][0]), true);
+                        xml.simpleElement("MaxTileCol", Long.toString(wmtsLimits[i][2]), true);
+                        xml.endElement();
+                    }
                     xml.endElement();
                 }
-                xml.endElement();
+                xml.endElement("TileMatrixSetLink");
             }
-            xml.endElement("TileMatrixSetLink");
         }
     }
+
     /**
      * For each layer discovers the available image formats, feature info formats and dimensions and
      * produce the necessary <ResourceURL> elements.

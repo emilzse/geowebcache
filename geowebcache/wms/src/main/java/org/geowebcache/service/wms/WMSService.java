@@ -34,10 +34,9 @@ import org.geowebcache.GeoWebCacheDispatcher;
 import org.geowebcache.GeoWebCacheException;
 import org.geowebcache.GeoWebCacheExtensions;
 import org.geowebcache.config.BaseConfiguration;
+import org.geowebcache.config.ConfigurationDispatcher;
 import org.geowebcache.config.ServerConfiguration;
 import org.geowebcache.config.TileLayerConfiguration;
-import org.geowebcache.config.XMLConfiguration;
-import org.geowebcache.config.ConfigurationDispatcher;
 import org.geowebcache.conveyor.Conveyor;
 import org.geowebcache.conveyor.ConveyorTile;
 import org.geowebcache.filter.security.SecurityDispatcher;
@@ -246,7 +245,12 @@ public class WMSService extends Service {
         {
             GridSubset bestMatch =
                     findBestMatchingGrid(
-                            bbox, crsMatchingSubsets, tileWidth, tileHeight, tileIndexTarget, requestSrs);
+                            bbox,
+                            crsMatchingSubsets,
+                            tileWidth,
+                            tileHeight,
+                            tileIndexTarget,
+                            requestSrs);
             if (bestMatch == null) {
                 // proceed as it used to be
                 gridSubset = crsMatchingSubsets.get(0);
@@ -279,7 +283,7 @@ public class WMSService extends Service {
                 tile.setHint("getmap");
                 tile.setRequestHandler(ConveyorTile.RequestHandler.SERVICE);
                 // use the one computed by bestMatch
-//                tile.setGridSetId(gridSubset.getName());
+                //                tile.setGridSetId(gridSubset.getName());
                 return tile;
             }
         }
@@ -367,11 +371,13 @@ public class WMSService extends Service {
         }
     }
 
-//    protected WMSTileFuser getFuser(HttpServletRequest servletReq) throws GeoWebCacheException {
-//        return getFuser(servletReq, null);
-//    }
+    //    protected WMSTileFuser getFuser(HttpServletRequest servletReq) throws GeoWebCacheException
+    // {
+    //        return getFuser(servletReq, null);
+    //    }
 
-    protected WMSTileFuser getFuser(HttpServletRequest servletReq, String gridsetId) throws GeoWebCacheException {
+    protected WMSTileFuser getFuser(HttpServletRequest servletReq, String gridsetId)
+            throws GeoWebCacheException {
         WMSTileFuser wmsFuser = new WMSTileFuser(tld, sb, servletReq, gridsetId);
         wmsFuser.setSecurityDispatcher(getSecurityDispatcher());
         // Setting of the applicationContext

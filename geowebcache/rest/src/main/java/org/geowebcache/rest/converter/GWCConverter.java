@@ -103,7 +103,7 @@ public class GWCConverter<T> extends AbstractHttpMessageConverter<T>
 
         XStream xs =
                 configureXStream(
-                           ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                        ConfigurationDispatcher.getConfiguredXStreamWithContext(
                                 new GeoWebCacheXStream(new DomDriver()),
                                 context,
                                 ContextualConfigurationProvider.Context.REST));
@@ -172,7 +172,7 @@ public class GWCConverter<T> extends AbstractHttpMessageConverter<T>
 
                 xs =
                         configureXStream(
-                                        ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                                ConfigurationDispatcher.getConfiguredXStreamWithContext(
                                         xs, context, ContextualConfigurationProvider.Context.REST));
                 String xmlText =
                         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xs.toXML(xsObject);
@@ -181,7 +181,7 @@ public class GWCConverter<T> extends AbstractHttpMessageConverter<T>
             } else if (MediaType.APPLICATION_JSON.isCompatibleWith(contentType)) {
                 XStream xs =
                         configureXStream(
-                                        ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                                ConfigurationDispatcher.getConfiguredXStreamWithContext(
                                         new GeoWebCacheXStream(new JsonHierarchicalStreamDriver()),
                                         context,
                                         ContextualConfigurationProvider.Context.REST));

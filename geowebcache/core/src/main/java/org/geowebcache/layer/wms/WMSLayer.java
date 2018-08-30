@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpMethodBase;
@@ -33,8 +32,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
-import org.geowebcache.config.XMLGridSubset;
-import org.geowebcache.config.legends.LegendsRawInfo;
 import org.geowebcache.config.XMLGridSubset;
 import org.geowebcache.config.legends.LegendsRawInfo;
 import org.geowebcache.conveyor.Conveyor.CacheResult;
@@ -135,7 +132,7 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
 
     // protected to be able extend
     protected WMSLayer() {
-        //default constructor for XStream
+        // default constructor for XStream
     }
 
     /**
@@ -358,10 +355,15 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
                             lock = lockProvider.getLock(metaKey);
                         } catch (Exception e) {
                             if (log.isDebugEnabled()) {
-                                log.debug("Failed fetching lock.. will sleep.. key=" + metaKey
-                                        + " count=" + i + " elapsedTime="
-                                        + (System.currentTimeMillis() - startTime)
-                                        + " msg=" + e.getMessage());
+                                log.debug(
+                                        "Failed fetching lock.. will sleep.. key="
+                                                + metaKey
+                                                + " count="
+                                                + i
+                                                + " elapsedTime="
+                                                + (System.currentTimeMillis() - startTime)
+                                                + " msg="
+                                                + e.getMessage());
                             }
 
                             try {
@@ -388,8 +390,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
                         } else {
                             // Okay, so we need to go to the backend
                             if (mime.supportsTiling()) {
-                                returnTile = getMetatilingReponse(tile, false, false, lock,
-                                        metaTile);
+                                returnTile =
+                                        getMetatilingReponse(tile, false, false, lock, metaTile);
                             } else {
                                 returnTile = getNonMetatilingReponse(tile, false, false, lock);
                             }
@@ -415,7 +417,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
 
                         log.warn(
                                 "Could not get lock or to many concurrent requests to backend.. elapsedTime="
-                                        + (System.currentTimeMillis() - startTime) + " redirect="
+                                        + (System.currentTimeMillis() - startTime)
+                                        + " redirect="
                                         + redirectUrl);
 
                         if (tile.servletResp != null) {
@@ -466,9 +469,16 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
         if (filteringParameters.isEmpty()) {
             filteringParameters = getDefaultParameterFilters();
         }
-        WMSMetaTile metaTile = new WMSMetaTile(this, gridSubset, mimeType,
-                this.getFormatModifier(tile.getMimeType()), gridLoc, metaWidthHeight[0],
-                metaWidthHeight[1], filteringParameters);
+        WMSMetaTile metaTile =
+                new WMSMetaTile(
+                        this,
+                        gridSubset,
+                        mimeType,
+                        this.getFormatModifier(tile.getMimeType()),
+                        gridLoc,
+                        metaWidthHeight[0],
+                        metaWidthHeight[1],
+                        filteringParameters);
 
         // Leave a hint to save expiration, if necessary
         if (saveExpirationHeaders) {
@@ -486,8 +496,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
                 if (e.getValue().length > 0) {
                     String key = e.getKey();
                     // will set origin layers
-                    String value = key.equalsIgnoreCase("LAYERS") ? getWmsLayers()
-                            : e.getValue()[0];
+                    String value =
+                            key.equalsIgnoreCase("LAYERS") ? getWmsLayers() : e.getValue()[0];
 
                     params[i] = new NameValuePair(key, value);
                     i++;
@@ -520,9 +530,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
      * @param cacheOnly if true will create new tile if it already exists else return null
      * @throws GeoWebCacheException
      */
-    private ConveyorTile getMetatilingReponse(ConveyorTile tile, boolean tryCache,
-            boolean cacheOnly, Lock lock,
-            WMSMetaTile metaTile)
+    private ConveyorTile getMetatilingReponse(
+            ConveyorTile tile, boolean tryCache, boolean cacheOnly, Lock lock, WMSMetaTile metaTile)
             throws GeoWebCacheException {
 
         WMSMetaTile internalMetaTile = metaTile == null ? createMetaTile(tile) : metaTile;
@@ -534,7 +543,7 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
 
             internalLock = lock == null ? lockProvider.getLock(lockKey) : null;
 
-            /** Only seed if in cache **/
+            /** Only seed if in cache * */
             if (cacheOnly) {
                 if (!tryCacheFetch(tile, false)) {
                     return null;
@@ -628,8 +637,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
      * @param cacheOnly if true will create new tile if it already exists else return null
      * @throws GeoWebCacheException
      */
-    private ConveyorTile getNonMetatilingReponse(ConveyorTile tile, boolean tryCache,
-            boolean cacheOnly, Lock lock)
+    private ConveyorTile getNonMetatilingReponse(
+            ConveyorTile tile, boolean tryCache, boolean cacheOnly, Lock lock)
             throws GeoWebCacheException {
         // String debugHeadersStr = null;
         long[] gridLoc = tile.getTileIndex();
@@ -640,7 +649,7 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
             /** ****************** Acquire lock ******************* */
             internalLock = lock == null ? lockProvider.getLock(lockKey) : null;
 
-            /** Only seed if in cache **/
+            /** Only seed if in cache * */
             if (cacheOnly) {
                 if (!tryCacheFetch(tile, false)) {
                     return null;
@@ -689,10 +698,8 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
     }
 
     /**
-     *
      * @param tile
-     * @param controlExpireCache
-     *            if true (default) then will check if the tile is recent enough
+     * @param controlExpireCache if true (default) then will check if the tile is recent enough
      * @return
      */
     public boolean tryCacheFetch(ConveyorTile tile, boolean controlExpireCache) {
@@ -1066,7 +1073,7 @@ public class WMSLayer extends AbstractTileLayer implements ProxyLayer {
             IOUtils.closeQuietly(is);
         }
     }
-	/**
+    /**
      * How many connections can be opened at the same time to generate new cached tiles (<= 0 = no
      * limit, defaults to 0)
      *

@@ -34,7 +34,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-
 import javax.sql.DataSource;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.logging.Log;
@@ -682,11 +681,13 @@ public class JDBCQuotaStore implements QuotaStore {
         params.put("numHits", new BigDecimal(stats.getNumHits()));
         params.put("geom", page.getEwkt());
         params.put("parametersKvp", page.getParametersKvp() == null ? "" : page.getParametersKvp());
-        params.put("tileIndex",
-                page.getPageCoverage() == null ? ""
-                        : Arrays.stream(page.getPageCoverage()).mapToObj(String::valueOf)
+        params.put(
+                "tileIndex",
+                page.getPageCoverage() == null
+                        ? ""
+                        : Arrays.stream(page.getPageCoverage())
+                                .mapToObj(String::valueOf)
                                 .collect(Collectors.joining(",")));
-
 
         // try the insert, mind, someone else might have done it as well, in such
         // case the insert will fail and return 0 record modified
@@ -1007,8 +1008,7 @@ public class JDBCQuotaStore implements QuotaStore {
 
         private boolean tileInfo = false;
 
-        public TilePageRowMapper() {
-        }
+        public TilePageRowMapper() {}
 
         public TilePageRowMapper(boolean tileInfo) {
             this.tileInfo = tileInfo;
@@ -1021,11 +1021,15 @@ public class JDBCQuotaStore implements QuotaStore {
             int pageZ = rs.getInt(4);
             int creationTimeMinutes = rs.getInt(5);
             String paramKvp = tileInfo ? rs.getString(6) : null;
-            long[] tileIndex = tileInfo
-                    ? Arrays.stream(rs.getString(7).split(",")).mapToLong(Long::parseLong).toArray()
-                    : null;
+            long[] tileIndex =
+                    tileInfo
+                            ? Arrays.stream(rs.getString(7).split(","))
+                                    .mapToLong(Long::parseLong)
+                                    .toArray()
+                            : null;
 
-            return new TilePage(tileSetId, pageX, pageY, pageZ, creationTimeMinutes, paramKvp, tileIndex);
+            return new TilePage(
+                    tileSetId, pageX, pageY, pageZ, creationTimeMinutes, paramKvp, tileIndex);
         }
     }
 
@@ -1074,7 +1078,8 @@ public class JDBCQuotaStore implements QuotaStore {
 
     @Override
     public void validateTilePages(String layerName, Integer maxPageZ) {
-        String sql = getValidateTilePageQuery(schema, "layer", maxPageZ != null ? "maxPageZ" : null);
+        String sql =
+                getValidateTilePageQuery(schema, "layer", maxPageZ != null ? "maxPageZ" : null);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("layer", layerName);
         if (maxPageZ != null) {
@@ -1094,8 +1099,11 @@ public class JDBCQuotaStore implements QuotaStore {
     }
 
     @Override
-    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted, Integer maxPageZ) {
-        String sql = getInvalidatedTilePagesQuery(schema, "layer", "invalidated", maxPageZ != null ? "maxPageZ" : null);
+    public List<TilePage> getInvalidatedTilePages(
+            String layerName, boolean deleted, Integer maxPageZ) {
+        String sql =
+                getInvalidatedTilePagesQuery(
+                        schema, "layer", "invalidated", maxPageZ != null ? "maxPageZ" : null);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("layer", layerName);
         params.put("invalidated", deleted ? 2 : 1);
@@ -1132,9 +1140,11 @@ public class JDBCQuotaStore implements QuotaStore {
      * @param ewktParam
      * @return
      */
-    private String getInvalidatedTilePagesQuery(String schema, String layerNameParam, String invalidatedParam, String maxPageZParam) {
-        StringBuilder sb = new StringBuilder(
-                "SELECT TILESET_ID, PAGE_X, PAGE_Y, PAGE_Z, CREATION_TIME_MINUTES, PARAMETERS_KVP, TILE_INDEX FROM ");
+    private String getInvalidatedTilePagesQuery(
+            String schema, String layerNameParam, String invalidatedParam, String maxPageZParam) {
+        StringBuilder sb =
+                new StringBuilder(
+                        "SELECT TILESET_ID, PAGE_X, PAGE_Y, PAGE_Z, CREATION_TIME_MINUTES, PARAMETERS_KVP, TILE_INDEX FROM ");
         if (schema != null) {
             sb.append(schema).append(".");
         }
@@ -1159,14 +1169,16 @@ public class JDBCQuotaStore implements QuotaStore {
      * @param layerNameParam
      * @return update tilepage query with invalidated = true where intersects geo and page_z >
      */
-    private String getInvalidateTilePageQuery(String schema, String ewktParam, String layerNameParam,
-            String zoomLevelParam) {
+    private String getInvalidateTilePageQuery(
+            String schema, String ewktParam, String layerNameParam, String zoomLevelParam) {
         StringBuilder sb = new StringBuilder("UPDATE ");
         if (schema != null) {
             sb.append(schema).append(".");
         }
         sb.append("TILEPAGE SET invalidated = 1");
-        sb.append(" WHERE invalidated != 2 AND ST_INTERSECTS(geo, ST_TRANSFORM(ST_GEOMFROMEWKT(:").append(ewktParam).append("), 4326))");
+        sb.append(" WHERE invalidated != 2 AND ST_INTERSECTS(geo, ST_TRANSFORM(ST_GEOMFROMEWKT(:")
+                .append(ewktParam)
+                .append("), 4326))");
         sb.append(" AND PAGE_Z >= :").append(zoomLevelParam);
         sb.append(" AND TILESET_ID IN (");
         sb.append("SELECT KEY FROM ");
@@ -1186,7 +1198,8 @@ public class JDBCQuotaStore implements QuotaStore {
      * @param layerNameParam
      * @return
      */
-    private String getValidateTilePageQuery(String schema, String layerNameParam, String maxPageZParam) {
+    private String getValidateTilePageQuery(
+            String schema, String layerNameParam, String maxPageZParam) {
         StringBuilder sb = new StringBuilder("UPDATE ");
         if (schema != null) {
             sb.append(schema).append(".");
@@ -1231,5 +1244,4 @@ public class JDBCQuotaStore implements QuotaStore {
 
         return sb.toString();
     }
-
 }

@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.stream.Collectors;
 import org.geowebcache.MockWepAppContextRule;
 import org.geowebcache.grid.GridSetBroker;
 
@@ -49,7 +48,8 @@ public class TestXMLConfigurationSource {
                         XMLConfiguration.DEFAULT_CONFIGURATION_FILE_NAME,
                         extensions.getMockContext(),
                         configDir.getAbsolutePath(),
-                        null) {
+                        null,
+                        4) {
 
                     @Override
                     public InputStream in() throws IOException {
@@ -71,7 +71,8 @@ public class TestXMLConfigurationSource {
                 };
         XMLConfiguration config =
                 new XMLConfiguration(extensions.getContextProvider(), configProvider);
-        extensions.addBean("ConfigurationDispatcher", config, ConfigurationDispatcher.class.getInterfaces());
+        extensions.addBean(
+                "ConfigurationDispatcher", config, ConfigurationDispatcher.class.getInterfaces());
         ((XMLConfiguration) config).setGridSetBroker(gridSetBroker);
         config.afterPropertiesSet();
         defaultGridsets.afterPropertiesSet();

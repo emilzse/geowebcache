@@ -102,8 +102,12 @@ class SeedTask extends GWCTask {
         final long START_TIME = System.currentTimeMillis();
 
         final String layerName = tl.getName();
-        log.info(getThreadName() + " begins seeding layer : " + layerName
-                + " with seed type : " + parsedType);
+        log.info(
+                getThreadName()
+                        + " begins seeding layer : "
+                        + layerName
+                        + " with seed type : "
+                        + parsedType);
 
         TileRange tr = trIter.getTileRange();
 
@@ -215,7 +219,9 @@ class SeedTask extends GWCTask {
         } else {
             log.info(
                     getThreadName()
-                            + " completed " + parsedType.toString() + " layer "
+                            + " completed "
+                            + parsedType.toString()
+                            + " layer "
                             + layerName
                             + " after "
                             + this.tilesDone

@@ -1,9 +1,16 @@
 package org.geowebcache.config;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.filter.parameters.FloatParameterFilter;
@@ -13,25 +20,14 @@ import org.geowebcache.filter.parameters.RegexParameterFilter;
 import org.geowebcache.filter.parameters.StringParameterFilter;
 import org.geowebcache.layer.wms.WMSLayer;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-
 /**
  * Class to handle parsing of {@link WMSLayer} with {@link ParameterFilter}s set
- * <p>
- * Supports: {@link RegexParameterFilter}, {@link StringParameterFilter},
- * {@link FloatParameterFilter} and {@link IntegerParameterFilter} (float/int must have threshold
- * defined to detect correct filter class)
- * </p>
- * 
- * @author ez
  *
+ * <p>Supports: {@link RegexParameterFilter}, {@link StringParameterFilter}, {@link
+ * FloatParameterFilter} and {@link IntegerParameterFilter} (float/int must have threshold defined
+ * to detect correct filter class)
+ *
+ * @author ez
  */
 public class WMSLayerDeserializer implements JsonDeserializer<GsonWMSLayer> {
 
@@ -39,10 +35,8 @@ public class WMSLayerDeserializer implements JsonDeserializer<GsonWMSLayer> {
 
     private static final String PARAMETER_FILTERS = "parameterFilters";
 
-    /**
-     * internal GSON without specific deserializer
-     */
-    private final static Gson GSON;
+    /** internal GSON without specific deserializer */
+    private static final Gson GSON;
 
     static {
         // handle null..
@@ -50,8 +44,9 @@ public class WMSLayerDeserializer implements JsonDeserializer<GsonWMSLayer> {
     }
 
     @Override
-    public GsonWMSLayer deserialize(final JsonElement json, final Type typeOfT,
-            final JsonDeserializationContext context) throws JsonParseException {
+    public GsonWMSLayer deserialize(
+            final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
+            throws JsonParseException {
         try {
             final JsonObject jsonObject = json.getAsJsonObject();
 
@@ -82,7 +77,8 @@ public class WMSLayerDeserializer implements JsonDeserializer<GsonWMSLayer> {
             return item;
         } catch (JsonParseException e) {
             log.error(
-                    String.format("Failed to deserialize into GsonWMSLayer: json='%s' message='%s'",
+                    String.format(
+                            "Failed to deserialize into GsonWMSLayer: json='%s' message='%s'",
                             json, e.getMessage()));
 
             throw e;
@@ -94,7 +90,7 @@ public class WMSLayerDeserializer implements JsonDeserializer<GsonWMSLayer> {
         if (paramFilter.has("regex")) {
             // regex filter
             filter = JSONUtils.parseObject(paramFilter, RegexParameterFilter.class);
-            
+
             // needs to reset regex to recompile Pattern
             ((RegexParameterFilter) filter).setRegex(((RegexParameterFilter) filter).getRegex());
         } else if (paramFilter.has("threshold")) {

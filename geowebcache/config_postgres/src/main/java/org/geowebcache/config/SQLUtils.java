@@ -6,14 +6,14 @@ import java.sql.Statement;
 
 /**
  * Helper class
- * @author ez
  *
+ * @author ez
  */
 public class SQLUtils {
 
     /**
      * Will handle null and exceptions
-     * 
+     *
      * @param rs
      */
     public static void closeQuietly(ResultSet rs) {
@@ -27,7 +27,7 @@ public class SQLUtils {
 
     /**
      * Will handle null and exceptions
-     * 
+     *
      * @param c
      */
     public static void closeQuietly(Connection c) {
@@ -41,7 +41,7 @@ public class SQLUtils {
 
     /**
      * Will handle null and exceptions
-     * 
+     *
      * @param s
      */
     public static void closeQuietly(Statement s) {
@@ -52,5 +52,4 @@ public class SQLUtils {
         } catch (Throwable e) {
         }
     }
-    
 }

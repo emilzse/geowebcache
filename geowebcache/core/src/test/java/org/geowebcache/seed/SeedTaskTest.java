@@ -54,8 +54,6 @@ import org.geowebcache.storage.TileRangeIterator;
 import org.geowebcache.util.MockWMSSourceHelper;
 import org.geowebcache.util.Sleeper;
 
-import junit.framework.TestCase;
-
 /**
  * Unit test suite for {@link SeedTask}
  *

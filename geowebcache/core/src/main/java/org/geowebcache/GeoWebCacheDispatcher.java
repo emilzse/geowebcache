@@ -422,7 +422,8 @@ public class GeoWebCacheDispatcher extends AbstractController {
                 service.handleRequest(conv);
             } catch (OutsideCoverageException e) {
                 // if outside of coverage respond with empty tile
-                ResponseUtils.writeEmpty(defaultStorageFinder, (ConveyorTile) conv, e.getMessage(), runtimeStats);
+                ResponseUtils.writeEmpty(
+                        defaultStorageFinder, (ConveyorTile) conv, e.getMessage(), runtimeStats);
             }
         } else {
             ResponseUtils.writeTile(

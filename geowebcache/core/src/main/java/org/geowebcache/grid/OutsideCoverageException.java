@@ -43,5 +43,4 @@ public class OutsideCoverageException extends GeoWebCacheException {
     public OutsideCoverageException(String msg) {
         super(msg);
     }
-
 }

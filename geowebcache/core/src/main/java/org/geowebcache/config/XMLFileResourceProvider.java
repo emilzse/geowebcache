@@ -57,9 +57,7 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
     /** Name of the configuration file */
     private final String configFileName;
 
-    /**
-     * How many old configuration backups should can be kept
-     */
+    /** How many old configuration backups should can be kept */
     private final int maxBackups;
 
     private String templateLocation;
@@ -119,7 +117,8 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
                 configFileName,
                 appCtx == null ? null : appCtx.getApplicationContext(),
                 configFileDirectory,
-                storageDirFinder, 10);
+                storageDirFinder,
+                10);
     }
 
     /**
@@ -137,7 +136,7 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
             throws ConfigurationException {
         this(
                 configFileName,
-                appCtx,
+                appCtx == null ? null : appCtx.getApplicationContext(),
                 getConfigDirVar(appCtx.getApplicationContext()),
                 storageDirFinder,
                 getConfigMaxBackups(appCtx.getApplicationContext()));
@@ -156,7 +155,12 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
             final WebApplicationContext appCtx,
             final DefaultStorageFinder storageDirFinder)
             throws ConfigurationException {
-        this(configFileName, appCtx, getConfigDirVar(appCtx), storageDirFinder, getConfigMaxBackups(appCtx));
+        this(
+                configFileName,
+                appCtx,
+                getConfigDirVar(appCtx),
+                storageDirFinder,
+                getConfigMaxBackups(appCtx));
     }
 
     @Override
@@ -285,12 +289,19 @@ public class XMLFileResourceProvider implements ConfigurationResourceProvider {
                                 }
 
                                 // is file a backup file
-                                return name.startsWith(backupfileNamePrefix) && name.endsWith(extension);
+                                return name.startsWith(backupfileNamePrefix)
+                                        && name.endsWith(extension);
                             }
                         });
 
-        log.debug("Backing up config file " + xmlFile.getName() + " to " + backUpFileName + ". "
-                + previousBackUps.length + " previous backups");
+        log.debug(
+                "Backing up config file "
+                        + xmlFile.getName()
+                        + " to "
+                        + backUpFileName
+                        + ". "
+                        + previousBackUps.length
+                        + " previous backups");
 
         if (previousBackUps.length > maxBackups) {
             Arrays.sort(previousBackUps);

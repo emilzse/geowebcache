@@ -157,7 +157,10 @@ public abstract class AbstractS3BlobStoreIntegrationTest {
                         eq(20L),
                         eq(30L),
                         eq(12),
-                        eq((long) bytes.length));
+                        eq((long) bytes.length),
+                        eq(0),
+                        eq(null),
+                        eq(null));
 
         // update tile
         tile = queryTile(20, 30, 12);

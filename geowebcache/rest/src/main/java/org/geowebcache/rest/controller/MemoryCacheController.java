@@ -130,7 +130,7 @@ public class MemoryCacheController {
         JSONObject rep = null;
         try {
             XStream xs =
-                            ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                    ConfigurationDispatcher.getConfiguredXStreamWithContext(
                             new GeoWebCacheXStream(new JsonHierarchicalStreamDriver()),
                             context,
                             Context.REST);

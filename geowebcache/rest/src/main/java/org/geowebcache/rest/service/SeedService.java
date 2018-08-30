@@ -30,10 +30,7 @@ import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -102,11 +99,13 @@ public class SeedService {
 
     /**
      * GET method for querying running tasks for the provided layer
+     *
      * @param request
      * @param layer
      * @return
      */
-    public ResponseEntity<?> getRunningLayerTasks(HttpServletRequest request, String layer, Long taskId) {
+    public ResponseEntity<?> getRunningLayerTasks(
+            HttpServletRequest request, String layer, Long taskId) {
         try {
             XStream xs = new GeoWebCacheXStream(new JsonHierarchicalStreamDriver());
             JSONObject obj = null;
@@ -233,9 +232,10 @@ public class SeedService {
                         "Format extension unknown or not specified: " + extension,
                         HttpStatus.BAD_REQUEST);
             }
-            return new ResponseEntity<Object>(Arrays.toString(handleRequest(layer, obj)), HttpStatus.OK);
+            return new ResponseEntity<Object>(
+                    Arrays.toString(handleRequest(layer, obj)), HttpStatus.OK);
         } catch (IOException e) {
-            return new ResponseEntity<Object>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

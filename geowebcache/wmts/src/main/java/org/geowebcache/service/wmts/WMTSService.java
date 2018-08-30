@@ -77,9 +77,7 @@ public class WMTSService extends Service {
 
     private ServerConfiguration mainConfiguration;
 
-    /**
-     * If all layers should be supported in GetCapabilities
-     */
+    /** If all layers should be supported in GetCapabilities */
     private boolean allowAllLayers = true;
 
     // list of this service extensions ordered by their priority
@@ -122,8 +120,14 @@ public class WMTSService extends Service {
         extensions.addAll(GeoWebCacheExtensions.extensions(WMTSExtension.class));
     }
 
-    public WMTSService(StorageBroker sb, TileLayerDispatcher tld, GridSetBroker gsb,
-            RuntimeStats stats, URLMangler urlMangler, GeoWebCacheDispatcher controller, boolean allowAllLayers) {
+    public WMTSService(
+            StorageBroker sb,
+            TileLayerDispatcher tld,
+            GridSetBroker gsb,
+            RuntimeStats stats,
+            URLMangler urlMangler,
+            GeoWebCacheDispatcher controller,
+            boolean allowAllLayers) {
         super(SERVICE_WMTS);
 
         this.sb = sb;

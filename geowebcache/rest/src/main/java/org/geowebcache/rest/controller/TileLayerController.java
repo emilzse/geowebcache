@@ -22,9 +22,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.geowebcache.GeoWebCacheDispatcher;
 import org.geowebcache.GeoWebCacheException;
-import org.geowebcache.config.BaseConfiguration;
 import org.geowebcache.config.ConfigurationDispatcher;
-import org.geowebcache.config.ContextualConfigurationProvider.Context;
 import org.geowebcache.filter.parameters.ParameterFilter;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.TileLayerDispatcher;
@@ -55,8 +53,7 @@ public class TileLayerController extends GWCController {
 
     @Autowired private StorageBroker storageBroker;
 
-    @Autowired
-    private ConfigurationDispatcher configDispatcher;
+    @Autowired private ConfigurationDispatcher configDispatcher;
 
     @ExceptionHandler(RestException.class)
     public ResponseEntity<?> handleRestException(RestException ex) {
@@ -233,5 +230,4 @@ public class TileLayerController extends GWCController {
     public void setConfigurationDispatcher(ConfigurationDispatcher configDispatcher) {
         this.configDispatcher = configDispatcher;
     }
-
 }

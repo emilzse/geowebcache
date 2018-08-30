@@ -24,7 +24,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.util.DateParseException;
@@ -191,7 +190,7 @@ public final class ResponseUtils {
      * Writes a transparent, 8 bit PNG to avoid having clients like OpenLayers showing lots of pink
      * tiles
      */
-    private static void writeEmpty(
+    public static void writeEmpty(
             DefaultStorageFinder defaultStorageFinder,
             ConveyorTile tile,
             String message,

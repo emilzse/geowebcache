@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.CaseInsensitiveMap;
 import org.apache.commons.logging.Log;
@@ -332,7 +331,7 @@ public class WMSGetCapabilities {
         HashSet<String> formats = new HashSet<String>();
 
         for (TileLayer layer : layers) {
-            if (!layer.isEnabled()  || !layer.isAdvertised()) {
+            if (!layer.isEnabled() || !layer.isAdvertised()) {
                 continue;
             }
             if (layer.getMimeTypes() != null) {

@@ -119,10 +119,13 @@ public class SQLDialect {
                                             + //
                                             " NUM_HITS NUMERIC("
                                             + NUM_HITS_SIZE
-                                            + ")\n" +
-                                            " GEOM VARCHAR,\n" + //
-                                            " PARAMETERS_KVP VARCHAR,\n" + //
-                                            " TILE_INDEX VARCHAR\n" + //
+                                            + "),\n"
+                                            + " GEOM VARCHAR,\n"
+                                            + //
+                                            " PARAMETERS_KVP VARCHAR,\n"
+                                            + //
+                                            " TILE_INDEX VARCHAR\n"
+                                            + //
                                             ")", //
                                     "CREATE INDEX TILEPAGE_TILESET ON ${schema}TILEPAGE(TILESET_ID, FILL_FACTOR)",
                                     "CREATE INDEX TILEPAGE_FREQUENCY ON ${schema}TILEPAGE(FREQUENCY_OF_USE DESC)",

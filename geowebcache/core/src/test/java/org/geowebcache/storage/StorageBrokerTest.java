@@ -6,8 +6,6 @@ import org.geowebcache.io.ByteArrayResource;
 import org.geowebcache.io.Resource;
 import org.geowebcache.storage.blobstore.file.FileBlobStore;
 
-import junit.framework.TestCase;
-
 public class StorageBrokerTest extends TestCase {
     public static final String TEST_DB_NAME = "gwcTestStorageBroker";
 

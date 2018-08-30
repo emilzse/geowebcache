@@ -215,8 +215,10 @@ public class TileBreeder implements ApplicationContextAware {
      * @throws GeoWebCacheException
      * @return list of task ids
      */
-    // TODO: The SeedRequest specifies a layer name. Would it make sense to use that instead of including one as a separate parameter?
-    public long[] seedWithResult(final String layerName, final SeedRequest sr) throws GeoWebCacheException {
+    // TODO: The SeedRequest specifies a layer name. Would it make sense to use that instead of
+    // including one as a separate parameter?
+    public long[] seedWithResult(final String layerName, final SeedRequest sr)
+            throws GeoWebCacheException {
 
         TileLayer tl = findTileLayer(layerName);
 
@@ -450,9 +452,9 @@ public class TileBreeder implements ApplicationContextAware {
      * threads for a specific layer.
      *
      * @return array of {@code [[tilesDone, tilesTotal, timeRemaining, taskID, taskStatus],...]}
-     *         where {@code taskStatus} is one of:
-     *         {@code 0 = PENDING, 1 = RUNNING, 2 = DONE, -1 = ABORTED}
-     * @param layerName the name of the layer.  null for all layers.
+     *     where {@code taskStatus} is one of: {@code 0 = PENDING, 1 = RUNNING, 2 = DONE, -1 =
+     *     ABORTED}
+     * @param layerName the name of the layer. null for all layers.
      * @return
      */
     public long[][] getStatusList(final String layerName, Long taskId) {
@@ -649,5 +651,4 @@ public class TileBreeder implements ApplicationContextAware {
     public int getMaxPoolSize() {
         return threadPool.getMaximumPoolSize();
     }
-
 }

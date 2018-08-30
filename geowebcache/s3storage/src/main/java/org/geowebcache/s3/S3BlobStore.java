@@ -489,5 +489,4 @@ public class S3BlobStore implements BlobStore {
         }
         return true;
     }
-    
 }

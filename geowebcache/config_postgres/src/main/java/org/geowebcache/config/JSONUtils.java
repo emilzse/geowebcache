@@ -1,45 +1,36 @@
 package org.geowebcache.config;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Helper class for JSON handling
- * 
- * @author ez
  *
+ * @author ez
  */
 public class JSONUtils {
 
-    /**
-     * Default encoding
-     */
+    /** Default encoding */
     private static final String UTF_8 = "UTF-8";
 
-    private final static GsonBuilder BUILDER;
+    private static final GsonBuilder BUILDER;
 
-    private final static Gson GSON_ISO8601_UTC;
+    private static final Gson GSON_ISO8601_UTC;
 
-    /**
-     * Will parse dates in system default date format
-     */
-    private final static Gson GSON_DEFAULT;
+    /** Will parse dates in system default date format */
+    private static final Gson GSON_DEFAULT;
 
-    /**
-     * value={@value #ISO8601_FULL_UTC_STRING}
-     */
-    private final static String ISO8601_FULL_UTC_STRING = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    /** value={@value #ISO8601_FULL_UTC_STRING} */
+    private static final String ISO8601_FULL_UTC_STRING = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     static {
         // handle null..
@@ -57,14 +48,12 @@ public class JSONUtils {
     }
 
     /**
-     * Creates a string of an object with UTF-8 encoding. Same as
-     * {@link #stringify(Object, boolean)}
-     * 
+     * Creates a string of an object with UTF-8 encoding. Same as {@link #stringify(Object,
+     * boolean)}
+     *
      * @param object
-     * @param pretty
-     *            false
+     * @param pretty false
      * @return object as json string or null
-     * 
      * @see #stringify(Object, boolean)
      */
     public static String stringify(Object object) {
@@ -73,12 +62,10 @@ public class JSONUtils {
 
     /**
      * Creates a string of an object with UTF-8 encoding
-     * 
+     *
      * @param object
-     * @param pretty
-     *            pretty printing
+     * @param pretty pretty printing
      * @return object as json string or null
-     * 
      * @see GsonBuilder#setPrettyPrinting()
      */
     public static String stringify(Object object, boolean pretty) {
@@ -113,7 +100,7 @@ public class JSONUtils {
 
     /**
      * Takes an object and parses it into given class.
-     * 
+     *
      * @param o
      * @param cls
      * @return
@@ -125,12 +112,10 @@ public class JSONUtils {
     /**
      * Will return a Object of type cls passed in. Be aware that generic list will not work with
      * this method, see method with TypeToken for parsing generic lists
-     * 
+     *
      * @param json
-     * @param cls
-     *            the class type of object to be returned
-     * @throws IllegalStateException
-     *             if string is not of json format
+     * @param cls the class type of object to be returned
+     * @throws IllegalStateException if string is not of json format
      * @see #stringify(Object)
      * @see #parse(String, TypeToken)
      * @return
@@ -159,8 +144,8 @@ public class JSONUtils {
         }
     }
 
-    private static Gson createGson(boolean serializeSpecialFloatingPoint, String dateFormat,
-            boolean pretty) {
+    private static Gson createGson(
+            boolean serializeSpecialFloatingPoint, String dateFormat, boolean pretty) {
         GsonBuilder b = new GsonBuilder();
         if (serializeSpecialFloatingPoint) {
             b.serializeSpecialFloatingPointValues();
@@ -177,5 +162,4 @@ public class JSONUtils {
 
         return b.create();
     }
-
 }

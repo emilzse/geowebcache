@@ -3,7 +3,6 @@ package org.geowebcache.diskquota;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -18,8 +17,6 @@ import org.geowebcache.diskquota.storage.Quota;
 import org.geowebcache.diskquota.storage.TilePage;
 import org.geowebcache.diskquota.storage.TilePageCalculator;
 import org.geowebcache.diskquota.storage.TileSet;
-import org.geowebcache.grid.GridSet;
-import org.geowebcache.grid.GridSetBroker;
 import org.springframework.util.Assert;
 
 public class QueuedQuotaUpdatesConsumer implements Callable<Long>, Serializable {

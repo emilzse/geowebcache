@@ -47,8 +47,11 @@ public class FloatParameterFilterTest {
         filter.setThreshold(0.00001f);
 
         xs = new GeoWebCacheXStream();
-        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs,
-                new StaticWebApplicationContext(), (ContextualConfigurationProvider.Context) null);
+        xs =
+                ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                        xs,
+                        new StaticWebApplicationContext(),
+                        (ContextualConfigurationProvider.Context) null);
     }
 
     @Test

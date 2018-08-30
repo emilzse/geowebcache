@@ -3,7 +3,6 @@ package org.geowebcache.storage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.geowebcache.filter.parameters.ParametersUtils;
 
 public final class BlobStoreListenerList {
@@ -100,7 +99,17 @@ public final class BlobStoreListenerList {
         listeners.forEach(
                 listener -> {
                     listener.tileStored(
-                            layerName, gridSetId, blobFormat, parametersId, x, y, z, length, epsgId, bbox, parametersKvp);
+                            layerName,
+                            gridSetId,
+                            blobFormat,
+                            parametersId,
+                            x,
+                            y,
+                            z,
+                            length,
+                            epsgId,
+                            bbox,
+                            parametersKvp);
                 });
     }
 
@@ -117,7 +126,17 @@ public final class BlobStoreListenerList {
         final String legacyKvp = ParametersUtils.getLegacyParametersKvp(stObj.getParameters());
 
         sendTileStored(
-                layerName, gridSetId, blobFormat, paramsId, xyz[0], xyz[1], (int) xyz[2], blobSize, bbox, epsgId, legacyKvp);
+                layerName,
+                gridSetId,
+                blobFormat,
+                paramsId,
+                xyz[0],
+                xyz[1],
+                (int) xyz[2],
+                blobSize,
+                bbox,
+                epsgId,
+                legacyKvp);
     }
 
     public void sendTileUpdated(

@@ -48,8 +48,11 @@ public class RegexParameterFilterTest {
         filter.setDefaultValue("Default");
 
         xs = new GeoWebCacheXStream();
-        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs,
-                new StaticWebApplicationContext(), (ContextualConfigurationProvider.Context) null);
+        xs =
+                ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                        xs,
+                        new StaticWebApplicationContext(),
+                        (ContextualConfigurationProvider.Context) null);
     }
 
     @Test

@@ -31,12 +31,22 @@ public class QuotaUpdate {
             int epsgId,
             double[] bbox,
             String parametersKvp) {
-        this(new TileSet(layerName, gridsetId, blobFormat, parametersId), size, tileIndex, epsgId,
-                        bbox, parametersKvp);
+        this(
+                new TileSet(layerName, gridsetId, blobFormat, parametersId),
+                size,
+                tileIndex,
+                epsgId,
+                bbox,
+                parametersKvp);
     }
 
-    public QuotaUpdate(TileSet tileset, long quotaUpdateSize, long[] tileIndex, int epsgId,
-            double[] bbox, String parametersKvp) {
+    public QuotaUpdate(
+            TileSet tileset,
+            long quotaUpdateSize,
+            long[] tileIndex,
+            int epsgId,
+            double[] bbox,
+            String parametersKvp) {
         this.tileSet = tileset;
         this.size = quotaUpdateSize;
         this.tileIndex = tileIndex;

@@ -14,6 +14,8 @@
  */
 package org.geowebcache.service.wms;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -34,7 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.media.jai.PlanarImage;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -68,9 +69,6 @@ import org.geowebcache.util.ServletUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 /*
  * It will work as follows
  * 2) Based on the dimensions and bounding box of the request, GWC will determine the smallest available resolution that equals or exceeds the requested resolution.
@@ -86,9 +84,9 @@ public class WMSTileFuser {
      *
      * @see WMSLayerDeserializer
      */
-    private final static Gson GSON;
+    private static final Gson GSON;
 
-    private final static ExecutorService EXECUTOR_SERVICE;
+    private static final ExecutorService EXECUTOR_SERVICE;
 
     // Creating shared object
     private static final BlockingQueue<TilesInfo> SHARED_QUEUE;
@@ -102,7 +100,6 @@ public class WMSTileFuser {
         Thread consThread = new Thread(new TilesConsumer(SHARED_QUEUE));
 
         consThread.start();
-
     }
 
     private ApplicationContext applicationContext;
@@ -343,12 +340,23 @@ public class WMSTileFuser {
         this(tld, sb, servReq, null);
     }
 
-    protected WMSTileFuser(TileLayerDispatcher tld, StorageBroker sb, HttpServletRequest servReq, String gridSetId)
+    protected WMSTileFuser(
+            TileLayerDispatcher tld, StorageBroker sb, HttpServletRequest servReq, String gridSetId)
             throws GeoWebCacheException {
         this.sb = sb;
 
         String[] keys = {
-            "layers", "format", "srs", "bbox", "width", "height", "transparent", "bgcolor", "hints", "max_miss", "seeding"
+            "layers",
+            "format",
+            "srs",
+            "bbox",
+            "width",
+            "height",
+            "transparent",
+            "bgcolor",
+            "hints",
+            "max_miss",
+            "seeding"
         };
 
         Map<String, String> values =
@@ -359,9 +367,12 @@ public class WMSTileFuser {
 
         String layerName = values.get("layers");
         layer = tld.getTileLayer(layerName);
-        
+
         // use selected gridset
-        gridSubset = gridSetId == null ? layer.getGridSubsetForSRS(SRS.getSRS(values.get("srs"))) : layer.getGridSubset(gridSetId);
+        gridSubset =
+                gridSetId == null
+                        ? layer.getGridSubsetForSRS(SRS.getSRS(values.get("srs")))
+                        : layer.getGridSubset(gridSetId);
 
         outputFormat = (ImageMime) ImageMime.createFromFormat(values.get("format"));
 
@@ -508,8 +519,10 @@ public class WMSTileFuser {
 
         // Will control that req intersects src at all to avoid #497
         if (!reqBounds.intersects(srcBounds)) {
-            String msg = String.format("Request BBOX do not intersect with source: req=%s src=%s",
-                    reqBounds.toString(), srcBounds.toString());
+            String msg =
+                    String.format(
+                            "Request BBOX do not intersect with source: req=%s src=%s",
+                            reqBounds.toString(), srcBounds.toString());
             log.debug(msg);
 
             throw new OutsideCoverageException(msg);
@@ -717,25 +730,33 @@ public class WMSTileFuser {
                         singleTile = layer.getTile(tile);
 
                         if (singleTile == null) {
-                            log.warn("Failed getting tile, will retry: count=" + i + " layer="
-                                    + layer.getName());
+                            log.warn(
+                                    "Failed getting tile, will retry: count="
+                                            + i
+                                            + " layer="
+                                            + layer.getName());
                         }
                     } catch (Exception e) {
-                        log.warn("Failed getting tile, will retry: count=" + i + " layer="
-                                + layer.getName() + " msg="
-                                + (e.getMessage() == null && e.getCause() != null
-                                        ? e.getCause().getMessage() : e.getMessage()));
+                        log.warn(
+                                "Failed getting tile, will retry: count="
+                                        + i
+                                        + " layer="
+                                        + layer.getName()
+                                        + " msg="
+                                        + (e.getMessage() == null && e.getCause() != null
+                                                ? e.getCause().getMessage()
+                                                : e.getMessage()));
 
                         if (log.isDebugEnabled()) {
                             log.debug("Failed getting tile, will retry", e);
                         }
-
                     }
                 }
 
                 if (singleTile == null) {
-                    log.error("Was not able to get tile during tile stitching: layer="
-                            + layer.getName());
+                    log.error(
+                            "Was not able to get tile during tile stitching: layer="
+                                    + layer.getName());
 
                     continue;
                 }
@@ -839,8 +860,9 @@ public class WMSTileFuser {
         for (long gridy = starty; gridy <= srcRectangle[3]; gridy++) {
             long startx = srcRectangle[0];
             for (long gridx = startx; gridx <= srcRectangle[2]; gridx++) {
-                futures.add(EXECUTOR_SERVICE
-                        .submit(new CheckTileExistsTask(gridx, gridy, hit, miss, seeding)));
+                futures.add(
+                        EXECUTOR_SERVICE.submit(
+                                new CheckTileExistsTask(gridx, gridy, hit, miss, seeding)));
             }
         }
 
@@ -874,20 +896,14 @@ public class WMSTileFuser {
         private final boolean seeding;
 
         /**
-         *
-         * @param gridX
-         *            tile x position
-         * @param gridY
-         *            tile y position
-         * @param hit
-         *            counter for hit tiles
-         * @param miss
-         *            counter for miss tiles
-         * @param seeding
-         *            if missing tile should be seeded
+         * @param gridX tile x position
+         * @param gridY tile y position
+         * @param hit counter for hit tiles
+         * @param miss counter for miss tiles
+         * @param seeding if missing tile should be seeded
          */
-        public CheckTileExistsTask(long gridX, long gridY, AtomicInteger hit, AtomicInteger miss,
-                boolean seeding) {
+        public CheckTileExistsTask(
+                long gridX, long gridY, AtomicInteger hit, AtomicInteger miss, boolean seeding) {
             this.gridX = gridX;
             this.gridY = gridY;
             this.hit = hit;
@@ -897,10 +913,18 @@ public class WMSTileFuser {
 
         @Override
         public void run() {
-            long[] gridLoc = { gridX, gridY, srcIdx };
+            long[] gridLoc = {gridX, gridY, srcIdx};
 
-            ConveyorTile tile = new ConveyorTile(sb, layer.getName(), gridSubset.getName(), gridLoc,
-                    srcFormat, fullParameters, null, null);
+            ConveyorTile tile =
+                    new ConveyorTile(
+                            sb,
+                            layer.getName(),
+                            gridSubset.getName(),
+                            gridLoc,
+                            srcFormat,
+                            fullParameters,
+                            null,
+                            null);
 
             // Check whether this tile is to be rendered at all
             try {
@@ -928,7 +952,6 @@ public class WMSTileFuser {
                 }
             }
         }
-
     }
 
     protected void scaleRaster() {
@@ -1069,7 +1092,6 @@ public class WMSTileFuser {
      * Consumer for seeding missing tiles
      *
      * @author ez
-     *
      */
     private static class TilesConsumer implements Runnable {
 
@@ -1092,18 +1114,27 @@ public class WMSTileFuser {
                             singleTile = info.layer.getTile(info.tile);
 
                             if (singleTile == null) {
-                                log.warn("Failed creating tile in consumer, will retry: count=" + i
-                                        + " layer=" + info.layer.getName());
+                                log.warn(
+                                        "Failed creating tile in consumer, will retry: count="
+                                                + i
+                                                + " layer="
+                                                + info.layer.getName());
                             }
                         } catch (Exception e) {
-                            log.warn("Failed creating tile in consumer, will retry: count=" + i
-                                    + " layer=" + info.layer.getName() + " msg=" + e.getMessage());
+                            log.warn(
+                                    "Failed creating tile in consumer, will retry: count="
+                                            + i
+                                            + " layer="
+                                            + info.layer.getName()
+                                            + " msg="
+                                            + e.getMessage());
                         }
                     }
 
                     if (singleTile == null) {
-                        log.error("Was not able to create tile in consumer: layer="
-                                + info.layer.getName());
+                        log.error(
+                                "Was not able to create tile in consumer: layer="
+                                        + info.layer.getName());
 
                         continue;
                     }
@@ -1114,7 +1145,6 @@ public class WMSTileFuser {
                 }
             }
         }
-
     }
 
     private class TilesInfo {
@@ -1128,5 +1158,4 @@ public class WMSTileFuser {
             this.tile = tile;
         }
     }
-    
 }

@@ -63,8 +63,8 @@ public abstract class WMSSourceHelper {
 
         GridSubset gridSubset = layer.getGridSubset(tile.getGridSetId());
 
-        Map<String, String> wmsParams = layer.getWMSRequestTemplate(tile.getMimeType(),
-                WMSLayer.RequestType.MAP);
+        Map<String, String> wmsParams =
+                layer.getWMSRequestTemplate(tile.getMimeType(), WMSLayer.RequestType.MAP);
 
         wmsParams.put("FORMAT", tile.getMimeType().getMimeType());
         wmsParams.put("SRS", layer.backendSRSOverride(gridSubset.getSRS()));

@@ -19,7 +19,6 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.grid.GridSubset;
 import org.geowebcache.storage.TileRange;
@@ -116,7 +115,12 @@ class PagePyramid {
      * @param zoomStop
      * @param zoomStart
      */
-    public PagePyramid(final long[][] gridSubsetCoverages, int zoomStart, int zoomStop, BoundingBox bbox, int epsgId) {
+    public PagePyramid(
+            final long[][] gridSubsetCoverages,
+            int zoomStart,
+            int zoomStop,
+            BoundingBox bbox,
+            int epsgId) {
         this.gridSubsetCoverages = new TreeMap<Integer, long[]>();
         for (long[] coverage : gridSubsetCoverages) {
             this.gridSubsetCoverages.put(Integer.valueOf((int) coverage[4]), coverage);
@@ -283,8 +287,8 @@ class PagePyramid {
 
         long minTileX = coverageMinX + (long) pageX * numTilesPerPageX;
         long minTileY = coverageMinY + (long) pageY * numTilesPerPageY;
-        long maxTileX = minTileX + numTilesPerPageX - 1;// these are indexes, so rest one
-        long maxTileY = minTileY + numTilesPerPageY - 1;// same thing
+        long maxTileX = minTileX + numTilesPerPageX - 1; // these are indexes, so rest one
+        long maxTileY = minTileY + numTilesPerPageY - 1; // same thing
 
         double[] coords = bbox.getCoords();
 
@@ -303,7 +307,13 @@ class PagePyramid {
         double maxY = coords[3] + ((maxTileY - coverageMaxY) * diffH);
 
         // generate EWKT
-        String ewkt = new StringBuilder("SRID=").append(Integer.toString(epsgId)).append(";").append(new BoundingBox(minX, minY, maxX, maxY).toWkt()).toString();;
+        String ewkt =
+                new StringBuilder("SRID=")
+                        .append(Integer.toString(epsgId))
+                        .append(";")
+                        .append(new BoundingBox(minX, minY, maxX, maxY).toWkt())
+                        .toString();
+        ;
 
         return ewkt;
     }

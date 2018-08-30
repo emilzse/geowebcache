@@ -2,19 +2,17 @@ package org.geowebcache.config;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.geowebcache.layer.wms.WMSLayer;
-
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.geowebcache.layer.wms.WMSLayer;
 
 /**
  * Class for handling layers with EHCache
- * 
+ *
  * @author ez
  * @see Cache
  */
@@ -27,7 +25,6 @@ public class EhCacheManager {
     private Cache layerCache;
 
     private enum CACHES {
-
         LAYERS("layers");
 
         // name used in ehcache.xml
@@ -36,7 +33,6 @@ public class EhCacheManager {
         CACHES(final String cacheName) {
             this.cacheName = cacheName;
         }
-
     }
 
     public EhCacheManager() {
@@ -69,11 +65,12 @@ public class EhCacheManager {
 
     public void addLayer(WMSLayer layer) {
         if (layer != null) {
-            if (layerCache.getMemoryStoreSize() == layerCache.getCacheConfiguration()
-                    .getMaxElementsInMemory()) {
-                log.warn(String.format(
-                        "The limit for cache '%s' is exceeded, it is highly recommended that the limit is increased",
-                        layerCache.getName()));
+            if (layerCache.getMemoryStoreSize()
+                    == layerCache.getCacheConfiguration().getMaxElementsInMemory()) {
+                log.warn(
+                        String.format(
+                                "The limit for cache '%s' is exceeded, it is highly recommended that the limit is increased",
+                                layerCache.getName()));
             }
 
             log.info("Adding layer to cache: " + layer.getName());
@@ -115,7 +112,7 @@ public class EhCacheManager {
 
     /**
      * Checks if cache exists, if not creates it
-     * 
+     *
      * @param c
      */
     private Cache initCache(CACHES c) {
@@ -136,9 +133,10 @@ public class EhCacheManager {
         int limit = cache.getCacheConfiguration().getMaxElementsInMemory();
         // if limit is reached log it
         if (cache.getMemoryStoreSize() == limit) {
-            log.warn(String.format(
-                    "The limit for maxElementsInMemory for cache '%s' is exceeded, it is highly recommended that the limit is increased: limit=%d",
-                    cache.getName(), limit));
+            log.warn(
+                    String.format(
+                            "The limit for maxElementsInMemory for cache '%s' is exceeded, it is highly recommended that the limit is increased: limit=%d",
+                            cache.getName(), limit));
         }
 
         cache.put(el);
@@ -147,10 +145,17 @@ public class EhCacheManager {
     private void logInfo(Cache cache) {
         if (cache != null) {
             // cache.getCacheConfiguration().getMaxElementsInMemory()
-            log.info("Cache info: name= " + cache.getName() + " count=" + cache.getSize()
-                    + " objects=" + cache.getStatistics().getObjectCount() + " getMemoryStoreSize="
-                    + cache.getMemoryStoreSize() + " maxElementsInCache="
-                    + cache.getCacheConfiguration().getMaxElementsInMemory());
+            log.info(
+                    "Cache info: name= "
+                            + cache.getName()
+                            + " count="
+                            + cache.getSize()
+                            + " objects="
+                            + cache.getStatistics().getObjectCount()
+                            + " getMemoryStoreSize="
+                            + cache.getMemoryStoreSize()
+                            + " maxElementsInCache="
+                            + cache.getCacheConfiguration().getMaxElementsInMemory());
         }
     }
 
@@ -163,6 +168,4 @@ public class EhCacheManager {
     public void shutdown() {
         manager.shutdown();
     }
-
-
 }

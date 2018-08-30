@@ -65,7 +65,6 @@ import org.geowebcache.filter.request.WMSRasterFilter;
 import org.geowebcache.grid.GridSet;
 import org.geowebcache.grid.GridSetBroker;
 import org.geowebcache.io.GeoWebCacheXStream;
-import org.geowebcache.layer.AbstractTileLayer;
 import org.geowebcache.layer.ExpirationRule;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.layer.meta.ContactInformation;
@@ -79,7 +78,6 @@ import org.geowebcache.seed.SeedRequest;
 import org.geowebcache.seed.TruncateLayerRequest;
 import org.geowebcache.storage.DefaultStorageFinder;
 import org.geowebcache.util.ApplicationContextProvider;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.Assert;
@@ -97,8 +95,7 @@ import org.xml.sax.SAXException;
  * an {@link IllegalStateException}. This is set automatically by Spring through the use of {@link
  * Autowired}
  */
-public class XMLConfiguration
-        implements ConfigurationDispatcher {
+public class XMLConfiguration implements ConfigurationDispatcher {
 
     public static final String DEFAULT_CONFIGURATION_FILE_NAME = "geowebcache.xml";
 
@@ -671,7 +668,7 @@ public class XMLConfiguration
      * @throws GeoWebCacheException
      */
     private synchronized void addOrReplaceGridSet(final XMLGridSet gridSet)
-                    throws IllegalArgumentException {
+            throws IllegalArgumentException {
         final String gridsetName = gridSet.getName();
 
         List<XMLGridSet> xmlGridSets = getGwcConfig().getGridSets();
@@ -986,8 +983,8 @@ public class XMLConfiguration
         return Collections.unmodifiableList(getGwcConfig().getLayers());
     }
 
-    /** @see TileLayerConfiguration#getLayers() */
-    public Collection<TileLayer> getLayers() {
+    /** @see TileLayerConfiguration#getLayers(boolean) */
+    public Collection<TileLayer> getLayers(boolean activeOnly) {
         return Collections.unmodifiableList(getGwcConfig().getLayers());
     }
 
@@ -1505,7 +1502,7 @@ public class XMLConfiguration
 
     @Override
     public synchronized void modifyGridSet(GridSet gridSet)
-                    throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
+            throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
         validateGridSet(gridSet);
 
         GridSet old = getGridSetsInternal().get(gridSet.getName());
@@ -1528,7 +1525,7 @@ public class XMLConfiguration
 
     @Override
     public void renameGridSet(String oldName, String newName)
-                    throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
+            throws NoSuchElementException, IllegalArgumentException, UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
 

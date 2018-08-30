@@ -1,6 +1,8 @@
 package org.geowebcache.config;
 
 import com.thoughtworks.xstream.XStream;
+import java.util.ArrayList;
+import java.util.List;
 import org.geowebcache.GeoWebCacheExtensions;
 import org.geowebcache.config.legends.LegendsRawInfo;
 import org.geowebcache.config.legends.LegendsRawInfoConverter;
@@ -20,18 +22,18 @@ import org.geowebcache.seed.TruncateLayerRequest;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Interface for configuration of layers and gridsets
- * 
- * @author ez
  *
+ * @author ez
  */
 public interface ConfigurationDispatcher
-                extends TileLayerConfiguration, InitializingBean, DefaultingConfiguration, ServerConfiguration,
-                BlobStoreConfiguration, GridSetConfiguration {
+        extends TileLayerConfiguration,
+                InitializingBean,
+                DefaultingConfiguration,
+                ServerConfiguration,
+                BlobStoreConfiguration,
+                GridSetConfiguration {
 
     public static final String DEFAULT_CONFIGURATION_FILE_NAME = "geowebcache.xml";
 
@@ -40,10 +42,13 @@ public interface ConfigurationDispatcher
 
     String getConfigLocation() throws ConfigurationException;
 
-    XStream getConfiguredXStreamWithContext(XStream xs, ContextualConfigurationProvider.Context providerContext);
+    XStream getConfiguredXStreamWithContext(
+            XStream xs, ContextualConfigurationProvider.Context providerContext);
 
-    static XStream getConfiguredXStreamWithContext(XStream xs, WebApplicationContext context,
-                    ContextualConfigurationProvider.Context providerContext) {
+    static XStream getConfiguredXStreamWithContext(
+            XStream xs,
+            WebApplicationContext context,
+            ContextualConfigurationProvider.Context providerContext) {
 
         {
             // Allow any implementation of these extension points
@@ -55,7 +60,7 @@ public interface ConfigurationDispatcher
 
             // Allow anything that's part of GWC
             // TODO: replace this with a more narrow whitelist
-            xs.allowTypesByWildcard(new String[] { "org.geowebcache.**" });
+            xs.allowTypesByWildcard(new String[] {"org.geowebcache.**"});
         }
 
         xs.setMode(XStream.NO_REFERENCES);
@@ -129,14 +134,16 @@ public interface ConfigurationDispatcher
              * Look up XMLConfigurationProvider extension points and let them contribute to the
              * configuration
              */
-            List<XMLConfigurationProvider> configExtensions = GeoWebCacheExtensions
-                            .extensions(XMLConfigurationProvider.class, context);
+            List<XMLConfigurationProvider> configExtensions =
+                    GeoWebCacheExtensions.extensions(XMLConfigurationProvider.class, context);
             for (XMLConfigurationProvider extension : configExtensions) {
                 // Check if the provider is context dependent
-                if (extension instanceof ContextualConfigurationProvider &&
-                                // Check if the context is applicable for the provider
-                                (providerContext == null || !((ContextualConfigurationProvider) extension)
-                                                .appliesTo(providerContext))) {
+                if (extension instanceof ContextualConfigurationProvider
+                        &&
+                        // Check if the context is applicable for the provider
+                        (providerContext == null
+                                || !((ContextualConfigurationProvider) extension)
+                                        .appliesTo(providerContext))) {
                     // If so, try the next one
                     continue;
                 }
@@ -146,5 +153,4 @@ public interface ConfigurationDispatcher
         }
         return xs;
     }
-
 }

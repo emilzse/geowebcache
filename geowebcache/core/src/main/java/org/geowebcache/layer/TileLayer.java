@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
@@ -193,8 +192,7 @@ public abstract class TileLayer implements Info {
     /**
      * @param tile
      * @param tryCache
-     * @param cacheOnly
-     *            if seed only if tile already exists (GWCTask.TYPE#RENEW)
+     * @param cacheOnly if seed only if tile already exists (GWCTask.TYPE#RENEW)
      * @throws GeoWebCacheException
      * @throws IOException
      */
@@ -687,8 +685,12 @@ public abstract class TileLayer implements Info {
                                 tileProto.getStorageBroker().put(tile);
 
                                 // if GIF then reset blob from written file
-                                if (overrideResource && tileProto.getMimeType().getFormat()
-                                        .toLowerCase().startsWith("image/gif")) {
+                                if (overrideResource
+                                        && tileProto
+                                                .getMimeType()
+                                                .getFormat()
+                                                .toLowerCase()
+                                                .startsWith("image/gif")) {
                                     tileProto.setBlob(tile.getBlob());
                                 }
                             }

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -237,8 +236,11 @@ public abstract class AbstractTileLayer extends TileLayer {
      * @return
      */
     public Set<String> getGridSubsetss() {
-        return Collections.unmodifiableSet(this.gridSubsets.stream().map(XMLGridSubset::getGridSetName).collect(
-                        Collectors.toSet()));
+        return Collections.unmodifiableSet(
+                this.gridSubsets
+                        .stream()
+                        .map(XMLGridSubset::getGridSetName)
+                        .collect(Collectors.toSet()));
     }
 
     /**

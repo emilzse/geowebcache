@@ -99,7 +99,7 @@ public class TilePageCalculator {
         long[][] gridCoverage = pagePyramid.toGridCoverage(pageX, pageY, level);
         return gridCoverage;
     }
-    
+
     /**
      * @param page
      * @return ewkt (SRID=epsgId;WKT)
@@ -229,7 +229,13 @@ public class TilePageCalculator {
         int zoomStop = gridSubset.getZoomStop();
         final long[][] coverages = gridSubset.getCoverages();
 
-        PagePyramid pagePyramid = new PagePyramid(coverages, zoomStart, zoomStop, gridSubset.getOriginalExtent(), gridSubset.getSRS().getNumber());
+        PagePyramid pagePyramid =
+                new PagePyramid(
+                        coverages,
+                        zoomStart,
+                        zoomStop,
+                        gridSubset.getOriginalExtent(),
+                        gridSubset.getSRS().getNumber());
         return pagePyramid;
     }
 }

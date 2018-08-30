@@ -106,8 +106,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size) // Some stores have minimum block sizes and so have to pad this
-                    );
+                    geq(size), // Some stores have minimum block sizes and so have to pad this
+                    eq(0),
+                    eq(null),
+                    eq(null));
             EasyMock.expectLastCall();
         }
 
@@ -171,7 +173,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size1));
+                    geq(size1),
+                    eq(0),
+                    eq(null),
+                    eq(null));
             listener.tileStored(
                     eq("testLayer2"),
                     eq("testGridSet"),
@@ -180,7 +185,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size2));
+                    geq(size2),
+                    eq(0),
+                    eq(null),
+                    eq(null));
         }
 
         EasyMock.replay(listener);
@@ -241,7 +249,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    captureLong(sizeCapture));
+                    captureLong(sizeCapture),
+                    eq(0),
+                    eq(null),
+                    eq(null));
             EasyMock.expectLastCall();
         }
 
@@ -308,7 +319,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    captureLong(sizeCapture));
+                    captureLong(sizeCapture),
+                    eq(0),
+                    eq(null),
+                    eq(null));
             EasyMock.expectLastCall();
         }
         EasyMock.replay(listener);
@@ -399,7 +413,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    captureLong(sizeCapture1));
+                    captureLong(sizeCapture1),
+                    eq(0),
+                    eq(null),
+                    eq(null));
             EasyMock.expectLastCall();
             listener.tileStored(
                     eq("testLayer"),
@@ -409,7 +426,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    captureLong(sizeCapture2));
+                    captureLong(sizeCapture2),
+                    eq(0),
+                    eq(null),
+                    eq(null));
             EasyMock.expectLastCall();
         }
 
@@ -497,7 +517,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size1));
+                    geq(size1),
+                    eq(0),
+                    eq(null),
+                    eq(null));
             EasyMock.expectLastCall();
         }
 
@@ -646,7 +669,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    captureLong(sizeCapture1));
+                    captureLong(sizeCapture1),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params1)));
             EasyMock.expectLastCall();
             listener.tileStored(
                     eq("testLayer"),
@@ -656,7 +682,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    captureLong(sizeCapture2));
+                    captureLong(sizeCapture2),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params2)));
             EasyMock.expectLastCall();
         }
 
@@ -883,7 +912,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size1));
+                    geq(size1),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params1)));
             listener.tileStored(
                     eq("testLayer"),
                     eq("testGridSet"),
@@ -892,7 +924,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size2));
+                    geq(size2),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params2)));
         }
 
         EasyMock.replay(listener);
@@ -1029,7 +1064,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size1));
+                    geq(size1),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params1)));
             listener.tileStored(
                     eq("testLayer"),
                     eq("testGridSet"),
@@ -1038,7 +1076,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    geq(size2));
+                    geq(size2),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params2)));
         }
 
         EasyMock.replay(listener);
@@ -1167,7 +1208,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    anyLong());
+                    anyLong(),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params1)));
             listener.tileStored(
                     eq(layerName),
                     eq(gridset),
@@ -1176,7 +1220,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    anyLong());
+                    anyLong(),
+                    eq(0),
+                    eq(null),
+                    eq(ParametersUtils.getLegacyParametersKvp(params2)));
             listener.tileStored(
                     eq(layerName),
                     eq(gridset),
@@ -1185,7 +1232,10 @@ public abstract class AbstractBlobStoreTest<TestClass extends BlobStore> {
                     eq(0L),
                     eq(0L),
                     eq(0),
-                    anyLong());
+                    anyLong(),
+                    eq(0),
+                    eq(null),
+                    eq(null));
         }
 
         EasyMock.replay(listener);

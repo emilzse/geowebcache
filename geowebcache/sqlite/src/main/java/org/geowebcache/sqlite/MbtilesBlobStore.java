@@ -860,5 +860,4 @@ public final class MbtilesBlobStore extends SqliteBlobStore {
 
         return true;
     }
-
 }

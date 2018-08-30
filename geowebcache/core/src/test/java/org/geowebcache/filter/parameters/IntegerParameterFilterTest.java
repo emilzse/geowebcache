@@ -47,8 +47,11 @@ public class IntegerParameterFilterTest {
         filter.setThreshold(1);
 
         xs = new GeoWebCacheXStream();
-        xs = ConfigurationDispatcher.getConfiguredXStreamWithContext(xs,
-                new StaticWebApplicationContext(), (ContextualConfigurationProvider.Context) null);
+        xs =
+                ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                        xs,
+                        new StaticWebApplicationContext(),
+                        (ContextualConfigurationProvider.Context) null);
     }
 
     @Test

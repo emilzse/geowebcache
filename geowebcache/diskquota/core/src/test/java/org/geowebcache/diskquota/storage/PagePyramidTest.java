@@ -46,7 +46,7 @@ public class PagePyramidTest extends TestCase {
                     {0, 0, 101, 101, 2}, // 102x102 tiles
                     {1000, 1000, 3000, 3000, 3} // 2001x2001 tiles
                 };
-        pyramid = new PagePyramid(coverages, 0, 3);
+        pyramid = new PagePyramid(coverages, 0, 3, null, -1);
     }
 
     public void testCalculatePageInfo() {
@@ -54,7 +54,13 @@ public class PagePyramidTest extends TestCase {
         long[][] gridSubsetCoverages = gridSubSet.getCoverages();
         int zoomStart = gridSubSet.getZoomStart();
         int zoomStop = gridSubSet.getZoomStop();
-        PagePyramid pp = new PagePyramid(gridSubsetCoverages, zoomStart, zoomStop, gridSubSet.getOriginalExtent(), 3857);
+        PagePyramid pp =
+                new PagePyramid(
+                        gridSubsetCoverages,
+                        zoomStart,
+                        zoomStop,
+                        gridSubSet.getOriginalExtent(),
+                        3857);
 
         printPyramid(zoomStart, zoomStop, pp);
     }

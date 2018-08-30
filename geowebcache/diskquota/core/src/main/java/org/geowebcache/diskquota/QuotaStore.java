@@ -112,33 +112,32 @@ public interface QuotaStore {
      * @param layerName
      * @param bbox
      * @param epsgId EPSG of bbox
-     * @param zoomLevel
-     *            from
+     * @param zoomLevel from
      */
-    public abstract void invalidateTilePages(String layerName, BoundingBox bbox, int epsgId, int zoomLevel);
+    public abstract void invalidateTilePages(
+            String layerName, BoundingBox bbox, int epsgId, int zoomLevel);
 
-    /**
-     * @return get invalidated tile pages
-     */
-    public abstract List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted, Integer maxPageZ);
+    /** @return get invalidated tile pages */
+    public abstract List<TilePage> getInvalidatedTilePages(
+            String layerName, boolean deleted, Integer maxPageZ);
 
     /**
      * Mark invalidated/deleted as validated
-     * 
+     *
      * @param layerName
      */
     public abstract void validateTilePages(String layerName, Integer maxPageZ);
 
     /**
      * Mark invalidated as deleted
-     * 
+     *
      * @param layerName
      */
     public abstract void setDeletedInvalidatedTilePages(String layerName);
 
     /**
      * Deletes TilePage
-     * 
+     *
      * @param page
      * @throws InterruptedException
      */

@@ -663,7 +663,7 @@ public class CompositeBlobStore implements BlobStore, BlobStoreConfigurationList
         }
     }
 
-	@Override
+    @Override
     public boolean delete(List<TileObject> tiles) throws StorageException {
         for (TileObject tile : tiles) {
             delete(tile);

@@ -61,8 +61,14 @@ public class TilePage {
         this.key = sb.toString();
     }
 
-    public TilePage(String tileSetId, int pageX, int pageY, int zoomLevel, int creationTimeMinutes,
-            String parametersKvp, long[] pageCoverage) {
+    public TilePage(
+            String tileSetId,
+            int pageX,
+            int pageY,
+            int zoomLevel,
+            int creationTimeMinutes,
+            String parametersKvp,
+            long[] pageCoverage) {
         this(tileSetId, pageX, pageY, zoomLevel, creationTimeMinutes);
 
         this.parametersKvp = parametersKvp;

@@ -7,10 +7,9 @@ public class InvalidateConfig {
     public BoundingBox bounds;
     public int epsgId;
     public int scaleLevel;
-    
-    InvalidateConfig() {
-    }
-    
+
+    InvalidateConfig() {}
+
     public InvalidateConfig(BoundingBox bbox, int epsgId, int scaleLevel) {
         super();
         this.bounds = bbox;
@@ -20,7 +19,13 @@ public class InvalidateConfig {
 
     @Override
     public String toString() {
-        return new StringBuilder().append("CRS=EPSG:").append(Integer.toString(epsgId)).append(", scaleLevel=").append(Integer.toString(scaleLevel)).append(", BBOX=").append(bounds == null ? "" : bounds.toString()).toString();
+        return new StringBuilder()
+                .append("CRS=EPSG:")
+                .append(Integer.toString(epsgId))
+                .append(", scaleLevel=")
+                .append(Integer.toString(scaleLevel))
+                .append(", BBOX=")
+                .append(bounds == null ? "" : bounds.toString())
+                .toString();
     }
-     
 }

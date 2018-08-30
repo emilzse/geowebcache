@@ -44,8 +44,7 @@ import org.junit.rules.TemporaryFolder;
 
 public class XMLConfigurationLayerConformanceTest extends LayerConfigurationTest {
 
-    private static final Log log = LogFactory
-                    .getLog(XMLConfigurationLayerConformanceTest.class);
+    private static final Log log = LogFactory.getLog(XMLConfigurationLayerConformanceTest.class);
 
     public @Rule MockWepAppContextRule extensions = new MockWepAppContextRule();
     public @Rule MockWepAppContextRule extensions2 = new MockWepAppContextRule(false);

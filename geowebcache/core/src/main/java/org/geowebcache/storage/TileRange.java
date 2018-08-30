@@ -183,10 +183,10 @@ public class TileRange {
         }
         return zlevelBounds;
     }
-    
+
     /**
      * helper for counting the number of tiles
-     * 
+     *
      * @param tr
      * @return -1 if too many
      */
@@ -216,10 +216,18 @@ public class TileRange {
 
         return count;
     }
-    
+
     @Override
     public String toString() {
-        return new StringBuilder(getClass().getSimpleName()).append('[').append(layerName).append(",").append(gridSetId).append(rangeBounds).append(",").append(parametersId).append(']')
+        return new StringBuilder(getClass().getSimpleName())
+                .append('[')
+                .append(layerName)
+                .append(",")
+                .append(gridSetId)
+                .append(rangeBounds)
+                .append(",")
+                .append(parametersId)
+                .append(']')
                 .toString();
     }
 }

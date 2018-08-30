@@ -37,8 +37,7 @@ public interface BlobStoreListener {
      * @param z Z ordinate of the {@link TileObject#getXYZ() grid location} for the stored tile
      * @param blobSize the actual storage size the blob uses in the blob store's backend storage;
      *     which may or may not equal to the encoded tile size, depending on the storage mechanism
-     *        which may or may not equal to the encoded tile size, depending on the storage
-     *        mechanism
+     *     which may or may not equal to the encoded tile size, depending on the storage mechanism
      * @param epsgId SRS number
      * @param bbox bounding box of tile
      */

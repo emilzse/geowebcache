@@ -85,7 +85,8 @@ public class DiskQuotaController {
     }
 
     @RequestMapping(value = "/diskquota/{layer}", method = RequestMethod.GET)
-    public ResponseEntity<?> doGet(HttpServletRequest request, @PathVariable("layer") String layer) {
+    public ResponseEntity<?> doGet(
+            HttpServletRequest request, @PathVariable("layer") String layer) {
         try {
             Quota usedQuota = monitor.getUsedQuotaByLayerName(layer);
             if (!request.getPathInfo().contains("json")) {
@@ -94,12 +95,14 @@ public class DiskQuotaController {
                 try {
                     return getJsonRepresentation(usedQuota);
                 } catch (JSONException e) {
-                    return new ResponseEntity<Object>("Caught JSON Exception.", HttpStatus.INTERNAL_SERVER_ERROR);
+                    return new ResponseEntity<Object>(
+                            "Caught JSON Exception.", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
 
         } catch (InterruptedException e1) {
-            return new ResponseEntity<Object>("Failed to read layer quota : " + layer, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<Object>(
+                    "Failed to read layer quota : " + layer, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -205,7 +208,7 @@ public class DiskQuotaController {
         JSONObject rep = null;
         try {
             XStream xs =
-                            ConfigurationDispatcher.getConfiguredXStreamWithContext(
+                    ConfigurationDispatcher.getConfiguredXStreamWithContext(
                             new GeoWebCacheXStream(new JsonHierarchicalStreamDriver()),
                             context,
                             Context.REST);
@@ -241,8 +244,10 @@ public class DiskQuotaController {
     private ResponseEntity<?> getJsonRepresentation(Quota config) throws JSONException {
         JSONObject rep = null;
         try {
-            XStream xs = xmlConfig.getConfiguredXStreamWithContext(new GeoWebCacheXStream(
-                    new JsonHierarchicalStreamDriver()), Context.REST);
+            XStream xs =
+                    xmlConfig.getConfiguredXStreamWithContext(
+                            new GeoWebCacheXStream(new JsonHierarchicalStreamDriver()),
+                            Context.REST);
             JSONObject obj = new JSONObject(xs.toXML(config));
             rep = obj;
         } catch (JSONException jse) {

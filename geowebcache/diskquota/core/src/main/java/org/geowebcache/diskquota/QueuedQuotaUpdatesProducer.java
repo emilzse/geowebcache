@@ -94,7 +94,16 @@ class QueuedQuotaUpdatesProducer implements BlobStoreListener {
             return;
         }
 
-        quotaUpdate(layerName, gridSetId, blobFormat, parametersId, blobSize, new long[] {x, y, z}, epsgId, bbox, parametersKvp);
+        quotaUpdate(
+                layerName,
+                gridSetId,
+                blobFormat,
+                parametersId,
+                blobSize,
+                new long[] {x, y, z},
+                epsgId,
+                bbox,
+                parametersKvp);
     }
 
     /** @see org.geowebcache.storage.BlobStoreListener#tileDeleted */
@@ -141,8 +150,8 @@ class QueuedQuotaUpdatesProducer implements BlobStoreListener {
         }
 
         long[] tileIndex = new long[] {x, y, z};
-        quotaUpdate(layerName, gridSetId, blobFormat, parametersId, delta, tileIndex, -1, null,
-                        null);
+        quotaUpdate(
+                layerName, gridSetId, blobFormat, parametersId, delta, tileIndex, -1, null, null);
     }
 
     /**
@@ -197,7 +206,16 @@ class QueuedQuotaUpdatesProducer implements BlobStoreListener {
             return;
         }
         QuotaUpdate payload =
-                new QuotaUpdate(layerName, gridSetId, blobFormat, parametersId, amount, tileIndex, epsgId, bbox, parametersKvp);
+                new QuotaUpdate(
+                        layerName,
+                        gridSetId,
+                        blobFormat,
+                        parametersId,
+                        amount,
+                        tileIndex,
+                        epsgId,
+                        bbox,
+                        parametersKvp);
         try {
             if (updateOfferTimeoutSeconds <= 0) {
                 this.queuedUpdates.put(payload);

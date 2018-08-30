@@ -69,7 +69,6 @@ public class UsageStatsMonitor {
 
         usageStatsProducer = new QueuedUsageStatsProducer(sharedQueue);
 
-
         // Will be added to layer when used, see DiskQuotaMonitor#getLayerListener
         // Iterable<TileLayer> allLayers = tileLayerDispatcher.getLayerList();
         // for (TileLayer layer : allLayers) {
@@ -149,5 +148,4 @@ public class UsageStatsMonitor {
     public QueuedUsageStatsProducer getUsageStatsProducer() {
         return usageStatsProducer;
     }
-
 }

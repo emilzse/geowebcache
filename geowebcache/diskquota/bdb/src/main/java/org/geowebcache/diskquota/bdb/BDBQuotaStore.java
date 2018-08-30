@@ -937,7 +937,8 @@ public class BDBQuotaStore implements QuotaStore {
     }
 
     @Override
-    public List<TilePage> getInvalidatedTilePages(String layerName, boolean deleted, Integer maxPageZ) {
+    public List<TilePage> getInvalidatedTilePages(
+            String layerName, boolean deleted, Integer maxPageZ) {
         return null;
     }
 
@@ -950,5 +951,4 @@ public class BDBQuotaStore implements QuotaStore {
     public void deleteTilePage(TilePage page) throws InterruptedException {
         // TODO Auto-generated method stub
     }
-
 }
