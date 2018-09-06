@@ -43,8 +43,6 @@ public class ValidateController {
      *
      * @param req
      * @param layer
-     * @param maxZoomLevel max zoom level to validate (important if big extent on low zoom levels
-     *     where tile pages can include huge amount of tiles)
      * @return
      */
     @RequestMapping(value = "/validate/{layer}/{jobId}", method = RequestMethod.GET)

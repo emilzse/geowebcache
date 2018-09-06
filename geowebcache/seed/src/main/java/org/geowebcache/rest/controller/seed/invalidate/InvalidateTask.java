@@ -646,10 +646,7 @@ class InvalidateTask extends GWCTask {
 
     private PGConnection getPGConnection(Connection conFromPool) throws SQLException {
         try {
-            Class[] parms = null;
-            Method method = (conFromPool.getClass()).getMethod("getUnderlyingConnection", parms);
-
-            return (PGConnection) method.invoke(conFromPool, parms);
+            return conFromPool.unwrap(PGConnection.class);
         } catch (Exception e) {
             throw new SQLException(e.getMessage());
         }
