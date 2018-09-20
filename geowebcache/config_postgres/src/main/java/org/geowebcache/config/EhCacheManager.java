@@ -1,6 +1,7 @@
 package org.geowebcache.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheException;
@@ -20,28 +21,53 @@ public class EhCacheManager {
 
     private static Log log = LogFactory.getLog(org.geowebcache.config.EhCacheManager.class);
 
+    private static final Object locker = new Object();
+
+    private static EhCacheManager instance;
+
     private CacheManager manager;
 
     private Cache layerCache;
 
-    private enum CACHES {
-        LAYERS("layers");
+    private boolean enabled;
 
-        // name used in ehcache.xml
-        public final String cacheName;
-
-        CACHES(final String cacheName) {
-            this.cacheName = cacheName;
-        }
-    }
-
-    public EhCacheManager() {
+    private EhCacheManager() {
         manager = CacheManager.create();
+
+        enabled = true;
 
         // init all caches
         layerCache = initCache(CACHES.LAYERS);
 
         log.info("Initialized layer cache");
+    }
+
+    public static EhCacheManager getInstance() {
+        if (instance == null) {
+            synchronized (locker) {
+                if (instance == null) {
+                    instance = new EhCacheManager();
+                }
+            }
+        }
+
+        return instance;
+    }
+
+    public void addLayer(WMSLayer layer) {
+        if (layer != null && enabled) {
+            if (layerCache.getMemoryStoreSize()
+                    == layerCache.getCacheConfiguration().getMaxElementsInMemory()) {
+                log.warn(
+                        String.format(
+                                "The limit for cache '%s' is exceeded, it is highly recommended that the limit is increased",
+                                layerCache.getName()));
+            }
+
+            log.info("Adding layer to cache: " + layer.getName());
+
+            put(layerCache, new Element(layer.getName(), layer));
+        }
     }
 
     public void clearAll() {
@@ -63,24 +89,14 @@ public class EhCacheManager {
         logInfo(cache);
     }
 
-    public void addLayer(WMSLayer layer) {
-        if (layer != null) {
-            if (layerCache.getMemoryStoreSize()
-                    == layerCache.getCacheConfiguration().getMaxElementsInMemory()) {
-                log.warn(
-                        String.format(
-                                "The limit for cache '%s' is exceeded, it is highly recommended that the limit is increased",
-                                layerCache.getName()));
-            }
-
-            log.info("Adding layer to cache: " + layer.getName());
-
-            put(layerCache, new Element(layer.getName(), layer));
-        }
-    }
-
     public List<WMSLayer> getLayers() {
-        List<WMSLayer> list = new ArrayList<WMSLayer>();
+        log.info("Enabled LAYERS =  " + enabled);
+
+        if (!enabled) {
+            return Collections.emptyList();
+        }
+
+        List<WMSLayer> list = new ArrayList<>();
 
         for (Object key : layerCache.getKeys()) {
             Element e = layerCache.get(key);
@@ -95,7 +111,7 @@ public class EhCacheManager {
     }
 
     public WMSLayer getLayer(String layerName) {
-        if (layerName == null) {
+        if (layerName == null || !enabled) {
             return null;
         }
 
@@ -105,8 +121,16 @@ public class EhCacheManager {
     }
 
     public void removeLayer(String layerName) {
-        if (layerName != null) {
+        if (layerName != null && enabled) {
             layerCache.remove(layerName);
+        }
+    }
+
+    public void shutdown() {
+        if (enabled) {
+            log.info("Will shutdown manager");
+            enabled = false;
+            manager.shutdown();
         }
     }
 
@@ -165,7 +189,14 @@ public class EhCacheManager {
         }
     }
 
-    public void shutdown() {
-        manager.shutdown();
+    private enum CACHES {
+        LAYERS("layers");
+
+        // name used in ehcache.xml
+        public final String cacheName;
+
+        CACHES(final String cacheName) {
+            this.cacheName = cacheName;
+        }
     }
 }

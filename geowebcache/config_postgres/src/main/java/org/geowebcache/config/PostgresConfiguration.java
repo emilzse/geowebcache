@@ -201,7 +201,7 @@ public class PostgresConfiguration implements ConfigurationDispatcher {
         this.context = appCtx == null ? null : appCtx.getApplicationContext();
         this.resourceProvider = inFac;
 
-        this.cacheManager = new EhCacheManager();
+        this.cacheManager = EhCacheManager.getInstance();
     }
 
     /**
